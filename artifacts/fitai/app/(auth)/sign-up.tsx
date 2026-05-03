@@ -25,6 +25,7 @@ export default function SignUpScreen() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [code, setCode] = useState("");
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -45,6 +46,7 @@ export default function SignUpScreen() {
     await signUp.create({
       emailAddress: email.trim(),
       password,
+      unsafeMetadata: { username: username.trim() },
     });
     await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
     await signUp.verifications.sendEmailCode();
@@ -104,6 +106,7 @@ export default function SignUpScreen() {
 
   const emailError = errors?.fields?.emailAddress?.message;
   const passwordError = errors?.fields?.password?.message;
+  const usernameError = errors?.fields?.username?.message;
   const codeError = errors?.fields?.code?.message;
   const globalError = errors?.global?.[0]?.message;
 
@@ -219,6 +222,22 @@ export default function SignUpScreen() {
 
         <View style={styles.form}>
           <View style={styles.field}>
+            <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Username</Text>
+            <View style={[styles.inputWrap, { backgroundColor: "transparent", borderColor: usernameError ? "#FF4B4B" : colors.border }]}>
+              <Ionicons name="person-outline" size={16} color={colors.mutedForeground} style={styles.inputIcon} />
+              <TextInput
+                style={[styles.inputField, { color: colors.foreground }]}
+                placeholder="your_username"
+                placeholderTextColor={colors.mutedForeground}
+                value={username}
+                onChangeText={setUsername}
+                autoCapitalize="none"
+              />
+            </View>
+            {!!usernameError && <Text style={styles.fieldError}>{usernameError}</Text>}
+          </View>
+
+          <View style={styles.field}>
             <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Email</Text>
             <View style={[styles.inputWrap, { backgroundColor: "transparent", borderColor: emailError ? "#FF4B4B" : colors.border }]}>
               <Ionicons name="mail-outline" size={16} color={colors.mutedForeground} style={styles.inputIcon} />
@@ -264,8 +283,8 @@ export default function SignUpScreen() {
 
         <TouchableOpacity
           onPress={handleSignUp}
-          disabled={!email || !password || fetchStatus === "fetching"}
-          style={[styles.primaryBtn, { opacity: (!email || !password) ? 0.6 : 1 }]}
+          disabled={!email || !password || !username || fetchStatus === "fetching"}
+          style={[styles.primaryBtn, { opacity: (!email || !password || !username) ? 0.6 : 1 }]}
         >
           <LinearGradient colors={["#FFFFFF", "#E8E8E8"]} style={styles.primaryBtnGrad}>
             {fetchStatus === "fetching"
