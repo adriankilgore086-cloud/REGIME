@@ -63,10 +63,6 @@ export default function WelcomeScreen() {
     return () => { if (Platform.OS === "ios") void WebBrowser.coolDownAsync(); };
   }, []);
 
-  useEffect(() => {
-    signIn.reset();
-  }, [signIn]);
-
   const handleLogin = async () => {
     signIn.reset();
     const { error } = await signIn.password({ emailAddress: email, password });
