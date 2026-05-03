@@ -197,7 +197,7 @@ export default function SignInScreen() {
         <Text style={[styles.title, { color: colors.foreground }]}>Welcome back</Text>
         <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Sign in to continue your journey</Text>
 
-        <TouchableOpacity onPress={handleGoogle} disabled={googleLoading} style={styles.googleBtn}>
+        <TouchableOpacity onPress={handleGoogle} disabled={googleLoading} style={styles.socialBtn}>
           {googleLoading
             ? <ActivityIndicator size="small" color="#F5F5F5" />
             : <>
@@ -207,7 +207,7 @@ export default function SignInScreen() {
           }
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={handleApple} disabled={appleLoading} style={styles.appleBtn}>
+        <TouchableOpacity onPress={handleApple} disabled={appleLoading} style={styles.socialBtn}>
           {appleLoading
             ? <ActivityIndicator size="small" color="#F5F5F5" />
             : <>
@@ -322,8 +322,7 @@ const styles = StyleSheet.create({
   appName: { fontSize: 34, fontFamily: "Inter_700Bold" },
   title: { fontSize: 30, fontFamily: "Inter_700Bold", letterSpacing: -0.8, marginBottom: 6 },
   subtitle: { fontSize: 16, fontFamily: "Inter_400Regular", marginBottom: 28 },
-  googleBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, borderRadius: 16, borderWidth: 1, paddingVertical: 14, marginBottom: 12, backgroundColor: "#111111", borderColor: "#2E2E2E" },
-  appleBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, borderRadius: 16, borderWidth: 1, paddingVertical: 14, marginBottom: 20, backgroundColor: "#000000", borderColor: "#000000" },
+  socialBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, borderRadius: 999, borderWidth: 1, paddingVertical: 15, marginBottom: 14, backgroundColor: "#171717", borderColor: "#2A2A2A" },
   googleText: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
   dividerRow: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 20 },
   divider: { flex: 1, height: 1 },
