@@ -257,6 +257,8 @@ export default function CalendarScreen() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [showYearView, setShowYearView] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [fabDateSelection, setFabDateSelection] = useState(new Date().toISOString().split("T")[0]);
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
   const weekDates = getWeekDates();
@@ -274,6 +276,17 @@ export default function CalendarScreen() {
   const handleAddWorkout = async (workoutId: string) => {
     await scheduleWorkout(workoutId, selectedDate);
     setShowAddModal(false);
+  };
+
+  const handleFabPress = () => {
+    setShowDatePicker(true);
+  };
+
+  const handleDateSelected = (date: string) => {
+    setFabDateSelection(date);
+    setShowDatePicker(false);
+    setSelectedDate(date);
+    setShowAddModal(true);
   };
 
   return (
@@ -495,6 +508,39 @@ export default function CalendarScreen() {
         </View>
       </Modal>
 
+      {/* Date Picker Modal */}
+      <Modal visible={showDatePicker} transparent animationType="slide" onRequestClose={() => setShowDatePicker(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
+            <Text style={[styles.modalTitle, { color: colors.foreground }]}>Select Date</Text>
+            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 400 }}>
+              {Array.from({ length: 30 }).map((_, i) => {
+                const d = new Date();
+                d.setDate(d.getDate() + i);
+                const iso = d.toISOString().split("T")[0];
+                const dateLabel = d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+                const isToday = iso === new Date().toISOString().split("T")[0];
+                return (
+                  <TouchableOpacity
+                    key={iso}
+                    onPress={() => handleDateSelected(iso)}
+                    style={[styles.datePickerRow, { backgroundColor: isToday ? colors.primary + "20" : "transparent", borderColor: colors.border }]}
+                  >
+                    <Text style={[styles.datePickerText, { color: colors.foreground, fontWeight: isToday ? "600" : "400" }]}>
+                      {dateLabel}
+                    </Text>
+                    {isToday && <Text style={[styles.todayBadge, { color: colors.primary }]}>Today</Text>}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+            <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+              <Text style={[styles.cancelText, { color: colors.mutedForeground }]}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <Modal visible={showAddModal} transparent animationType="slide" onRequestClose={() => setShowAddModal(false)}>
         <View style={styles.modalOverlay}>
           <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
@@ -517,6 +563,14 @@ export default function CalendarScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Floating Action Button */}
+      <TouchableOpacity
+        onPress={handleFabPress}
+        style={[styles.fab, { backgroundColor: "#0D0D0D" }]}
+      >
+        <Ionicons name="add" size={28} color="#FFFFFF" />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -591,5 +645,9 @@ const styles = StyleSheet.create({
   modalWorkoutRow: { paddingVertical: 12, borderBottomWidth: 1, gap: 3 },
   modalWorkoutName: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
   modalWorkoutMeta: { fontSize: 12, fontFamily: "Inter_400Regular" },
+  datePickerRow: { paddingVertical: 14, paddingHorizontal: 16, borderBottomWidth: 1, flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderRadius: 12, marginBottom: 6 },
+  datePickerText: { fontSize: 14, fontFamily: "Inter_500Medium" },
+  todayBadge: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
   cancelText: { textAlign: "center", fontSize: 14, fontFamily: "Inter_400Regular" },
+  fab: { position: "absolute", bottom: 24, right: 20, width: 56, height: 56, borderRadius: 28, alignItems: "center", justifyContent: "center", elevation: 6, shadowColor: "#000", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 4 },
 });
