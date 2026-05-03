@@ -32,6 +32,7 @@ export function WorkoutSwipeCard({ workout, scheduledId, onComplete, onSkip, onP
   const translateX = useRef(new Animated.Value(0)).current;
   const rotate = translateX.interpolate({ inputRange: [-width, 0, width], outputRange: ['-10deg', '0deg', '10deg'] });
   const [swiping, setSwiping] = useState<'left' | 'right' | null>(null);
+  const swipingRef = useRef<'left' | 'right' | null>(null);
   const categoryColor = CATEGORY_COLORS[workout.category];
 
   const panResponder = useRef(PanResponder.create({
@@ -40,13 +41,16 @@ export function WorkoutSwipeCard({ workout, scheduledId, onComplete, onSkip, onP
     onPanResponderGrant: () => {},
     onPanResponderMove: (_, gs) => {
       translateX.setValue(gs.dx);
-      if (gs.dx > 50 && swiping !== 'right') {
+      if (gs.dx > 50 && swipingRef.current !== 'right') {
+        swipingRef.current = 'right';
         setSwiping('right');
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      } else if (gs.dx < -50 && swiping !== 'left') {
+      } else if (gs.dx < -50 && swipingRef.current !== 'left') {
+        swipingRef.current = 'left';
         setSwiping('left');
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       } else if (Math.abs(gs.dx) < 50) {
+        swipingRef.current = null;
         setSwiping(null);
       }
     },

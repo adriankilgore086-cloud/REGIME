@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import {
   View, TouchableOpacity, StyleSheet, Platform, Text,
 } from 'react-native';
@@ -35,7 +35,7 @@ function TabIcon({ routeName, isFocused, color }: { routeName: string; isFocused
   }
 }
 
-function AnimatedTab({
+const AnimatedTab = memo(function AnimatedTab({
   route, isFocused, onPress, isCenter,
 }: {
   route: { name: string; key: string };
@@ -99,7 +99,7 @@ function AnimatedTab({
       </TouchableOpacity>
     </Animated.View>
   );
-}
+});
 
 export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();

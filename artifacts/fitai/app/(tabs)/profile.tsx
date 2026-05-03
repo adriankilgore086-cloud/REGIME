@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo, memo } from "react";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Platform, Alert, Image, TextInput, KeyboardAvoidingView,
@@ -68,7 +68,7 @@ const medallStyles = StyleSheet.create({
   text: { fontSize: 12, fontFamily: "Inter_700Bold" },
 });
 
-function PostCard({ post, myUserId, myName, myAvatar, myBadge }: {
+const PostCard = memo(function PostCard({ post, myUserId, myName, myAvatar, myBadge }: {
   post: SocialPost;
   myUserId: string;
   myName: string;
@@ -76,13 +76,12 @@ function PostCard({ post, myUserId, myName, myAvatar, myBadge }: {
   myBadge: string;
 }) {
   const colors = useColors();
-  const { toggleReaction, addComment, deletePost } = useSocial();
+  const { toggleReaction, addComment, deletePost, addReply } = useSocial();
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
   const meta = TYPE_META[post.type] ?? TYPE_META.text;
-  const { addReply } = useSocial();
   const topLevelComments = post.comments.filter((c) => !c.parentId);
   const repliesByParent = post.comments.filter((c) => c.parentId);
 
@@ -269,7 +268,7 @@ function PostCard({ post, myUserId, myName, myAvatar, myBadge }: {
       )}
     </View>
   );
-}
+});
 
 const pcStyles = StyleSheet.create({
   card: { borderRadius: 20, borderWidth: 1, padding: 16, marginBottom: 12, overflow: "hidden" },
@@ -330,7 +329,10 @@ export default function ProfileScreen() {
 
   const myUserId = "me";
   const myAvatar = userProfile.name.charAt(0).toUpperCase();
-  const filteredPosts = posts.filter((p) => feedFilter === "global" ? true : p.audience === "friends" || p.userId === myUserId);
+  const filteredPosts = useMemo(
+    () => posts.filter((p) => feedFilter === "global" ? true : p.audience === "friends" || p.userId === myUserId),
+    [posts, feedFilter, myUserId]
+  );
 
   const handleSignOut = () => {
     Alert.alert("Sign Out", "Are you sure you want to sign out?", [
@@ -339,12 +341,15 @@ export default function ProfileScreen() {
     ]);
   };
 
-  const earnedSet = new Set(earnedAchievements.map((a) => a.id));
-  const earnedBadges = ACHIEVEMENTS.filter((a) => earnedSet.has(a.id));
-  const lockedBadges = ACHIEVEMENTS.filter((a) => !earnedSet.has(a.id)).slice(0, 4);
+  const earnedSet = useMemo(() => new Set(earnedAchievements.map((a) => a.id)), [earnedAchievements]);
+  const earnedBadges = useMemo(() => ACHIEVEMENTS.filter((a) => earnedSet.has(a.id)), [earnedSet]);
+  const lockedBadges = useMemo(() => ACHIEVEMENTS.filter((a) => !earnedSet.has(a.id)).slice(0, 4), [earnedSet]);
 
-  const leaderData = LEADERBOARD_DATA.map((row) =>
-    row.isMe ? { ...row, xp: userStats.xp, streak: userStats.streak, badge: rank } : row
+  const leaderData = useMemo(
+    () => LEADERBOARD_DATA.map((row) =>
+      row.isMe ? { ...row, xp: userStats.xp, streak: userStats.streak, badge: rank } : row
+    ),
+    [userStats.xp, userStats.streak, rank]
   );
 
   return (

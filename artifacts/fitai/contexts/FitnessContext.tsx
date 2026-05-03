@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SAMPLE_WORKOUTS, getLevel, getRank, getXpProgress } from '@/constants/workouts';
 import { ACHIEVEMENTS, Achievement, checkAchievements } from '@/constants/achievements';
@@ -333,11 +333,17 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
     });
   }, [save]);
 
-  const level = getLevel(state.userStats.xp);
-  const rank = getRank(level);
-  const xpProgress = getXpProgress(state.userStats.xp);
-  const todaysWorkouts = state.scheduledWorkouts.filter((sw) => sw.date === today && !sw.completed && !sw.skipped);
-  const unreadCount = state.notifications.filter((n) => !n.read).length;
+  const level = useMemo(() => getLevel(state.userStats.xp), [state.userStats.xp]);
+  const rank = useMemo(() => getRank(level), [level]);
+  const xpProgress = useMemo(() => getXpProgress(state.userStats.xp), [state.userStats.xp]);
+  const todaysWorkouts = useMemo(
+    () => state.scheduledWorkouts.filter((sw) => sw.date === today && !sw.completed && !sw.skipped),
+    [state.scheduledWorkouts]
+  );
+  const unreadCount = useMemo(
+    () => state.notifications.filter((n) => !n.read).length,
+    [state.notifications]
+  );
 
   return (
     <FitnessContext.Provider value={{

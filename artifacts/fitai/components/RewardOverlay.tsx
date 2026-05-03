@@ -18,8 +18,8 @@ function Particle({ delay, color }: { delay: number; color: string }) {
   const opacity = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(0)).current;
 
-  const startX = (Math.random() - 0.5) * width * 0.8;
-  const startY = -Math.random() * height * 0.5;
+  const startX = useRef((Math.random() - 0.5) * width * 0.8).current;
+  const startY = useRef(-Math.random() * height * 0.5).current;
   const endY = height * 0.2;
 
   useEffect(() => {
@@ -35,7 +35,7 @@ function Particle({ delay, color }: { delay: number; color: string }) {
     ]).start();
   }, []);
 
-  const size = 5 + Math.random() * 9;
+  const size = useRef(5 + Math.random() * 9).current;
 
   return (
     <Animated.View style={{

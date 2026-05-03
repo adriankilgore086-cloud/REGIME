@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, Modal, TouchableOpacity,
   TextInput, FlatList, ActivityIndicator, Platform,
@@ -260,6 +260,10 @@ export function AIChatModal({ visible, onClose }: Props) {
               keyExtractor={(m) => m.id}
               contentContainerStyle={styles.messageList}
               inverted
+              initialNumToRender={12}
+              maxToRenderPerBatch={8}
+              windowSize={5}
+              removeClippedSubviews={Platform.OS !== 'web'}
               ListHeaderComponent={loading ? (
                 <View style={[styles.typingBubble, { backgroundColor: colors.card, borderColor: colors.border }]}>
                   <ActivityIndicator size="small" color={colors.primary} />
