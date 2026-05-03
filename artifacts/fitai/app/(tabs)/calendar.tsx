@@ -25,50 +25,6 @@ function getWeekDates() {
   return week;
 }
 
-function getMonthDates(dateStr: string) {
-  const [year, month] = dateStr.split("-").map(Number);
-  const firstDay = new Date(year, month - 1, 1);
-  const lastDay = new Date(year, month, 0);
-  const prevLastDay = new Date(year, month - 1, 0);
-  
-  const dates = [];
-  const startDate = firstDay.getDay();
-  
-  // Add previous month's days
-  for (let i = startDate - 1; i >= 0; i--) {
-    const d = new Date(prevLastDay);
-    d.setDate(prevLastDay.getDate() - i);
-    dates.push({ date: d.toISOString().split("T")[0], isCurrentMonth: false });
-  }
-  
-  // Add current month's days
-  for (let i = 1; i <= lastDay.getDate(); i++) {
-    const d = new Date(year, month - 1, i);
-    dates.push({ date: d.toISOString().split("T")[0], isCurrentMonth: true });
-  }
-  
-  // Add next month's days
-  const remaining = 42 - dates.length;
-  for (let i = 1; i <= remaining; i++) {
-    const d = new Date(year, month, i);
-    dates.push({ date: d.toISOString().split("T")[0], isCurrentMonth: false });
-  }
-  
-  return dates;
-}
-
-function getYearMonths() {
-  return Array.from({ length: 12 }, (_, month) => {
-    const date = new Date();
-    date.setMonth(month, 1);
-    return {
-      month,
-      label: date.toLocaleDateString("en-US", { month: "long" }),
-      days: new Date(date.getFullYear(), month + 1, 0).getDate(),
-    };
-  });
-}
-
 function WeeklyReport({ userStats, scheduledWorkouts, onClose }: {
   userStats: any; scheduledWorkouts: any[]; onClose: () => void;
 }) {
@@ -122,6 +78,11 @@ function WeeklyReport({ userStats, scheduledWorkouts, onClose }: {
     <Modal visible transparent animationType="slide" onRequestClose={onClose}>
       <View style={rStyles.overlay}>
         <View style={[rStyles.sheet, { backgroundColor: colors.background }]}>
+          <LinearGradient
+            colors={["#8FB8FF12", "#A78BFA10", "transparent"]}
+            style={rStyles.gradient}
+          />
+
           <View style={rStyles.handle} />
 
           <View style={rStyles.header}>
@@ -206,12 +167,12 @@ function WeeklyReport({ userStats, scheduledWorkouts, onClose }: {
               </View>
             </View>
 
-            <View style={[rStyles.aiCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={[rStyles.aiCard, { backgroundColor: "#8FB8FF08", borderColor: "#8FB8FF25" }]}>
               <View style={rStyles.aiHeader}>
-                <View style={[rStyles.aiAvatarGrad, { backgroundColor: colors.muted }]}>
-                  <Ionicons name="sparkles" size={14} color={colors.mutedForeground} />
-                </View>
-                <Text style={[rStyles.aiLabel, { color: colors.foreground }]}>AI Coach Analysis</Text>
+                <LinearGradient colors={["#8FB8FF", "#6B9EFF"]} style={rStyles.aiAvatarGrad}>
+                  <Ionicons name="sparkles" size={14} color="#0D0D0D" />
+                </LinearGradient>
+                <Text style={[rStyles.aiLabel, { color: colors.primary }]}>AI Coach Analysis</Text>
               </View>
               {AI_INSIGHTS.map((insight, i) => (
                 <View key={i} style={rStyles.insightRow}>
@@ -221,13 +182,13 @@ function WeeklyReport({ userStats, scheduledWorkouts, onClose }: {
               ))}
             </View>
 
-            <View style={[rStyles.streakCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={[rStyles.streakCard, { backgroundColor: "#F3D27A12", borderColor: "#F3D27A30" }]}>
               <View style={rStyles.streakInner}>
-                <Ionicons name="flame" size={22} color={colors.mutedForeground} />
+                <Ionicons name="flame" size={28} color="#F3D27A" />
                 <View>
-                  <Text style={[rStyles.streakNum, { color: colors.foreground }]}>{userStats.streak} day streak</Text>
+                  <Text style={[rStyles.streakNum, { color: "#F3D27A" }]}>{userStats.streak} day streak</Text>
                   <Text style={[rStyles.streakSub, { color: colors.mutedForeground }]}>
-                    {userStats.streak >= 7 ? "Consistency remains strong." : "Keep it steady."}
+                    {userStats.streak >= 7 ? "You're on fire. Don't stop now." : "Keep it going — every day counts."}
                   </Text>
                 </View>
               </View>
@@ -242,11 +203,12 @@ function WeeklyReport({ userStats, scheduledWorkouts, onClose }: {
 const rStyles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.65)", justifyContent: "flex-end" },
   sheet: { maxHeight: "90%", borderTopLeftRadius: 32, borderTopRightRadius: 32, overflow: "hidden" },
-  handle: { width: 28, height: 3, borderRadius: 2, backgroundColor: "#FFFFFF20", alignSelf: "center", marginTop: 12 },
+  gradient: { position: "absolute", top: 0, left: 0, right: 0, height: 180 },
+  handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: "#FFFFFF25", alignSelf: "center", marginTop: 12 },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingTop: 20, paddingBottom: 16 },
-  headerSub: { fontSize: 10, fontFamily: "Inter_600SemiBold", letterSpacing: 1.8, marginBottom: 3 },
-  headerTitle: { fontSize: 22, fontFamily: "Inter_700Bold", letterSpacing: -0.6 },
-  closeBtn: { width: 34, height: 34, borderRadius: 11, alignItems: "center", justifyContent: "center" },
+  headerSub: { fontSize: 11, fontFamily: "Inter_700Bold", letterSpacing: 1.5, marginBottom: 3 },
+  headerTitle: { fontSize: 24, fontFamily: "Inter_700Bold", letterSpacing: -0.8 },
+  closeBtn: { width: 36, height: 36, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   content: { paddingHorizontal: 20, paddingBottom: 40 },
   statsRow: { flexDirection: "row", gap: 8, marginBottom: 14 },
   statBox: { flex: 1, borderRadius: 14, borderWidth: 1, padding: 10, alignItems: "center", gap: 4 },
@@ -271,12 +233,12 @@ const rStyles = StyleSheet.create({
   aiCard: { borderRadius: 18, borderWidth: 1, padding: 16, marginBottom: 12 },
   aiHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 14 },
   aiAvatarGrad: { width: 28, height: 28, borderRadius: 9, alignItems: "center", justifyContent: "center" },
-  aiLabel: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  aiLabel: { fontSize: 13, fontFamily: "Inter_700Bold" },
   insightRow: { flexDirection: "row", alignItems: "flex-start", gap: 10, marginBottom: 10 },
   insightDot: { width: 5, height: 5, borderRadius: 3, marginTop: 7 },
   insightText: { flex: 1, fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 20 },
   streakCard: { borderRadius: 18, borderWidth: 1, padding: 16 },
-  streakInner: { flexDirection: "row", alignItems: "center", gap: 12 },
+  streakInner: { flexDirection: "row", alignItems: "center", gap: 14 },
   streakNum: { fontSize: 18, fontFamily: "Inter_700Bold" },
   streakSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
 });
@@ -284,18 +246,14 @@ const rStyles = StyleSheet.create({
 export default function CalendarScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { scheduledWorkouts, scheduleWorkout, unscheduleWorkout, userStats } = useFitness();
+  const { scheduledWorkouts, scheduleWorkout, userStats } = useFitness();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showReport, setShowReport] = useState(false);
-  const [showYearView, setShowYearView] = useState(false);
-  const [currentMonth, setCurrentMonth] = useState(new Date().toISOString().split("T")[0]);
-  const [selectedWorkoutIds, setSelectedWorkoutIds] = useState<string[]>([]);
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
   const weekDates = getWeekDates();
   const today = new Date().toISOString().split("T")[0];
-  const monthDates = getMonthDates(currentMonth);
 
   const getWorkoutsForDate = (date: string) => scheduledWorkouts.filter((sw) => sw.date === date);
   const selectedWorkouts = getWorkoutsForDate(selectedDate);
@@ -304,53 +262,16 @@ export default function CalendarScreen() {
     const iso = d.toISOString().split("T")[0];
     return scheduledWorkouts.some((sw) => sw.date === iso && sw.completed);
   }).length;
-  const yearMonths = getYearMonths();
 
   const handleAddWorkout = async (workoutId: string) => {
     await scheduleWorkout(workoutId, selectedDate);
-  };
-
-  const handleToggleWorkoutSelection = (workoutId: string) => {
-    setSelectedWorkoutIds((prev) =>
-      prev.includes(workoutId) ? prev.filter((id) => id !== workoutId) : [...prev, workoutId]
-    );
-  };
-
-  const handleAddMultipleWorkouts = async () => {
-    for (const workoutId of selectedWorkoutIds) {
-      await scheduleWorkout(workoutId, selectedDate);
-    }
-    setSelectedWorkoutIds([]);
     setShowAddModal(false);
-  };
-
-  const handleRemoveWorkout = async (scheduledWorkoutId: string) => {
-    await unscheduleWorkout(scheduledWorkoutId);
-  };
-
-  const goToMonth = (offset: number) => {
-    const d = new Date(currentMonth + "T12:00:00");
-    d.setMonth(d.getMonth() + offset);
-    setCurrentMonth(d.toISOString().split("T")[0]);
   };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { paddingTop: topPad + 12, backgroundColor: colors.background }]}>
-        <View style={styles.headerTop}>
-          <Text style={[styles.title, { color: colors.foreground }]}>Schedule</Text>
-          <View style={styles.monthNav}>
-            <TouchableOpacity onPress={() => goToMonth(-1)} style={[styles.monthBtn, { backgroundColor: colors.card }]}>
-              <Ionicons name="chevron-back" size={18} color={colors.primary} />
-            </TouchableOpacity>
-            <Text style={[styles.monthLabel, { color: colors.foreground }]}>
-              {new Date(currentMonth + "T12:00:00").toLocaleDateString("en-US", { month: "long", year: "numeric" })}
-            </Text>
-            <TouchableOpacity onPress={() => goToMonth(1)} style={[styles.monthBtn, { backgroundColor: colors.card }]}>
-              <Ionicons name="chevron-forward" size={18} color={colors.primary} />
-            </TouchableOpacity>
-          </View>
-        </View>
+        <Text style={[styles.title, { color: colors.foreground }]}>Schedule</Text>
         <View style={styles.headerBtns}>
           <TouchableOpacity
             onPress={() => setShowReport(true)}
@@ -359,67 +280,78 @@ export default function CalendarScreen() {
             <Ionicons name="bar-chart-outline" size={15} color={colors.primary} />
             <Text style={[styles.reportBtnText, { color: colors.primary }]}>Week Report</Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setShowAddModal(true)}
+            style={[styles.addBtn, { backgroundColor: colors.primary }]}
+          >
+            <Ionicons name="add" size={20} color="#0D0D0D" />
+          </TouchableOpacity>
         </View>
       </View>
 
-      {/* Month Calendar Grid */}
-      <View style={[styles.calendarContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        {/* Day headers */}
-        <View style={styles.dayHeaderRow}>
-          {DAYS.map((day) => (
-            <View key={day} style={styles.dayHeaderCell}>
-              <Text style={[styles.dayHeaderText, { color: colors.mutedForeground }]}>{day}</Text>
+      <TouchableOpacity
+        onPress={() => setShowReport(true)}
+        style={[styles.weekBanner, { backgroundColor: colors.card, borderColor: colors.border }]}
+        activeOpacity={0.85}
+      >
+        <LinearGradient colors={["#8FB8FF12", "#A78BFA10", "transparent"]} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
+        <View style={styles.weekBannerLeft}>
+          <View style={[styles.weekRingOuter, { borderColor: colors.primary + "40" }]}>
+            <View style={[styles.weekRingInner, { backgroundColor: colors.primary + "20" }]}>
+              <Text style={[styles.weekRingNum, { color: colors.primary }]}>{weekCompleted}</Text>
+              <Text style={[styles.weekRingOf, { color: colors.mutedForeground }]}>/ 5</Text>
             </View>
-          ))}
+          </View>
+          <View>
+            <Text style={[styles.weekBannerTitle, { color: colors.foreground }]}>This Week</Text>
+            <Text style={[styles.weekBannerSub, { color: colors.mutedForeground }]}>
+              {weekCompleted === 0 ? "Let's get started" :
+                weekCompleted < 3 ? "Keep pushing" :
+                  weekCompleted < 5 ? "Great momentum" : "Perfect week!"}
+            </Text>
+          </View>
         </View>
+        <View style={styles.weekBannerRight}>
+          <Text style={[styles.weekBannerStreak, { color: "#F3D27A" }]}>🔥 {userStats.streak}d</Text>
+          <Text style={[styles.weekBannerLabel, { color: colors.mutedForeground }]}>streak</Text>
+          <View style={[styles.viewBtn, { backgroundColor: colors.primary + "20" }]}>
+            <Text style={[styles.viewBtnText, { color: colors.primary }]}>View →</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
 
-        {/* Calendar grid */}
-        <View style={styles.calendarGrid}>
-          {monthDates.map(({ date, isCurrentMonth }, index) => {
-            const workouts = getWorkoutsForDate(date);
-            const isSelected = date === selectedDate;
-            const isToday = date === today;
-            const done = scheduledWorkouts.some((sw) => sw.date === date && sw.completed);
+      <View style={[styles.weekStrip, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+        {weekDates.map((date) => {
+          const iso = date.toISOString().split("T")[0];
+          const isToday = iso === today;
+          const isSelected = iso === selectedDate;
+          const hasWorkout = getWorkoutsForDate(iso).length > 0;
+          const done = scheduledWorkouts.some((sw) => sw.date === iso && sw.completed);
 
-            return (
-              <TouchableOpacity
-                key={date}
-                onPress={() => setSelectedDate(date)}
-                style={[
-                  styles.calendarCell,
-                  !isCurrentMonth && { opacity: 0.3 },
-                  isSelected && { backgroundColor: colors.primary, borderColor: colors.primary },
-                  isToday && !isSelected && { borderColor: colors.primary + "60", borderWidth: 2 },
-                ]}
-              >
-                <Text style={[styles.calendarCellDate, { color: isSelected ? "#0D0D0D" : colors.foreground }]}>
-                  {new Date(date + "T12:00:00").getDate()}
+          return (
+            <TouchableOpacity key={iso} onPress={() => setSelectedDate(iso)} style={styles.dayCell}>
+              <Text style={[styles.dayName, { color: isSelected ? colors.primary : colors.mutedForeground }]}>
+                {DAYS[date.getDay()]}
+              </Text>
+              <View style={[
+                styles.dayNum,
+                isSelected && { backgroundColor: colors.primary },
+                isToday && !isSelected && { borderWidth: 1, borderColor: colors.primary },
+                done && !isSelected && { borderWidth: 1, borderColor: colors.success + "60" },
+              ]}>
+                <Text style={[styles.dayNumText, {
+                  color: isSelected ? "#0D0D0D" : isToday ? colors.primary : done ? colors.success : colors.foreground,
+                }]}>
+                  {date.getDate()}
                 </Text>
-                {workouts.length > 0 && (
-                  <View style={styles.workoutIndicators}>
-                    {workouts.slice(0, 2).map((w, i) => (
-                      <View
-                        key={i}
-                        style={[
-                          styles.indicator,
-                          {
-                            backgroundColor: isSelected ? "#0D0D0D20" : colors.primary + "40",
-                          },
-                        ]}
-                      />
-                    ))}
-                    {workouts.length > 2 && (
-                      <Text style={[styles.moreText, { color: isSelected ? "#0D0D0D" : colors.primary }]}>
-                        +{workouts.length - 2}
-                      </Text>
-                    )}
-                  </View>
-                )}
-                {done && <Ionicons name="checkmark-circle" size={14} color={colors.success} style={styles.doneIcon} />}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+              </View>
+              {hasWorkout && !done && (
+                <View style={[styles.dotIndicator, { backgroundColor: isSelected ? "#0D0D0D" : colors.mutedForeground }]} />
+              )}
+              {done && <Ionicons name="checkmark" size={10} color={colors.success} />}
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 120 }]} showsVerticalScrollIndicator={false}>
@@ -433,42 +365,66 @@ export default function CalendarScreen() {
             <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>No workouts scheduled</Text>
             <TouchableOpacity onPress={() => setShowAddModal(true)} style={[styles.addWorkoutBtn, { backgroundColor: colors.primary + "20", borderColor: colors.primary + "40" }]}>
               <Ionicons name="add" size={16} color={colors.primary} />
-              <Text style={[styles.addWorkoutText, { color: colors.primary }]}>Add Workouts</Text>
+              <Text style={[styles.addWorkoutText, { color: colors.primary }]}>Add Workout</Text>
             </TouchableOpacity>
           </View>
         ) : (
-          <View style={styles.scheduledSection}>
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Scheduled</Text>
-            {selectedWorkouts.map((sw) => {
-              const workout = SAMPLE_WORKOUTS.find((w) => w.id === sw.workoutId);
-              if (!workout) return null;
-              const catColor = CATEGORY_COLORS[workout.category];
-              return (
-                <View key={sw.id} style={[styles.workoutRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                  <View style={[styles.catBar, { backgroundColor: catColor }]} />
-                  <View style={styles.workoutInfo}>
-                    <View style={styles.workoutTop}>
-                      <Text style={[styles.workoutName, { color: colors.foreground }]}>{workout.name}</Text>
-                      <View style={styles.workoutActions}>
-                        {sw.completed && <Ionicons name="checkmark-circle" size={18} color={colors.success} />}
-                        <TouchableOpacity onPress={() => handleRemoveWorkout(sw.id)}>
-                          <Ionicons name="trash-outline" size={16} color={colors.destructive} />
-                        </TouchableOpacity>
+          selectedWorkouts.map((sw) => {
+            const workout = SAMPLE_WORKOUTS.find((w) => w.id === sw.workoutId);
+            if (!workout) return null;
+            const catColor = CATEGORY_COLORS[workout.category];
+            return (
+              <View key={sw.id} style={[styles.workoutRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <View style={[styles.catBar, { backgroundColor: catColor }]} />
+                <View style={styles.workoutInfo}>
+                  <View style={styles.workoutTop}>
+                    <Text style={[styles.workoutName, { color: colors.foreground }]}>{workout.name}</Text>
+                    {sw.completed && <Ionicons name="checkmark-circle" size={18} color={colors.success} />}
+                    {sw.skipped && <Ionicons name="close-circle" size={18} color={colors.destructive} />}
+                  </View>
+                  <Text style={[styles.workoutMeta, { color: colors.mutedForeground }]}>
+                    {workout.durationMinutes}m · {workout.calories} cal · {workout.difficulty}
+                  </Text>
+                  <View style={styles.muscleChips}>
+                    {workout.targetMuscles.slice(0, 3).map((m) => (
+                      <View key={m} style={[styles.chip, { backgroundColor: colors.muted }]}>
+                        <Text style={[styles.chipText, { color: colors.mutedForeground }]}>{m}</Text>
                       </View>
-                    </View>
-                    <Text style={[styles.workoutMeta, { color: colors.mutedForeground }]}>
-                      {workout.durationMinutes}m · {workout.calories} cal · {workout.difficulty}
-                    </Text>
+                    ))}
                   </View>
                 </View>
-              );
-            })}
-            <TouchableOpacity onPress={() => setShowAddModal(true)} style={[styles.addMoreBtn, { backgroundColor: colors.primary + "20", borderColor: colors.primary + "40" }]}>
-              <Ionicons name="add" size={16} color={colors.primary} />
-              <Text style={[styles.addMoreText, { color: colors.primary }]}>Add More</Text>
-            </TouchableOpacity>
-          </View>
+              </View>
+            );
+          })
         )}
+
+        <Text style={[styles.sectionTitle, { color: colors.foreground, marginTop: 16 }]}>Workout Library</Text>
+        <Text style={[styles.sectionSub, { color: colors.mutedForeground }]}>Tap to schedule on selected date</Text>
+
+        {SAMPLE_WORKOUTS.map((workout) => {
+          const catColor = CATEGORY_COLORS[workout.category];
+          return (
+            <TouchableOpacity
+              key={workout.id}
+              onPress={() => handleAddWorkout(workout.id)}
+              style={[styles.libraryRow, { backgroundColor: colors.card, borderColor: colors.border }]}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.libraryIcon, { backgroundColor: catColor + "20" }]}>
+                <Ionicons name="barbell-outline" size={18} color={catColor} />
+              </View>
+              <View style={styles.libraryInfo}>
+                <Text style={[styles.libraryName, { color: colors.foreground }]}>{workout.name}</Text>
+                <Text style={[styles.libraryMeta, { color: colors.mutedForeground }]}>
+                  {workout.durationMinutes}m · {workout.category} · {workout.difficulty}
+                </Text>
+              </View>
+              <View style={[styles.xpChip, { backgroundColor: colors.primary + "20" }]}>
+                <Text style={[styles.xpText, { color: colors.primary }]}>+{workout.xpReward} XP</Text>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
 
       {showReport && (
@@ -479,112 +435,28 @@ export default function CalendarScreen() {
         />
       )}
 
-      <Modal visible={showYearView} transparent animationType="slide" onRequestClose={() => setShowYearView(false)}>
-        <View style={styles.yearOverlay}>
-          <View style={[styles.yearSheet, { backgroundColor: colors.background }]}>
-            <View style={styles.yearHeader}>
-              <View>
-                <Text style={[styles.yearTitle, { color: colors.foreground }]}>Full Year Calendar</Text>
-                <Text style={[styles.yearSub, { color: colors.mutedForeground }]}>Tap any month to jump there</Text>
-              </View>
-              <TouchableOpacity onPress={() => setShowYearView(false)} style={[styles.yearClose, { backgroundColor: colors.muted }]}>
-                <Ionicons name="close" size={18} color={colors.mutedForeground} />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView contentContainerStyle={styles.yearContent} showsVerticalScrollIndicator={false}>
-              <View style={styles.yearGrid}>
-                {yearMonths.map((month) => {
-                  const monthDays = scheduledWorkouts.filter((sw) => sw.date.slice(0, 7) === `${new Date().getFullYear()}-${String(month.month + 1).padStart(2, "0")}`);
-                  const doneCount = monthDays.filter((sw) => sw.completed).length;
-                  return (
-                    <TouchableOpacity
-                      key={month.month}
-                      onPress={() => {
-                        const next = new Date(selectedDate);
-                        next.setMonth(month.month, 1);
-                        setSelectedDate(next.toISOString().split("T")[0]);
-                        setShowYearView(false);
-                      }}
-                      style={[styles.monthCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-                    >
-                      <Text style={[styles.monthLabel, { color: colors.foreground }]}>{month.label}</Text>
-                      <Text style={[styles.monthMeta, { color: colors.mutedForeground }]}>{month.days} days</Text>
-                      <View style={[styles.monthPill, { backgroundColor: colors.primary + "18" }]}>
-                        <Text style={[styles.monthPillText, { color: colors.primary }]}>
-                          {doneCount} done
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
-
       <Modal visible={showAddModal} transparent animationType="slide" onRequestClose={() => setShowAddModal(false)}>
         <View style={styles.modalOverlay}>
           <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
             <Text style={[styles.modalTitle, { color: colors.foreground }]}>Add to {selectedDate}</Text>
-            <Text style={[styles.modalSubtitle, { color: colors.mutedForeground }]}>Select one or more workouts</Text>
             <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 300 }}>
-              {SAMPLE_WORKOUTS.map((w) => {
-                const isSelected = selectedWorkoutIds.includes(w.id);
-                const catColor = CATEGORY_COLORS[w.category];
-                return (
-                  <TouchableOpacity
-                    key={w.id}
-                    onPress={() => handleToggleWorkoutSelection(w.id)}
-                    style={[
-                      styles.modalWorkoutRow,
-                      { backgroundColor: isSelected ? colors.primary + "20" : "transparent", borderColor: colors.border },
-                    ]}
-                  >
-                    <View style={styles.modalWorkoutLeft}>
-                      <View style={[styles.checkbox, { borderColor: isSelected ? colors.primary : colors.border, backgroundColor: isSelected ? colors.primary : "transparent" }]}>
-                        {isSelected && <Ionicons name="checkmark" size={14} color="#0D0D0D" />}
-                      </View>
-                      <View>
-                        <Text style={[styles.modalWorkoutName, { color: colors.foreground }]}>{w.name}</Text>
-                        <Text style={[styles.modalWorkoutMeta, { color: colors.mutedForeground }]}>
-                          {w.durationMinutes}m · +{w.xpReward} XP
-                        </Text>
-                      </View>
-                    </View>
-                    <View style={[styles.categoryBadge, { backgroundColor: catColor + "20" }]}>
-                      <Text style={[styles.categoryText, { color: catColor }]}>{w.category}</Text>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
+              {SAMPLE_WORKOUTS.map((w) => (
+                <TouchableOpacity
+                  key={w.id}
+                  onPress={() => handleAddWorkout(w.id)}
+                  style={[styles.modalWorkoutRow, { borderColor: colors.border }]}
+                >
+                  <Text style={[styles.modalWorkoutName, { color: colors.foreground }]}>{w.name}</Text>
+                  <Text style={[styles.modalWorkoutMeta, { color: colors.mutedForeground }]}>{w.durationMinutes}m · +{w.xpReward} XP</Text>
+                </TouchableOpacity>
+              ))}
             </ScrollView>
-            <View style={styles.modalActions}>
-              <TouchableOpacity onPress={() => { setShowAddModal(false); setSelectedWorkoutIds([]); }} style={[styles.modalBtn, { backgroundColor: colors.muted }]}>
-                <Text style={[styles.modalBtnText, { color: colors.foreground }]}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleAddMultipleWorkouts}
-                disabled={selectedWorkoutIds.length === 0}
-                style={[styles.modalBtn, { backgroundColor: selectedWorkoutIds.length > 0 ? colors.primary : colors.muted }]}
-              >
-                <Text style={[styles.modalBtnText, { color: selectedWorkoutIds.length > 0 ? "#0D0D0D" : colors.mutedForeground }]}>
-                  Add ({selectedWorkoutIds.length})
-                </Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity onPress={() => setShowAddModal(false)}>
+              <Text style={[styles.cancelText, { color: colors.mutedForeground }]}>Cancel</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
-
-      {/* Floating Action Button */}
-      <TouchableOpacity
-        onPress={() => setShowAddModal(true)}
-        style={[styles.fab, { backgroundColor: "#0D0D0D" }]}
-      >
-        <Ionicons name="add" size={28} color="#FFFFFF" />
-      </TouchableOpacity>
     </View>
   );
 }
@@ -597,18 +469,6 @@ const styles = StyleSheet.create({
   reportBtn: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 12, borderWidth: 1 },
   reportBtnText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
   addBtn: { width: 38, height: 38, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  yearOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.65)", justifyContent: "flex-end" },
-  yearSheet: { maxHeight: "88%", borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 20 },
-  yearHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18 },
-  yearTitle: { fontSize: 20, fontFamily: "Inter_700Bold" },
-  yearSub: { fontSize: 13, fontFamily: "Inter_400Regular", marginTop: 4 },
-  yearClose: { width: 36, height: 36, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  yearContent: { paddingBottom: 8 },
-  yearGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
-  monthCard: { width: "48%", borderRadius: 18, borderWidth: 1, padding: 14, gap: 6 },
-  monthMeta: { fontSize: 12, fontFamily: "Inter_400Regular" },
-  monthPill: { alignSelf: "flex-start", borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5, marginTop: 4 },
-  monthPillText: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
   weekBanner: { marginHorizontal: 20, marginBottom: 12, borderRadius: 18, borderWidth: 1, padding: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between", overflow: "hidden" },
   weekBannerLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
   weekRingOuter: { width: 52, height: 52, borderRadius: 16, borderWidth: 2, alignItems: "center", justifyContent: "center" },
@@ -622,6 +482,12 @@ const styles = StyleSheet.create({
   weekBannerLabel: { fontSize: 10, fontFamily: "Inter_400Regular" },
   viewBtn: { marginTop: 6, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
   viewBtnText: { fontSize: 11, fontFamily: "Inter_700Bold" },
+  weekStrip: { flexDirection: "row", paddingHorizontal: 12, paddingVertical: 12, borderBottomWidth: 1 },
+  dayCell: { flex: 1, alignItems: "center", gap: 5 },
+  dayName: { fontSize: 10, fontFamily: "Inter_500Medium" },
+  dayNum: { width: 32, height: 32, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  dayNumText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  dotIndicator: { width: 4, height: 4, borderRadius: 2 },
   content: { paddingHorizontal: 20, paddingTop: 14 },
   selectedDateLabel: { fontSize: 13, fontFamily: "Inter_500Medium", marginBottom: 14 },
   emptyCard: { borderRadius: 20, borderWidth: 1, padding: 28, alignItems: "center", gap: 12, marginBottom: 24 },
@@ -649,40 +515,8 @@ const styles = StyleSheet.create({
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "flex-end" },
   modalCard: { borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, gap: 14 },
   modalTitle: { fontSize: 18, fontFamily: "Inter_700Bold" },
-  modalSubtitle: { fontSize: 13, fontFamily: "Inter_400Regular", marginBottom: 8 },
-  modalWorkoutRow: { paddingVertical: 12, borderBottomWidth: 1, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  modalWorkoutLeft: { flexDirection: "row", alignItems: "center", gap: 10, flex: 1 },
-  checkbox: { width: 20, height: 20, borderRadius: 6, borderWidth: 2, alignItems: "center", justifyContent: "center" },
+  modalWorkoutRow: { paddingVertical: 12, borderBottomWidth: 1, gap: 3 },
   modalWorkoutName: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
   modalWorkoutMeta: { fontSize: 12, fontFamily: "Inter_400Regular" },
-  categoryBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
-  categoryText: { fontSize: 10, fontFamily: "Inter_600SemiBold" },
-  modalActions: { flexDirection: "row", gap: 12, marginTop: 8 },
-  modalBtn: { flex: 1, paddingVertical: 12, borderRadius: 12, alignItems: "center" },
-  modalBtnText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-  
-  headerTop: { gap: 12, marginBottom: 12 },
-  monthNav: { flexDirection: "row", alignItems: "center", gap: 12 },
-  monthBtn: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center" },
-  monthLabel: { fontSize: 15, fontFamily: "Inter_600SemiBold", flex: 1, textAlign: "center" },
-  
-  calendarContainer: { marginHorizontal: 20, borderRadius: 16, borderWidth: 1, overflow: "hidden", marginBottom: 16 },
-  dayHeaderRow: { flexDirection: "row", borderBottomWidth: 1 },
-  dayHeaderCell: { flex: 1, alignItems: "center", paddingVertical: 8 },
-  dayHeaderText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
-  calendarGrid: { flexDirection: "row", flexWrap: "wrap" },
-  calendarCell: { width: "14.28%", aspectRatio: 1, borderWidth: 1, alignItems: "center", justifyContent: "center", padding: 4 },
-  calendarCellDate: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
-  workoutIndicators: { flexDirection: "row", gap: 2, marginTop: 2, alignItems: "center" },
-  indicator: { width: 4, height: 4, borderRadius: 2 },
-  moreText: { fontSize: 8, fontFamily: "Inter_600SemiBold", marginLeft: 2 },
-  doneIcon: { position: "absolute", top: 2, right: 2 },
-  
-  scheduledSection: { gap: 12, marginBottom: 16 },
-  addMoreBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, borderWidth: 1 },
-  addMoreText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
-  workoutActions: { flexDirection: "row", alignItems: "center", gap: 8 },
-  
-  cancelText: { textAlign: "center", fontSize: 14, fontFamily: "Inter_400Regular", paddingTop: 8 },
-  fab: { position: "absolute", bottom: 24, right: 20, width: 56, height: 56, borderRadius: 28, alignItems: "center", justifyContent: "center", elevation: 6, shadowColor: "#000", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 4 },
+  cancelText: { textAlign: "center", fontSize: 14, fontFamily: "Inter_400Regular" },
 });
