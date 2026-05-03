@@ -66,15 +66,14 @@ export default function WelcomeScreen() {
 
   const handleLogin = async () => {
     signIn.reset();
-    const { error } = await signIn.password({ emailAddress: email, password });
-    if (error) return;
-    if (signIn.status === "complete") {
-      await signIn.finalize({
-        navigate: ({ decorateUrl }) => {
-          const url = decorateUrl("/");
-          if (!url.startsWith("http")) router.replace("/(tabs)");
-        },
-      });
+    try {
+      const result = await signIn.password({ emailAddress: email, password });
+      if (result.error) return;
+      if (signIn.status === "complete") {
+        router.replace("/(tabs)");
+      }
+    } catch (e: any) {
+      // error handled via errors object from hook
     }
   };
 
