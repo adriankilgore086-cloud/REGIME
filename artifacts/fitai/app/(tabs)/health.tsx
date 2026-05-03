@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
 import { AIChatModal } from "@/components/AIChatModal";
+import { Image } from "react-native";
 
 const DAYS_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -105,6 +106,13 @@ const READINESS_METRICS = [
   { label: "Hydration", value: 65, icon: "water-outline", color: "#8FB8FF", tip: "2.1L today" },
   { label: "Muscle Recovery", value: 90, icon: "fitness-outline", color: "#7BE0B8", tip: "48h since heavy session" },
   { label: "Heart Rate", value: 82, icon: "heart-outline", color: "#FF2D78", tip: "Resting 62 bpm" },
+];
+
+const HEALTH_WIDGETS = [
+  { label: "403", sub: "kcal", title: "Today's Burn", icon: "flame-outline", color: "#FF6B6B" },
+  { label: "62", sub: "bpm", title: "Resting HR", icon: "pulse-outline", color: "#FF7A7A" },
+  { label: "7.5", sub: "hrs", title: "Sleep", icon: "moon-outline", color: "#8FB8FF" },
+  { label: "2.4", sub: "L", title: "Hydration", icon: "water-outline", color: "#7BE0B8" },
 ];
 
 const RECOVERY_TIPS = [
@@ -282,25 +290,31 @@ export default function HealthScreen() {
 
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 120 }]} showsVerticalScrollIndicator={false}>
 
-        <View style={[styles.statsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          {TOP_STATS.map((stat, i) => (
-            <View
-              key={stat.label}
-              style={[
-                styles.statRow,
-                i < TOP_STATS.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border },
-              ]}
-            >
-              <View style={[styles.statIconWrap, { backgroundColor: stat.color + "18" }]}>
-                <Ionicons name={stat.icon as any} size={18} color={stat.color} />
+        <View style={[styles.recoveryCard, { backgroundColor: "#10241D", borderColor: "#2F6F5A" }]}>
+          <View style={styles.recoveryTopRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.recoveryBadge, { color: "#7BE0B8" }]}>RECOVERY SCORE</Text>
+              <Text style={[styles.recoveryTitle, { color: "#F5F5F5" }]}>78</Text>
+              <Text style={[styles.recoveryBody, { color: "#B4C8BE" }]}>Good to train</Text>
+            </View>
+            <RecoveryRing score={78} />
+          </View>
+        </View>
+
+        <View style={styles.widgetGrid}>
+          {HEALTH_WIDGETS.map((item) => (
+            <View key={item.title} style={[styles.widgetCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View style={[styles.widgetIconWrap, { backgroundColor: item.color + "18" }]}>
+                <Ionicons name={item.icon as any} size={16} color={item.color} />
               </View>
-              <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>{stat.label}</Text>
-              <Text style={[styles.statValue, { color: colors.foreground }]}>{stat.value}</Text>
+              <Text style={[styles.widgetValue, { color: colors.foreground }]}>{item.label}</Text>
+              <Text style={[styles.widgetSub, { color: colors.mutedForeground }]}>{item.sub}</Text>
+              <Text style={[styles.widgetTitle, { color: colors.mutedForeground }]}>{item.title}</Text>
             </View>
           ))}
         </View>
 
-        <View style={[styles.recoveryCard, { backgroundColor: colors.card, borderColor: "#7BE0B830" }]}>
+        <View style={[styles.chartCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <LinearGradient colors={["#7BE0B810", "#8FB8FF08", "transparent"]} style={StyleSheet.absoluteFill} />
           <View style={styles.recoveryTopRow}>
             <View style={{ flex: 1 }}>
@@ -487,7 +501,7 @@ export default function HealthScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingBottom: 14 },
-  title: { fontSize: 26, fontFamily: "Poppins_700Bold", letterSpacing: -0.5 },
+  title: { fontSize: 26, fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
   headerRight: { flexDirection: "row", alignItems: "center", gap: 10 },
   syncBadge: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, borderWidth: 1 },
   syncDot: { width: 6, height: 6, borderRadius: 3 },
@@ -507,6 +521,12 @@ const styles = StyleSheet.create({
   recoveryBadge: { fontSize: 10, fontFamily: "Inter_700Bold", letterSpacing: 1.2, marginBottom: 4 },
   recoveryTitle: { fontSize: 18, fontFamily: "Inter_700Bold", letterSpacing: -0.4, marginBottom: 6 },
   recoveryBody: { fontSize: 12, fontFamily: "Inter_400Regular", lineHeight: 17 },
+  widgetGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 14 },
+  widgetCard: { width: "48.5%", borderRadius: 18, borderWidth: 1, padding: 14, minHeight: 130 },
+  widgetIconWrap: { width: 28, height: 28, borderRadius: 9, alignItems: "center", justifyContent: "center", marginBottom: 16 },
+  widgetValue: { fontSize: 28, fontFamily: "Inter_700Bold", lineHeight: 30 },
+  widgetSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
+  widgetTitle: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 10 },
 
   metricsListCard: { borderRadius: 14, borderWidth: 1, overflow: "hidden" },
   metricRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 14, paddingVertical: 13 },
