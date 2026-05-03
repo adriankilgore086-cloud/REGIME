@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Platform, Modal, TextInput,
@@ -32,6 +32,114 @@ const AI_PLAN_WEEKS = [
     focus: "Active recovery to consolidate gains",
   },
 ];
+
+function StreakCalendar() {
+  const colors = useColors();
+  const { scheduledWorkouts, userStats } = useFitness();
+
+  const completedDates = useMemo(() => {
+    const set = new Set<string>();
+    scheduledWorkouts.forEach((sw) => { if (sw.completed) set.add(sw.date); });
+    return set;
+  }, [scheduledWorkouts]);
+
+  const today = new Date();
+  const DAY_LABELS = ["M", "T", "W", "T", "F", "S", "S"];
+  const WEEKS = 8;
+  const totalDays = WEEKS * 7;
+
+  const cells = useMemo(() => {
+    const arr: { iso: string; done: boolean; isToday: boolean; future: boolean }[] = [];
+    for (let i = totalDays - 1; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const iso = d.toISOString().split("T")[0];
+      const todayIso = today.toISOString().split("T")[0];
+      arr.push({
+        iso,
+        done: completedDates.has(iso),
+        isToday: iso === todayIso,
+        future: iso > todayIso,
+      });
+    }
+    return arr;
+  }, [completedDates]);
+
+  const byWeek: typeof cells[] = [];
+  for (let w = 0; w < WEEKS; w++) byWeek.push(cells.slice(w * 7, w * 7 + 7));
+  const doneCount = cells.filter((c) => c.done).length;
+
+  return (
+    <View style={[scStyles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+      <View style={scStyles.header}>
+        <View>
+          <Text style={[scStyles.title, { color: colors.foreground }]}>Consistency Tracker</Text>
+          <Text style={[scStyles.sub, { color: colors.mutedForeground }]}>{doneCount} sessions · {WEEKS} weeks · {userStats.streak}d streak</Text>
+        </View>
+        <View style={[scStyles.streakPill, { backgroundColor: "#F3D27A18", borderColor: "#F3D27A35" }]}>
+          <Ionicons name="flame" size={13} color="#F3D27A" />
+          <Text style={[scStyles.streakText, { color: "#F3D27A" }]}>{userStats.streak}</Text>
+        </View>
+      </View>
+
+      <View style={scStyles.dayLabels}>
+        {DAY_LABELS.map((d, i) => (
+          <Text key={i} style={[scStyles.dayLabel, { color: colors.mutedForeground }]}>{d}</Text>
+        ))}
+      </View>
+
+      <View style={scStyles.grid}>
+        {byWeek.map((week, wi) => (
+          <View key={wi} style={scStyles.col}>
+            {week.map((cell) => (
+              <View
+                key={cell.iso}
+                style={[
+                  scStyles.cell,
+                  cell.isToday && { borderColor: colors.primary, borderWidth: 1.5 },
+                  {
+                    backgroundColor: cell.done
+                      ? colors.success
+                      : cell.future
+                        ? colors.muted + "40"
+                        : colors.muted,
+                  },
+                ]}
+              />
+            ))}
+          </View>
+        ))}
+      </View>
+
+      <View style={scStyles.legend}>
+        <View style={[scStyles.legendDot, { backgroundColor: colors.success }]} />
+        <Text style={[scStyles.legendText, { color: colors.mutedForeground }]}>Completed</Text>
+        <View style={[scStyles.legendDot, { backgroundColor: colors.muted, marginLeft: 10 }]} />
+        <Text style={[scStyles.legendText, { color: colors.mutedForeground }]}>Missed</Text>
+        <View style={[scStyles.legendDotToday, { borderColor: colors.primary, marginLeft: 10 }]} />
+        <Text style={[scStyles.legendText, { color: colors.mutedForeground }]}>Today</Text>
+      </View>
+    </View>
+  );
+}
+
+const scStyles = StyleSheet.create({
+  card: { borderRadius: 20, borderWidth: 1, padding: 16, marginBottom: 20 },
+  header: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 14 },
+  title: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
+  sub: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 2 },
+  streakPill: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, borderWidth: 1 },
+  streakText: { fontSize: 14, fontFamily: "Inter_700Bold" },
+  dayLabels: { flexDirection: "row", gap: 5, marginBottom: 5, paddingLeft: 2 },
+  dayLabel: { width: 20, fontSize: 9, fontFamily: "Inter_500Medium", textAlign: "center" },
+  grid: { flexDirection: "column", gap: 5 },
+  col: { flexDirection: "row", gap: 5 },
+  cell: { width: 20, height: 20, borderRadius: 5 },
+  legend: { flexDirection: "row", alignItems: "center", gap: 5, marginTop: 14 },
+  legendDot: { width: 10, height: 10, borderRadius: 3 },
+  legendDotToday: { width: 10, height: 10, borderRadius: 3, borderWidth: 1.5, backgroundColor: "transparent" },
+  legendText: { fontSize: 10, fontFamily: "Inter_400Regular" },
+});
 
 export default function GoalsScreen() {
   const colors = useColors();
@@ -89,6 +197,8 @@ export default function GoalsScreen() {
             ))}
           </View>
         </LinearGradient>
+
+        <StreakCalendar />
 
         <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Your Goals</Text>
 

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
   View, Text, StyleSheet, ScrollView, Platform, Animated, TouchableOpacity,
 } from "react-native";
@@ -113,10 +113,113 @@ const RECOVERY_TIPS = [
   { icon: "bed-outline", text: "8 hours of sleep will boost tomorrow's performance.", color: "#A78BFA" },
 ];
 
+function ActivityHeatmap() {
+  const colors = useColors();
+  const { healthMetrics } = useFitness();
+
+  const workoutDates = useMemo(() => {
+    const set = new Set<string>();
+    healthMetrics.forEach((h) => { if (h.activeMinutes > 0) set.add(h.date); });
+    return set;
+  }, [healthMetrics]);
+
+  const today = new Date();
+  const weeks = 15;
+  const totalDays = weeks * 7;
+
+  const cells = useMemo(() => {
+    const arr: { date: string; active: boolean; intensity: number }[] = [];
+    for (let i = totalDays - 1; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const iso = d.toISOString().split("T")[0];
+      const metric = healthMetrics.find((h) => h.date === iso);
+      const intensity = metric ? Math.min(metric.activeMinutes / 60, 1) : 0;
+      arr.push({ date: iso, active: workoutDates.has(iso), intensity });
+    }
+    return arr;
+  }, [workoutDates, healthMetrics]);
+
+  const byWeek: typeof cells[] = [];
+  for (let w = 0; w < weeks; w++) {
+    byWeek.push(cells.slice(w * 7, w * 7 + 7));
+  }
+
+  const activeCount = cells.filter((c) => c.active).length;
+
+  return (
+    <View style={[hmStyles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+      <View style={hmStyles.header}>
+        <View>
+          <Text style={[hmStyles.title, { color: colors.foreground }]}>Activity Heatmap</Text>
+          <Text style={[hmStyles.sub, { color: colors.mutedForeground }]}>{activeCount} active days · last {weeks} weeks</Text>
+        </View>
+        <View style={[hmStyles.badge, { backgroundColor: colors.success + "20" }]}>
+          <View style={[hmStyles.dot, { backgroundColor: colors.success }]} />
+          <Text style={[hmStyles.badgeText, { color: colors.success }]}>Active</Text>
+        </View>
+      </View>
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <View style={hmStyles.grid}>
+          {byWeek.map((week, wi) => (
+            <View key={wi} style={hmStyles.col}>
+              {week.map((cell, di) => {
+                const opacity = cell.active ? 0.3 + cell.intensity * 0.7 : 0;
+                return (
+                  <View
+                    key={cell.date}
+                    style={[
+                      hmStyles.cell,
+                      {
+                        backgroundColor: cell.active
+                          ? `rgba(123, 224, 184, ${Math.max(opacity, 0.25)})`
+                          : colors.muted,
+                        borderColor: cell.active ? `rgba(123, 224, 184, 0.15)` : "transparent",
+                      },
+                    ]}
+                  />
+                );
+              })}
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+
+      <View style={hmStyles.legend}>
+        <Text style={[hmStyles.legendText, { color: colors.mutedForeground }]}>Less</Text>
+        {[0.1, 0.3, 0.5, 0.75, 1].map((op) => (
+          <View
+            key={op}
+            style={[hmStyles.legendCell, { backgroundColor: `rgba(123, 224, 184, ${op})` }]}
+          />
+        ))}
+        <Text style={[hmStyles.legendText, { color: colors.mutedForeground }]}>More</Text>
+      </View>
+    </View>
+  );
+}
+
+const hmStyles = StyleSheet.create({
+  card: { borderRadius: 18, borderWidth: 1, padding: 16, marginBottom: 14 },
+  header: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 14 },
+  title: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
+  sub: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 2 },
+  badge: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10 },
+  dot: { width: 6, height: 6, borderRadius: 3 },
+  badgeText: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
+  grid: { flexDirection: "row", gap: 3 },
+  col: { gap: 3 },
+  cell: { width: 12, height: 12, borderRadius: 3, borderWidth: 1 },
+  legend: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 12, justifyContent: "flex-end" },
+  legendCell: { width: 10, height: 10, borderRadius: 2 },
+  legendText: { fontSize: 10, fontFamily: "Inter_400Regular" },
+});
+
 export default function HealthScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { healthMetrics, userStats } = useFitness();
+  const { healthMetrics, userStats, userProfile } = useFitness();
   const [showAICoach, setShowAICoach] = useState(false);
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
@@ -286,6 +389,8 @@ export default function HealthScreen() {
           <BarChart data={minuteData} max={maxMin} color={colors.primary} />
         </View>
 
+        <ActivityHeatmap />
+
         <View style={[styles.chartCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={styles.chartHeader}>
             <View>
@@ -300,6 +405,52 @@ export default function HealthScreen() {
               <MuscleBar key={m.name} muscle={m.name} pct={m.pct} color={MUSCLE_COLORS[i % MUSCLE_COLORS.length]} />
             ))
           )}
+        </View>
+
+        <View style={[styles.chartCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={styles.chartHeader}>
+            <View>
+              <Text style={[styles.chartTitle, { color: colors.foreground }]}>Body Metrics</Text>
+              <Text style={[styles.chartSub, { color: colors.mutedForeground }]}>Current snapshot</Text>
+            </View>
+            <View style={[styles.chartBadge, { backgroundColor: "#A78BFA20" }]}>
+              <Text style={[styles.chartBadgeText, { color: "#A78BFA" }]}>Updated today</Text>
+            </View>
+          </View>
+          {[
+            { label: "Weight", value: `${userProfile.weight} kg`, icon: "body-outline", color: "#A78BFA" },
+            { label: "Height", value: `${userProfile.height} cm`, icon: "resize-outline", color: "#8FB8FF" },
+            {
+              label: "BMI",
+              value: userProfile.height > 0
+                ? (userProfile.weight / Math.pow(userProfile.height / 100, 2)).toFixed(1)
+                : "—",
+              icon: "analytics-outline",
+              color: "#F3D27A",
+            },
+            {
+              label: "Est. TDEE",
+              value: `${Math.round(
+                (10 * userProfile.weight + 6.25 * userProfile.height - 5 * userProfile.age + 5) * 1.55
+              ).toLocaleString()} kcal`,
+              icon: "flame-outline",
+              color: "#FF2D78",
+            },
+          ].map((item, i, arr) => (
+            <View
+              key={item.label}
+              style={[
+                styles.statRow,
+                i < arr.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border },
+              ]}
+            >
+              <View style={[styles.statIconWrap, { backgroundColor: item.color + "18" }]}>
+                <Ionicons name={item.icon as any} size={16} color={item.color} />
+              </View>
+              <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>{item.label}</Text>
+              <Text style={[styles.statValue, { color: colors.foreground }]}>{item.value}</Text>
+            </View>
+          ))}
         </View>
 
         <View style={[styles.statsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>

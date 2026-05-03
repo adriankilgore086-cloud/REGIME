@@ -7,22 +7,13 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/expo";
+import { useRouter } from "expo-router";
 import { useColors } from "@/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
 import { useSocial, SocialPost, Audience } from "@/contexts/SocialContext";
 import { ACHIEVEMENTS, RARITY_COLORS } from "@/constants/achievements";
 import { XPProgressBar } from "@/components/XPProgressBar";
 import CreatePostModal from "@/components/CreatePostModal";
-
-const LEADERBOARD_DATA = [
-  { rank: 1, name: "Sarah L.", xp: 8420, streak: 34, badge: "Iron Discipline", isMe: false },
-  { rank: 2, name: "Marcus K.", xp: 6810, streak: 21, badge: "Elite Performer", isMe: false },
-  { rank: 3, name: "Priya R.", xp: 5990, streak: 18, badge: "Endurance Champ", isMe: false },
-  { rank: 4, name: "Jake T.", xp: 4250, streak: 12, badge: "The Grinder", isMe: false },
-  { rank: 5, name: "You", xp: 0, streak: 0, badge: "", isMe: true },
-  { rank: 6, name: "Amy W.", xp: 0, streak: 5, badge: "Consistency King", isMe: false },
-  { rank: 7, name: "Chris B.", xp: 0, streak: 3, badge: "Rookie", isMe: false },
-];
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -47,26 +38,6 @@ const IDENTITY_TITLES = [
   "Endurance Champion", "Power Lifter", "Speed Demon", "Recovery Master",
 ];
 
-function RankMedal({ rank }: { rank: number }) {
-  const colors = ["#F3D27A", "#C0C0C0", "#CD7F32"];
-  if (rank <= 3) {
-    return (
-      <View style={[medallStyles.circle, { backgroundColor: colors[rank - 1] + "25", borderColor: colors[rank - 1] + "60" }]}>
-        <Text style={[medallStyles.text, { color: colors[rank - 1] }]}>#{rank}</Text>
-      </View>
-    );
-  }
-  return (
-    <View style={[medallStyles.circle, { backgroundColor: "#FFFFFF10", borderColor: "#FFFFFF20" }]}>
-      <Text style={[medallStyles.text, { color: "#FFFFFF60" }]}>#{rank}</Text>
-    </View>
-  );
-}
-
-const medallStyles = StyleSheet.create({
-  circle: { width: 36, height: 36, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1 },
-  text: { fontSize: 12, fontFamily: "Inter_700Bold" },
-});
 
 const PostCard = memo(function PostCard({ post, myUserId, myName, myAvatar, myBadge }: {
   post: SocialPost;
@@ -325,12 +296,12 @@ type Tab = typeof TABS[number];
 export default function ProfileScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { signOut } = useAuth();
   const { userProfile, userStats, level, rank, xpProgress, earnedAchievements } = useFitness();
   const { posts } = useSocial();
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const [activeTab, setActiveTab] = useState<Tab>("Overview");
-  const [lbFilter, setLbFilter] = useState<"global" | "friends">("global");
   const [feedFilter, setFeedFilter] = useState<Audience>("global");
   const [showCreatePost, setShowCreatePost] = useState(false);
 
@@ -351,13 +322,6 @@ export default function ProfileScreen() {
   const earnedSet = useMemo(() => new Set(earnedAchievements.map((a) => a.id)), [earnedAchievements]);
   const earnedBadges = useMemo(() => ACHIEVEMENTS.filter((a) => earnedSet.has(a.id)), [earnedSet]);
   const lockedBadges = useMemo(() => ACHIEVEMENTS.filter((a) => !earnedSet.has(a.id)).slice(0, 4), [earnedSet]);
-
-  const leaderData = useMemo(
-    () => LEADERBOARD_DATA.map((row) =>
-      row.isMe ? { ...row, xp: userStats.xp, streak: userStats.streak, badge: rank } : row
-    ),
-    [userStats.xp, userStats.streak, rank]
-  );
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -580,79 +544,63 @@ export default function ProfileScreen() {
 
         {activeTab === "Leaderboard" && (
           <>
-            <View style={styles.lbFilters}>
-              {(["global", "friends"] as const).map((f) => (
-                <TouchableOpacity
-                  key={f}
-                  onPress={() => setLbFilter(f)}
-                  style={[styles.lbFilterBtn,
-                    lbFilter === f
-                      ? { backgroundColor: colors.primary, borderColor: colors.primary }
-                      : { backgroundColor: colors.muted, borderColor: colors.border }
-                  ]}
-                >
-                  <Text style={[styles.lbFilterText, { color: lbFilter === f ? "#0D0D0D" : colors.mutedForeground }]}>
-                    {f === "global" ? "Global" : "Friends"}
+            <TouchableOpacity
+              onPress={() => router.push("/leaderboard" as any)}
+              activeOpacity={0.85}
+              style={[styles.lbHeroCard, { backgroundColor: colors.card, borderColor: "#F3D27A35" }]}
+            >
+              <LinearGradient
+                colors={["#F3D27A18", "#A78BFA10", "transparent"]}
+                style={StyleSheet.absoluteFill}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              />
+              <View style={styles.lbHeroTop}>
+                <View style={[styles.lbTrophyWrap, { backgroundColor: "#F3D27A20" }]}>
+                  <Ionicons name="trophy" size={28} color="#F3D27A" />
+                </View>
+                <View style={styles.lbHeroText}>
+                  <Text style={[styles.lbHeroTitle, { color: colors.foreground }]}>Global Leaderboard</Text>
+                  <Text style={[styles.lbHeroSub, { color: colors.mutedForeground }]}>
+                    See where you stand against the community
                   </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <View style={[styles.lbPodium, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <LinearGradient colors={["#F3D27A10", "#A78BFA10", "transparent"]} style={StyleSheet.absoluteFill} />
-              <Text style={[styles.lbPodiumTitle, { color: colors.foreground }]}>This Week's Champions</Text>
-              <View style={styles.podiumRow}>
-                {leaderData.slice(0, 3).map((row, i) => (
-                  <View key={row.rank} style={[styles.podiumItem, i === 0 && styles.podiumCenter]}>
-                    <View style={[styles.podiumAvatar, {
-                      backgroundColor: i === 0 ? "#F3D27A20" : i === 1 ? "#C0C0C020" : "#CD7F3220",
-                      borderColor: i === 0 ? "#F3D27A60" : i === 1 ? "#C0C0C060" : "#CD7F3260",
-                    }]}>
-                      <Text style={[styles.podiumAvatarText, {
-                        color: i === 0 ? "#F3D27A" : i === 1 ? "#C0C0C0" : "#CD7F32",
-                      }]}>{row.name.charAt(0)}</Text>
-                    </View>
-                    {i === 0 && <Text style={styles.crownEmoji}>👑</Text>}
-                    <Text style={[styles.podiumName, { color: colors.foreground }]} numberOfLines={1}>{row.name}</Text>
-                    <Text style={[styles.podiumXP, { color: colors.primary }]}>{row.xp.toLocaleString()} XP</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={colors.mutedForeground} />
+              </View>
+              <View style={[styles.lbHeroDivider, { backgroundColor: "#F3D27A20" }]} />
+              <View style={styles.lbHeroStats}>
+                {[
+                  { label: "Your XP", value: userStats.xp.toLocaleString(), color: "#F3D27A" },
+                  { label: "Streak", value: `${userStats.streak}d`, color: "#FF2D78" },
+                  { label: "Level", value: `${level}`, color: "#A78BFA" },
+                ].map((s) => (
+                  <View key={s.label} style={styles.lbHeroStat}>
+                    <Text style={[styles.lbHeroStatVal, { color: s.color }]}>{s.value}</Text>
+                    <Text style={[styles.lbHeroStatLabel, { color: colors.mutedForeground }]}>{s.label}</Text>
                   </View>
                 ))}
               </View>
-            </View>
+            </TouchableOpacity>
 
-            {leaderData.map((row) => (
-              <View key={row.rank} style={[
-                styles.lbRow,
-                { backgroundColor: row.isMe ? colors.primary + "15" : colors.card, borderColor: row.isMe ? colors.primary + "40" : colors.border }
-              ]}>
-                <RankMedal rank={row.rank} />
-                <View style={[styles.lbAvatar, { backgroundColor: row.isMe ? colors.primary + "25" : colors.muted + "80" }]}>
-                  <Text style={[styles.lbAvatarText, { color: row.isMe ? colors.primary : colors.mutedForeground }]}>
-                    {row.name.charAt(0)}
-                  </Text>
+            <View style={[styles.lbPreviewCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Text style={[styles.lbPreviewTitle, { color: colors.mutedForeground }]}>THIS WEEK'S TOP 3</Text>
+              {[
+                { name: "Marcus Cole", xp: "9,400 XP", medal: "🥇" },
+                { name: "Ayasha Ren", xp: "8,800 XP", medal: "🥈" },
+                { name: "Leo Hartmann", xp: "7,200 XP", medal: "🥉" },
+              ].map((row) => (
+                <View key={row.name} style={[styles.lbPreviewRow, { borderBottomColor: colors.border }]}>
+                  <Text style={styles.lbMedal}>{row.medal}</Text>
+                  <Text style={[styles.lbPreviewName, { color: colors.foreground }]}>{row.name}</Text>
+                  <Text style={[styles.lbPreviewXP, { color: "#F3D27A" }]}>{row.xp}</Text>
                 </View>
-                <View style={styles.lbInfo}>
-                  <Text style={[styles.lbName, { color: row.isMe ? colors.primary : colors.foreground }]}>
-                    {row.name}{row.isMe ? " (You)" : ""}
-                  </Text>
-                  <Text style={[styles.lbBadge, { color: colors.mutedForeground }]}>{row.badge}</Text>
-                </View>
-                <View style={styles.lbStats}>
-                  <View style={styles.lbStatItem}>
-                    <Text style={[styles.lbStatVal, { color: colors.foreground }]}>{row.xp.toLocaleString()}</Text>
-                    <Text style={[styles.lbStatLabel, { color: colors.mutedForeground }]}>XP</Text>
-                  </View>
-                  <View style={[styles.lbStreak, { backgroundColor: "#F3D27A15" }]}>
-                    <Ionicons name="flame" size={11} color="#F3D27A" />
-                    <Text style={[styles.lbStreakText, { color: "#F3D27A" }]}>{row.streak}</Text>
-                  </View>
-                </View>
-              </View>
-            ))}
-
-            <View style={[styles.lbFooter, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Ionicons name="refresh-outline" size={14} color={colors.mutedForeground} />
-              <Text style={[styles.lbFooterText, { color: colors.mutedForeground }]}>Updates every Sunday at midnight</Text>
+              ))}
+              <TouchableOpacity
+                onPress={() => router.push("/leaderboard" as any)}
+                style={[styles.lbViewAll, { backgroundColor: "#F3D27A18", borderColor: "#F3D27A35" }]}
+              >
+                <Text style={[styles.lbViewAllText, { color: "#F3D27A" }]}>View Full Rankings</Text>
+                <Ionicons name="arrow-forward" size={14} color="#F3D27A" />
+              </TouchableOpacity>
             </View>
           </>
         )}
@@ -719,31 +667,23 @@ const styles = StyleSheet.create({
   composePlaceholder: { flex: 1, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 9, borderWidth: 1 },
   composePlaceholderText: { fontSize: 13, fontFamily: "Inter_400Regular" },
   composeActions: { flexDirection: "row", gap: 8 },
-  lbFilters: { flexDirection: "row", gap: 10, marginBottom: 14 },
-  lbFilterBtn: { flex: 1, paddingVertical: 9, borderRadius: 12, borderWidth: 1, alignItems: "center" },
-  lbFilterText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
-  lbPodium: { borderRadius: 20, borderWidth: 1, padding: 20, marginBottom: 14, overflow: "hidden" },
-  lbPodiumTitle: { fontSize: 15, fontFamily: "Poppins_600SemiBold", textAlign: "center", marginBottom: 16 },
-  podiumRow: { flexDirection: "row", alignItems: "flex-end", justifyContent: "center", gap: 12 },
-  podiumItem: { alignItems: "center", gap: 6, flex: 1 },
-  podiumCenter: { marginBottom: 8 },
-  podiumAvatar: { width: 52, height: 52, borderRadius: 16, alignItems: "center", justifyContent: "center", borderWidth: 2 },
-  podiumAvatarText: { fontSize: 20, fontFamily: "Inter_700Bold" },
-  crownEmoji: { fontSize: 16, position: "absolute", top: -14 },
-  podiumName: { fontSize: 11, fontFamily: "Inter_600SemiBold", textAlign: "center" },
-  podiumXP: { fontSize: 11, fontFamily: "Inter_700Bold" },
-  lbRow: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 16, borderWidth: 1, padding: 12, marginBottom: 8 },
-  lbAvatar: { width: 36, height: 36, borderRadius: 11, alignItems: "center", justifyContent: "center" },
-  lbAvatarText: { fontSize: 14, fontFamily: "Inter_700Bold" },
-  lbInfo: { flex: 1 },
-  lbName: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-  lbBadge: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 1 },
-  lbStats: { flexDirection: "row", alignItems: "center", gap: 8 },
-  lbStatItem: { alignItems: "flex-end" },
-  lbStatVal: { fontSize: 13, fontFamily: "Inter_700Bold" },
-  lbStatLabel: { fontSize: 9, fontFamily: "Inter_400Regular" },
-  lbStreak: { flexDirection: "row", alignItems: "center", gap: 3, paddingHorizontal: 7, paddingVertical: 3, borderRadius: 8 },
-  lbStreakText: { fontSize: 12, fontFamily: "Inter_700Bold" },
-  lbFooter: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderRadius: 12, borderWidth: 1, padding: 10 },
-  lbFooterText: { fontSize: 11, fontFamily: "Inter_400Regular" },
+  lbHeroCard: { borderRadius: 22, borderWidth: 1, padding: 20, marginBottom: 14, overflow: "hidden" },
+  lbHeroTop: { flexDirection: "row", alignItems: "center", gap: 14, marginBottom: 16 },
+  lbTrophyWrap: { width: 52, height: 52, borderRadius: 16, alignItems: "center", justifyContent: "center" },
+  lbHeroText: { flex: 1 },
+  lbHeroTitle: { fontSize: 17, fontFamily: "Inter_700Bold", letterSpacing: -0.3 },
+  lbHeroSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 3 },
+  lbHeroDivider: { height: 1, marginBottom: 16 },
+  lbHeroStats: { flexDirection: "row", justifyContent: "space-around" },
+  lbHeroStat: { alignItems: "center", gap: 3 },
+  lbHeroStatVal: { fontSize: 20, fontFamily: "Inter_700Bold" },
+  lbHeroStatLabel: { fontSize: 10, fontFamily: "Inter_500Medium", letterSpacing: 0.5 },
+  lbPreviewCard: { borderRadius: 20, borderWidth: 1, padding: 16, marginBottom: 14 },
+  lbPreviewTitle: { fontSize: 10, fontFamily: "Inter_600SemiBold", letterSpacing: 1.5, marginBottom: 14 },
+  lbPreviewRow: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 10, borderBottomWidth: 1 },
+  lbMedal: { fontSize: 20, width: 28 },
+  lbPreviewName: { flex: 1, fontSize: 14, fontFamily: "Inter_500Medium" },
+  lbPreviewXP: { fontSize: 13, fontFamily: "Inter_700Bold" },
+  lbViewAll: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 14, paddingVertical: 11, borderRadius: 12, borderWidth: 1 },
+  lbViewAllText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
 });

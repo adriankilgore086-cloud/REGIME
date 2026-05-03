@@ -15,6 +15,7 @@ import { XPProgressBar } from "@/components/XPProgressBar";
 import { StatCard } from "@/components/StatCard";
 import { RewardOverlay } from "@/components/RewardOverlay";
 import { AIChatModal } from "@/components/AIChatModal";
+import { WorkoutPlayerModal } from "@/components/WorkoutPlayerModal";
 
 const AI_SUGGESTIONS = [
   "You haven't trained legs in 2 days. Add a leg session today.",
@@ -36,42 +37,23 @@ const SMART_RECS = [
   { id: "rec3", name: "Core Crusher", tag: "AI Recommended", minutes: 25, xp: 120, color: "#A78BFA", icon: "sparkles" as const },
 ];
 
+const PR_BOARD = [
+  { lift: "Bench Press", current: 100, prev: 90, unit: "kg", icon: "barbell-outline" as const, color: "#FF2D78" },
+  { lift: "Back Squat", current: 130, prev: 125, unit: "kg", icon: "body-outline" as const, color: "#A78BFA" },
+  { lift: "Deadlift", current: 160, prev: 155, unit: "kg", icon: "fitness-outline" as const, color: "#F3D27A" },
+  { lift: "OHP", current: 72, prev: 70, unit: "kg", icon: "arrow-up-outline" as const, color: "#7BE0B8" },
+  { lift: "Pull-ups", current: 15, prev: 12, unit: "reps", icon: "trending-up-outline" as const, color: "#8FB8FF" },
+];
+
 function getDailyCuratedWorkout() {
   const dayIndex = new Date().getDay();
   return SAMPLE_WORKOUTS[dayIndex % SAMPLE_WORKOUTS.length];
 }
 
-function DailyCuratedWorkoutCard() {
+function DailyCuratedWorkoutCard({ onStartPlayer }: { onStartPlayer: (workout: import("@/constants/workouts").Workout) => void }) {
   const colors = useColors();
   const workout = getDailyCuratedWorkout();
   const accentColor = CATEGORY_COLORS[workout.category] ?? colors.primary;
-  const [started, setStarted] = useState(false);
-  const [completed, setCompleted] = useState<Record<string, boolean>>({});
-  const progressAnim = useRef(new Animated.Value(0)).current;
-
-  const exerciseList = workout.exercises.slice(0, 5);
-  const doneCount = exerciseList.filter((e) => completed[e.id]).length;
-  const pct = exerciseList.length > 0 ? doneCount / exerciseList.length : 0;
-  const showBar = started && doneCount > 0;
-
-  useEffect(() => {
-    if (showBar) {
-      Animated.timing(progressAnim, {
-        toValue: pct,
-        duration: 500,
-        useNativeDriver: false,
-      }).start();
-    }
-  }, [pct, showBar]);
-
-  const toggleExercise = (id: string) => {
-    setCompleted((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  const barWidth = progressAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0%", "100%"],
-  });
 
   return (
     <View style={[dcStyles.card, { backgroundColor: colors.card, borderColor: accentColor + "35" }]}>
@@ -110,66 +92,31 @@ function DailyCuratedWorkoutCard() {
         </Text>
       </View>
 
-      {showBar && (
-        <View style={dcStyles.progressWrap}>
-          <View style={[dcStyles.progressTrack, { backgroundColor: accentColor + "20" }]}>
-            <Animated.View style={[dcStyles.progressFill, { width: barWidth, backgroundColor: accentColor }]} />
+      <View style={dcStyles.exercisePreview}>
+        {workout.exercises.slice(0, 3).map((ex: Exercise) => (
+          <View key={ex.id} style={[dcStyles.exPreviewRow, { borderColor: colors.border }]}>
+            <View style={[dcStyles.exPreviewDot, { backgroundColor: accentColor }]} />
+            <Text style={[dcStyles.exPreviewName, { color: colors.foreground }]}>{ex.name}</Text>
+            <Text style={[dcStyles.exPreviewMeta, { color: colors.mutedForeground }]}>
+              {ex.sets}×{ex.reps}
+            </Text>
           </View>
-          <Text style={[dcStyles.progressLabel, { color: accentColor }]}>
-            {doneCount}/{exerciseList.length} exercises
+        ))}
+        {workout.exercises.length > 3 && (
+          <Text style={[dcStyles.exMore, { color: colors.mutedForeground }]}>
+            +{workout.exercises.length - 3} more exercises
           </Text>
-        </View>
-      )}
+        )}
+      </View>
 
-      {started && (
-        <View style={dcStyles.exerciseList}>
-          {exerciseList.map((ex: Exercise) => {
-            const done = !!completed[ex.id];
-            return (
-              <TouchableOpacity
-                key={ex.id}
-                onPress={() => toggleExercise(ex.id)}
-                style={[
-                  dcStyles.exerciseRow,
-                  { borderColor: done ? accentColor + "40" : colors.border },
-                  done && { backgroundColor: accentColor + "0C" },
-                ]}
-                activeOpacity={0.75}
-              >
-                <View style={[
-                  dcStyles.checkbox,
-                  { borderColor: done ? accentColor : colors.border, backgroundColor: done ? accentColor : "transparent" },
-                ]}>
-                  {done && <Ionicons name="checkmark" size={11} color="#0D0D0D" />}
-                </View>
-                <View style={dcStyles.exInfo}>
-                  <Text style={[dcStyles.exName, { color: done ? colors.mutedForeground : colors.foreground }]}>{ex.name}</Text>
-                  <Text style={[dcStyles.exSub, { color: colors.mutedForeground }]}>
-                    {ex.sets} × {ex.reps}{typeof ex.reps === "number" ? " reps" : ""}
-                  </Text>
-                </View>
-                {done && <Ionicons name="checkmark-circle" size={16} color={accentColor} />}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      )}
-
-      {!started ? (
-        <TouchableOpacity
-          style={[dcStyles.startBtn, { backgroundColor: accentColor }]}
-          onPress={() => setStarted(true)}
-          activeOpacity={0.85}
-        >
-          <Ionicons name="play" size={14} color="#0D0D0D" />
-          <Text style={dcStyles.startBtnText}>Start Today's Workout</Text>
-        </TouchableOpacity>
-      ) : doneCount === exerciseList.length ? (
-        <View style={[dcStyles.doneRow, { backgroundColor: "#7BE0B812", borderColor: "#7BE0B830" }]}>
-          <Ionicons name="checkmark-circle" size={16} color="#7BE0B8" />
-          <Text style={[dcStyles.doneText, { color: "#7BE0B8" }]}>Workout complete — great work!</Text>
-        </View>
-      ) : null}
+      <TouchableOpacity
+        style={[dcStyles.startBtn, { backgroundColor: accentColor }]}
+        onPress={() => onStartPlayer(workout)}
+        activeOpacity={0.85}
+      >
+        <Ionicons name="play" size={14} color="#0D0D0D" />
+        <Text style={dcStyles.startBtnText}>Start Session</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -190,16 +137,14 @@ const dcStyles = StyleSheet.create({
   progressTrack: { height: 6, borderRadius: 3, overflow: "hidden" },
   progressFill: { height: "100%", borderRadius: 3 },
   progressLabel: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
-  exerciseList: { gap: 8, marginBottom: 14 },
-  exerciseRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: 14, borderWidth: 1 },
-  checkbox: { width: 20, height: 20, borderRadius: 6, borderWidth: 2, alignItems: "center", justifyContent: "center" },
-  exInfo: { flex: 1 },
-  exName: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
-  exSub: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 1 },
+  exercisePreview: { gap: 6, marginBottom: 14 },
+  exPreviewRow: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 8, borderBottomWidth: 1 },
+  exPreviewDot: { width: 5, height: 5, borderRadius: 3 },
+  exPreviewName: { flex: 1, fontSize: 13, fontFamily: "Inter_500Medium" },
+  exPreviewMeta: { fontSize: 12, fontFamily: "Inter_400Regular" },
+  exMore: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
   startBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 13, borderRadius: 14 },
   startBtnText: { fontSize: 14, fontFamily: "Inter_700Bold", color: "#0D0D0D" },
-  doneRow: { flexDirection: "row", alignItems: "center", gap: 8, padding: 12, borderRadius: 14, borderWidth: 1 },
-  doneText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
 });
 
 function GhostCard({ userStats, colors }: { userStats: any; colors: any }) {
@@ -292,6 +237,14 @@ export default function HomeScreen() {
   const [showAI, setShowAI] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [suggestionIdx] = useState(() => Math.floor(Math.random() * AI_SUGGESTIONS.length));
+  const [playerWorkout, setPlayerWorkout] = useState<import("@/constants/workouts").Workout | null>(null);
+  const [playerScheduledId, setPlayerScheduledId] = useState<string | null>(null);
+
+  const openPlayer = (workout: import("@/constants/workouts").Workout, scheduledId?: string) => {
+    setPlayerWorkout(workout);
+    setPlayerScheduledId(scheduledId ?? null);
+  };
+  const closePlayer = () => { setPlayerWorkout(null); setPlayerScheduledId(null); };
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const hour = new Date().getHours();
@@ -319,6 +272,12 @@ export default function HomeScreen() {
             <Text style={[styles.name, { color: colors.foreground }]}>{userProfile.name}</Text>
           </View>
           <View style={styles.headerRight}>
+            <TouchableOpacity
+              onPress={() => router.push("/leaderboard" as any)}
+              style={[styles.iconBtn, { backgroundColor: "#F3D27A14", borderColor: "#F3D27A35" }]}
+            >
+              <Ionicons name="trophy-outline" size={20} color="#F3D27A" />
+            </TouchableOpacity>
             <TouchableOpacity
               onPress={() => router.push("/notifications" as any)}
               style={[styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
@@ -355,7 +314,7 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        <DailyCuratedWorkoutCard />
+        <DailyCuratedWorkoutCard onStartPlayer={(w) => openPlayer(w)} />
 
         <GhostCard userStats={userStats} colors={colors} />
 
@@ -394,7 +353,7 @@ export default function HomeScreen() {
               scheduledId={sw.id}
               onComplete={completeWorkout}
               onSkip={skipWorkout}
-              onPress={(w) => router.push(`/workout/${w.id}` as any)}
+              onPress={(w) => openPlayer(w, sw.id)}
             />
           );
         })}
@@ -421,6 +380,38 @@ export default function HomeScreen() {
             <Ionicons name="chevron-forward" size={18} color={colors.mutedForeground} />
           </View>
         </TouchableOpacity>
+
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Personal Records</Text>
+          <View style={[styles.aiBadge, { backgroundColor: "#F3D27A15" }]}>
+            <Ionicons name="trophy-outline" size={10} color="#F3D27A" />
+            <Text style={[styles.aiLabel2, { color: "#F3D27A" }]}>Your PRs</Text>
+          </View>
+        </View>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.recsScroll} contentContainerStyle={styles.recsContent}>
+          {PR_BOARD.map((pr) => {
+            const gain = pr.current - pr.prev;
+            const gainPct = Math.round((gain / pr.prev) * 100);
+            return (
+              <View key={pr.lift} style={[prStyles.card, { backgroundColor: colors.card, borderColor: pr.color + "30" }]}>
+                <LinearGradient colors={[pr.color + "14", "transparent"]} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} />
+                <View style={[prStyles.iconWrap, { backgroundColor: pr.color + "20" }]}>
+                  <Ionicons name={pr.icon} size={18} color={pr.color} />
+                </View>
+                <Text style={[prStyles.liftName, { color: colors.mutedForeground }]}>{pr.lift}</Text>
+                <Text style={[prStyles.prVal, { color: colors.foreground }]}>
+                  {pr.current}
+                  <Text style={[prStyles.unit, { color: colors.mutedForeground }]}> {pr.unit}</Text>
+                </Text>
+                <View style={[prStyles.badge, { backgroundColor: pr.color + "20", borderColor: pr.color + "35" }]}>
+                  <Ionicons name="arrow-up" size={9} color={pr.color} />
+                  <Text style={[prStyles.badgeText, { color: pr.color }]}>+{gain} ({gainPct}%)</Text>
+                </View>
+              </View>
+            );
+          })}
+        </ScrollView>
 
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Smart Recommendations</Text>
@@ -493,6 +484,15 @@ export default function HomeScreen() {
 
       <AIChatModal visible={showAI} onClose={() => setShowAI(false)} />
       <RewardOverlay visible={showReward} data={rewardData} onDismiss={dismissReward} />
+      {playerWorkout && (
+        <WorkoutPlayerModal
+          visible={!!playerWorkout}
+          workout={playerWorkout}
+          scheduledId={playerScheduledId}
+          onClose={closePlayer}
+          onComplete={(sid) => { completeWorkout(sid); closePlayer(); }}
+        />
+      )}
     </View>
   );
 }
@@ -561,4 +561,14 @@ const styles = StyleSheet.create({
   activityName: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
   activitySub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
   fab: { position: "absolute", right: 20, bottom: 110, width: 52, height: 52, borderRadius: 16, alignItems: "center", justifyContent: "center", shadowColor: "#8FB8FF", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 10 },
+});
+
+const prStyles = StyleSheet.create({
+  card: { width: 140, borderRadius: 18, borderWidth: 1, padding: 14, gap: 6, overflow: "hidden" },
+  iconWrap: { width: 38, height: 38, borderRadius: 11, alignItems: "center", justifyContent: "center", marginBottom: 2 },
+  liftName: { fontSize: 11, fontFamily: "Inter_500Medium", letterSpacing: 0.3 },
+  prVal: { fontSize: 22, fontFamily: "Inter_700Bold" },
+  unit: { fontSize: 12, fontFamily: "Inter_400Regular" },
+  badge: { flexDirection: "row", alignItems: "center", gap: 3, alignSelf: "flex-start", paddingHorizontal: 7, paddingVertical: 3, borderRadius: 8, borderWidth: 1 },
+  badgeText: { fontSize: 10, fontFamily: "Inter_600SemiBold" },
 });
