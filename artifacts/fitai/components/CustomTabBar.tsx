@@ -12,11 +12,11 @@ import Animated, {
 import { useColors } from '@/hooks/useColors';
 
 const TAB_ICONS = [
-  { name: 'calendar', label: 'Schedule' },
-  { name: 'goals', label: 'Goals' },
-  { name: 'index', label: 'Home' },
-  { name: 'health', label: 'Health' },
-  { name: 'profile', label: 'Profile' },
+  { name: 'calendar', label: 'Schedule', icon: 'calendar' },
+  { name: 'goals', label: 'Goals', icon: 'trophy' },
+  { name: 'index', label: 'Home', icon: 'home' },
+  { name: 'health', label: 'Health', icon: 'heart' },
+  { name: 'profile', label: 'Profile', icon: 'user' },
 ];
 
 function TabIcon({ routeName, isFocused, color }: { routeName: string; isFocused: boolean; color: string }) {
@@ -26,6 +26,8 @@ function TabIcon({ routeName, isFocused, color }: { routeName: string; isFocused
       return <Feather name="calendar" size={size} color={color} />;
     case 'goals':
       return <Ionicons name={isFocused ? 'trophy' : 'trophy-outline'} size={size} color={color} />;
+    case 'index':
+      return <Feather name="home" size={size} color={color} />;
     case 'health':
       return <Ionicons name={isFocused ? 'heart' : 'heart-outline'} size={size} color={color} />;
     case 'profile':
@@ -101,13 +103,15 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
   const bottomPad = isWeb ? 34 : insets.bottom;
   const colors = useColors();
 
+  const visibleRoutes = state.routes.filter((r) => r.name !== 'library');
+  const visibleIndex = state.index > 1 ? state.index - 1 : state.index;
+
   return (
     <View style={[styles.container, { paddingBottom: bottomPad }]}>
-        <LinearGradient colors={['rgba(13,13,13,0)', 'rgba(13,13,13,0.92)', '#0D0D0D']} style={StyleSheet.absoluteFill} pointerEvents="none" />
+      <LinearGradient colors={['rgba(13,13,13,0)', 'rgba(13,13,13,0.92)', '#0D0D0D']} style={StyleSheet.absoluteFill} pointerEvents="none" />
       <View style={[styles.pill, { borderColor: colors.border, backgroundColor: 'rgba(22,22,22,0.96)' }]}>
-        {state.routes.map((route, index) => {
-          const isFocused = state.index === index;
-          const isCenter = index === 2;
+        {visibleRoutes.map((route, index) => {
+          const isFocused = visibleIndex === index;
 
           const onPress = () => {
             const event = navigation.emit({
@@ -127,7 +131,7 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
               index={index}
               isFocused={isFocused}
               onPress={onPress}
-              isCenter={isCenter}
+              isCenter={false}
             />
           );
         })}
