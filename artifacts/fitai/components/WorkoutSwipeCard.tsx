@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, PanResponder, Animated,
-  Dimensions, TouchableOpacity,
+  Dimensions, TouchableOpacity, Platform,
 } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -52,13 +52,13 @@ export function WorkoutSwipeCard({ workout, scheduledId, onComplete, onSkip, onP
     },
     onPanResponderRelease: (_, gs) => {
       if (gs.dx > SWIPE_THRESHOLD) {
-        Animated.spring(translateX, { toValue: width * 1.5, useNativeDriver: true }).start(() => onComplete(scheduledId));
+        Animated.spring(translateX, { toValue: width * 1.5, useNativeDriver: Platform.OS !== "web" }).start(() => onComplete(scheduledId));
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       } else if (gs.dx < -SWIPE_THRESHOLD) {
-        Animated.spring(translateX, { toValue: -width * 1.5, useNativeDriver: true }).start(() => onSkip(scheduledId));
+        Animated.spring(translateX, { toValue: -width * 1.5, useNativeDriver: Platform.OS !== "web" }).start(() => onSkip(scheduledId));
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       } else {
-        Animated.spring(translateX, { toValue: 0, useNativeDriver: true, tension: 40, friction: 5 }).start();
+        Animated.spring(translateX, { toValue: 0, useNativeDriver: Platform.OS !== "web", tension: 40, friction: 5 }).start();
         setSwiping(null);
       }
     },

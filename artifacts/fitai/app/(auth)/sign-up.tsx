@@ -85,7 +85,7 @@ export default function SignUpScreen() {
   const emailError = errors?.fields?.emailAddress?.message;
   const passwordError = errors?.fields?.password?.message;
   const codeError = errors?.fields?.code?.message;
-  const globalError = errors?.global?.message;
+  const globalError = errors?.global?.[0]?.message;
 
   const isVerifying =
     signUp.status === "missing_requirements" &&

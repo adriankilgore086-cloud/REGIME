@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import {
-  View, Text, StyleSheet, Animated, Modal, TouchableOpacity, Dimensions,
+  View, Text, StyleSheet, Animated, Modal, TouchableOpacity, Dimensions, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -26,12 +26,12 @@ function Particle({ delay, color }: { delay: number; color: string }) {
     Animated.sequence([
       Animated.delay(delay),
       Animated.parallel([
-        Animated.timing(opacity, { toValue: 1, duration: 200, useNativeDriver: true }),
-        Animated.spring(scale, { toValue: 1, useNativeDriver: true }),
-        Animated.timing(x, { toValue: startX, duration: 1200, useNativeDriver: true }),
-        Animated.timing(y, { toValue: endY, duration: 1200, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 1, duration: 200, useNativeDriver: Platform.OS !== "web" }),
+        Animated.spring(scale, { toValue: 1, useNativeDriver: Platform.OS !== "web" }),
+        Animated.timing(x, { toValue: startX, duration: 1200, useNativeDriver: Platform.OS !== "web" }),
+        Animated.timing(y, { toValue: endY, duration: 1200, useNativeDriver: Platform.OS !== "web" }),
       ]),
-      Animated.timing(opacity, { toValue: 0, duration: 400, useNativeDriver: true }),
+      Animated.timing(opacity, { toValue: 0, duration: 400, useNativeDriver: Platform.OS !== "web" }),
     ]).start();
   }, []);
 
@@ -67,8 +67,8 @@ export function RewardOverlay({ visible, data, onDismiss }: Props) {
       xpAnim.setValue(0);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Animated.parallel([
-        Animated.spring(scale, { toValue: 1, useNativeDriver: true, tension: 50, friction: 7 }),
-        Animated.timing(opacity, { toValue: 1, duration: 200, useNativeDriver: true }),
+        Animated.spring(scale, { toValue: 1, useNativeDriver: Platform.OS !== "web", tension: 50, friction: 7 }),
+        Animated.timing(opacity, { toValue: 1, duration: 200, useNativeDriver: Platform.OS !== "web" }),
         Animated.timing(xpAnim, { toValue: 1, duration: 1000, delay: 300, useNativeDriver: false }),
       ]).start();
       const timer = setTimeout(onDismiss, 3500);

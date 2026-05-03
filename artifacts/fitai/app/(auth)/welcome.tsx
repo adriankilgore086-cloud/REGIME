@@ -94,9 +94,9 @@ export default function WelcomeScreen() {
     }
   }, [startSSOFlow]);
 
-  const emailError = errors?.fields?.identifier?.message ?? errors?.fields?.emailAddress?.message;
+  const emailError = errors?.fields?.identifier?.message;
   const passwordError = errors?.fields?.password?.message;
-  const globalError = errors?.global?.message;
+  const globalError = errors?.global?.[0]?.message;
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
