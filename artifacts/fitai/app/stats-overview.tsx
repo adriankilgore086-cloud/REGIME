@@ -111,7 +111,7 @@ export default function StatsOverviewScreen() {
 
           <View style={[styles.statsBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={styles.statsBoxHeader}>
-              <Ionicons name="flame" size={20} color={colors.accent} />
+              <Ionicons name="fire" size={20} color={colors.accent} />
               <Text style={[styles.statsBoxTitle, { color: colors.foreground }]}>Max Calories Burned</Text>
             </View>
             <Text style={[styles.statsBoxValue, { color: colors.accent }]}>{maxCalories} cal</Text>

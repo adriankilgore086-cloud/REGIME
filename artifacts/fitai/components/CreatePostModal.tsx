@@ -103,7 +103,7 @@ export default function CreatePostModal({ visible, onClose }: Props) {
       userId: "me",
       userName: userProfile.name,
       userAvatar: userProfile.name.charAt(0).toUpperCase(),
-      userProfileImage: userProfile.profileImage ?? undefined,
+      userProfileImage: userProfile.profileImage,
       userBadge: rank,
       type: postType,
       text: text.trim(),

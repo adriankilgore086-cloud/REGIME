@@ -146,6 +146,7 @@ export default function GoalsScreen() {
   const insets = useSafeAreaInsets();
   const { goals, userStats, level, userProfile, addGoal, updateGoalProgress, deleteGoal } = useFitness();
   const [showAdd, setShowAdd] = useState(false);
+  const [goalStep, setGoalStep] = useState<"form" | "preview">("form");
   const [newGoalTitle, setNewGoalTitle] = useState("");
   const [newGoalTarget, setNewGoalTarget] = useState("");
   const [newGoalUnit, setNewGoalUnit] = useState("kg");
@@ -172,6 +173,7 @@ export default function GoalsScreen() {
     setNewGoalDuration("");
     setNewGoalPurpose("");
     setNewGoalDescription("");
+    setGoalStep("form");
     setShowAdd(false);
   };
 
@@ -184,7 +186,7 @@ export default function GoalsScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 120 }]} showsVerticalScrollIndicator={false} scrollEventThrottle={16} removeClippedSubviews={Platform.OS !== "web"}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 120 }]} showsVerticalScrollIndicator={false}>
         <LinearGradient
           colors={["#8FB8FF15", "#A78BFA15", "transparent"]}
           style={styles.planBanner}
@@ -210,7 +212,7 @@ export default function GoalsScreen() {
         {goals.length > 0 && (
           <View style={[styles.goalsBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={styles.goalsBoxHeader}>
-              <Ionicons name="flag-outline" size={18} color={colors.primary} />
+              <Ionicons name="target" size={18} color={colors.primary} />
               <Text style={[styles.goalsBoxTitle, { color: colors.foreground }]}>Active Goals</Text>
             </View>
             {goals.slice(0, 2).map((goal) => (
@@ -322,70 +324,45 @@ export default function GoalsScreen() {
         </View>
       </ScrollView>
 
-      <Modal visible={showAdd} transparent animationType="slide" onRequestClose={() => setShowAdd(false)}>
+      <Modal visible={showAdd} transparent animationType="slide" onRequestClose={() => { setGoalStep("form"); setShowAdd(false); }}>
         <View style={styles.modalOverlay}>
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.modalScroll} scrollEventThrottle={16}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.modalScroll}>
             <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
-              <Text style={[styles.modalTitle, { color: colors.foreground }]}>Create New Goal</Text>
-              
-              <TextInput
-                style={[styles.modalInput, { backgroundColor: colors.muted, color: colors.foreground, borderColor: colors.border }]}
-                placeholder="Goal title (e.g., Bench Press PR)"
-                placeholderTextColor={colors.mutedForeground}
-                value={newGoalTitle}
-                onChangeText={setNewGoalTitle}
-              />
-              
-              <TextInput
-                style={[styles.modalInput, { backgroundColor: colors.muted, color: colors.foreground, borderColor: colors.border }]}
-                placeholder="What is this goal for? (e.g., Strength, Endurance)"
-                placeholderTextColor={colors.mutedForeground}
-                value={newGoalPurpose}
-                onChangeText={setNewGoalPurpose}
-              />
-              
-              <TextInput
-                style={[styles.modalInput, { height: 60, backgroundColor: colors.muted, color: colors.foreground, borderColor: colors.border, textAlignVertical: "top" }]}
-                placeholder="Add a description (e.g., Want to reach 150kg on bench press within 8 weeks)"
-                placeholderTextColor={colors.mutedForeground}
-                value={newGoalDescription}
-                onChangeText={setNewGoalDescription}
-                multiline
-              />
-              
-              <View style={styles.modalRow}>
-                <TextInput
-                  style={[styles.modalInput, { flex: 1, backgroundColor: colors.muted, color: colors.foreground, borderColor: colors.border }]}
-                  placeholder="Target"
-                  placeholderTextColor={colors.mutedForeground}
-                  value={newGoalTarget}
-                  onChangeText={setNewGoalTarget}
-                  keyboardType="numeric"
-                />
-                <TextInput
-                  style={[styles.modalInput, { width: 70, backgroundColor: colors.muted, color: colors.foreground, borderColor: colors.border }]}
-                  placeholder="Unit"
-                  placeholderTextColor={colors.mutedForeground}
-                  value={newGoalUnit}
-                  onChangeText={setNewGoalUnit}
-                />
-              </View>
-              
-              <TextInput
-                style={[styles.modalInput, { backgroundColor: colors.muted, color: colors.foreground, borderColor: colors.border }]}
-                placeholder="Duration (days)"
-                placeholderTextColor={colors.mutedForeground}
-                value={newGoalDuration}
-                onChangeText={setNewGoalDuration}
-                keyboardType="numeric"
-              />
-              
-              <TouchableOpacity onPress={handleAddGoal} style={[styles.modalBtn, { backgroundColor: colors.primary }]}>
-                <Text style={styles.modalBtnText}>Add Goal</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setShowAdd(false)}>
-                <Text style={[styles.cancelText, { color: colors.mutedForeground }]}>Cancel</Text>
-              </TouchableOpacity>
+              {goalStep === "form" ? (
+                <>
+                  <Text style={[styles.modalTitle, { color: colors.foreground }]}>Create New Goal</Text>
+                  <TextInput style={[styles.modalInput, { backgroundColor: colors.muted, color: colors.foreground, borderColor: colors.border }]} placeholder="Goal title (e.g., Bench Press PR)" placeholderTextColor={colors.mutedForeground} value={newGoalTitle} onChangeText={setNewGoalTitle} />
+                  <TextInput style={[styles.modalInput, { backgroundColor: colors.muted, color: colors.foreground, borderColor: colors.border }]} placeholder="What is this goal for? (e.g., Strength, Endurance)" placeholderTextColor={colors.mutedForeground} value={newGoalPurpose} onChangeText={setNewGoalPurpose} />
+                  <TextInput style={[styles.modalInput, { height: 60, backgroundColor: colors.muted, color: colors.foreground, borderColor: colors.border, textAlignVertical: "top" }]} placeholder="Add a description (e.g., Want to reach 150kg on bench press within 8 weeks)" placeholderTextColor={colors.mutedForeground} value={newGoalDescription} onChangeText={setNewGoalDescription} multiline />
+                  <View style={styles.modalRow}>
+                    <TextInput style={[styles.modalInput, { flex: 1, backgroundColor: colors.muted, color: colors.foreground, borderColor: colors.border }]} placeholder="Target" placeholderTextColor={colors.mutedForeground} value={newGoalTarget} onChangeText={setNewGoalTarget} keyboardType="numeric" />
+                    <TextInput style={[styles.modalInput, { width: 70, backgroundColor: colors.muted, color: colors.foreground, borderColor: colors.border }]} placeholder="Unit" placeholderTextColor={colors.mutedForeground} value={newGoalUnit} onChangeText={setNewGoalUnit} />
+                  </View>
+                  <TextInput style={[styles.modalInput, { backgroundColor: colors.muted, color: colors.foreground, borderColor: colors.border }]} placeholder="Duration (days)" placeholderTextColor={colors.mutedForeground} value={newGoalDuration} onChangeText={setNewGoalDuration} keyboardType="numeric" />
+                  <TouchableOpacity onPress={() => setGoalStep("preview")} style={[styles.modalBtn, { backgroundColor: colors.primary }]}>
+                    <Text style={styles.modalBtnText}>Preview Goal →</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => { setGoalStep("form"); setShowAdd(false); }}>
+                    <Text style={[styles.cancelText, { color: colors.mutedForeground }]}>Cancel</Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <>
+                  <Text style={[styles.modalTitle, { color: colors.foreground }]}>Preview Goal</Text>
+                  <View style={[styles.goalPreviewCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                    <Text style={[styles.goalPreviewTitle, { color: colors.foreground }]}>{newGoalTitle || "New Goal"}</Text>
+                    {newGoalPurpose ? <Text style={[styles.goalPreviewSub, { color: colors.mutedForeground }]}>For: {newGoalPurpose}</Text> : null}
+                    {newGoalDescription ? <Text style={[styles.goalPreviewDesc, { color: colors.mutedForeground }]}>{newGoalDescription}</Text> : null}
+                    <Text style={[styles.goalPreviewTarget, { color: colors.primary }]}>0 / {newGoalTarget || "0"} {newGoalUnit}</Text>
+                  </View>
+                  <TouchableOpacity onPress={handleAddGoal} style={[styles.modalBtn, { backgroundColor: colors.primary }]}>
+                    <Text style={styles.modalBtnText}>Create Goal</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => setGoalStep("form")}>
+                    <Text style={[styles.cancelText, { color: colors.mutedForeground }]}>← Edit</Text>
+                  </TouchableOpacity>
+                </>
+              )}
             </View>
           </ScrollView>
         </View>
@@ -446,6 +423,11 @@ const styles = StyleSheet.create({
   modalBtnText: { color: "#0D0D0D", fontSize: 16, fontFamily: "Inter_700Bold" },
   cancelText: { textAlign: "center", fontSize: 14, fontFamily: "Inter_400Regular" },
   modalScroll: { flexGrow: 1, justifyContent: "flex-end" },
+  goalPreviewCard: { borderRadius: 18, borderWidth: 1, padding: 16, gap: 6, marginBottom: 8 },
+  goalPreviewTitle: { fontSize: 16, fontFamily: "Inter_700Bold" },
+  goalPreviewSub: { fontSize: 11, fontFamily: "Inter_500Medium" },
+  goalPreviewDesc: { fontSize: 12, fontFamily: "Inter_400Regular" },
+  goalPreviewTarget: { fontSize: 14, fontFamily: "Inter_700Bold", marginTop: 4 },
   goalsBox: { borderRadius: 18, borderWidth: 1, padding: 16, marginBottom: 20 },
   goalsBoxHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 },
   goalsBoxTitle: { fontSize: 16, fontFamily: "Inter_700Bold" },

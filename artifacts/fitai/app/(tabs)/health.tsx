@@ -23,8 +23,9 @@ function BarChart({ data, max, color }: { data: number[]; max: number; color: st
         return (
           <View key={i} style={bcStyles.barCol}>
             <View style={[bcStyles.barTrack, { backgroundColor: colors.muted }]}>
-              <View
-                style={[bcStyles.barFill, { height: `${Math.max(pct * 100, 4)}%`, backgroundColor: color }]}
+              <LinearGradient
+                colors={[color, color + "70"]}
+                style={[bcStyles.barFill, { height: `${Math.max(pct * 100, 4)}%` }]}
               />
             </View>
             <Text style={[bcStyles.label, { color: colors.mutedForeground }]}>
@@ -168,7 +169,7 @@ function ActivityHeatmap() {
         </View>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} scrollEventThrottle={16}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <View style={hmStyles.grid}>
           {byWeek.map((week, wi) => (
             <View key={wi} style={hmStyles.col}>
@@ -289,19 +290,17 @@ export default function HealthScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 120 }]} showsVerticalScrollIndicator={false} scrollEventThrottle={16} removeClippedSubviews={Platform.OS !== "web"}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 120 }]} showsVerticalScrollIndicator={false}>
 
         <TouchableOpacity onPress={() => router.push("/recovery-detail" as any)} activeOpacity={0.75}>
           <View style={[styles.recoveryCard, { backgroundColor: "#10241D", borderColor: "#2F6F5A" }]}>
             <View style={styles.recoveryTopRow}>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.recoveryBadge, { color: "#7BE0B8" }]}>RECOVERY SCORE</Text>
-                <Text style={[styles.recoveryTitle, { color: "#F5F5F5" }]}>{recoveryScore}</Text>
-                <Text style={[styles.recoveryBody, { color: "#B4C8BE" }]}>
-                  {recoveryScore >= 75 ? "Good to train" : recoveryScore >= 50 ? "Train light" : "Rest recommended"}
-                </Text>
+                <Text style={[styles.recoveryTitle, { color: "#F5F5F5" }]}>78</Text>
+                <Text style={[styles.recoveryBody, { color: "#B4C8BE" }]}>Good to train</Text>
               </View>
-              <RecoveryRing score={recoveryScore} />
+              <RecoveryRing score={78} />
             </View>
           </View>
         </TouchableOpacity>
@@ -347,17 +346,17 @@ export default function HealthScreen() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity onPress={() => router.push("/body-metrics" as any)} style={{ marginBottom: 14 }}>
-          <View style={[styles.bodyWidget, { backgroundColor: "#1A0F2E", borderColor: "#A78BFA40" }]}>
+        <TouchableOpacity onPress={() => router.push("/recovery-detail" as any)} style={{ marginBottom: 14 }}>
+          <View style={[styles.bodyWidget, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-              <View style={[styles.bodyIcon, { backgroundColor: "#A78BFA20" }]}>
-                <Ionicons name="body-outline" size={20} color="#A78BFA" />
+              <View style={[styles.bodyIcon, { backgroundColor: "#7BE0B820" }]}>
+                <Ionicons name="body-outline" size={20} color="#7BE0B8" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.bodyTitle, { color: "#F5F5F5" }]}>Body Composition</Text>
-                <Text style={[styles.bodySub, { color: "#A78BFA99" }]}>Weight · Height · BMI · TDEE</Text>
+                <Text style={[styles.bodyTitle, { color: colors.foreground }]}>Body Composition</Text>
+                <Text style={[styles.bodySub, { color: colors.mutedForeground }]}>Weight, Height, BMI</Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color="#A78BFA" />
+              <Ionicons name="chevron-forward" size={18} color={colors.mutedForeground} />
             </View>
           </View>
         </TouchableOpacity>
@@ -414,9 +413,7 @@ export default function HealthScreen() {
           <BarChart data={minuteData} max={maxMin} color={colors.primary} />
         </View>
 
-        <TouchableOpacity onPress={() => router.push("/health-detail?metric=activity" as any)} activeOpacity={0.85}>
-          <ActivityHeatmap />
-        </TouchableOpacity>
+        <ActivityHeatmap />
 
         <View style={[styles.chartCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={styles.chartHeader}>

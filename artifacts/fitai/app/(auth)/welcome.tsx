@@ -51,10 +51,7 @@ export default function WelcomeScreen() {
     }
   }, [isSignedIn, router]);
 
-  const { signIn, setActive } = useSignIn() as any;
-  const [authError, setAuthError] = useState("");
-  const [loginLoading, setLoginLoading] = useState(false);
- 
+  const { signIn, errors, fetchStatus } = useSignIn();
   const { startSSOFlow } = useSSO();
 
   const [email, setEmail] = useState("");
@@ -75,23 +72,18 @@ export default function WelcomeScreen() {
     return () => { if (Platform.OS === "ios") void WebBrowser.coolDownAsync(); };
   }, []);
 
-   const handleLogin = async () => {
-     setAuthError("");
-     setLoginLoading(true);
-     try {
-       const result: any = await signIn.create({ identifier: email, password });
-       if (result.status === "complete" && setActive) {
-         await setActive({ session: result.createdSessionId });
-         router.replace("/(tabs)");
-       }
-     } catch (e: any) {
-       setAuthError(e?.errors?.[0]?.longMessage || "Login failed. Check your email and password.");
-     } finally {
-       setLoginLoading(false);
-     }
-   };
-  
-       
+  const handleLogin = async () => {
+    signIn.reset();
+    try {
+      const result = await signIn.password({ emailAddress: email, password });
+      if (result.error) return;
+      if (signIn.status === "complete") {
+        router.replace("/(tabs)");
+      }
+    } catch (e: any) {
+      // error handled via errors object from hook
+    }
+  };
 
   const handleGoogle = useCallback(async () => {
     setGoogleLoading(true);
@@ -132,9 +124,13 @@ export default function WelcomeScreen() {
     }
   }, [signIn, startSSOFlow, router]);
 
+  const emailError = errors?.fields?.identifier?.message;
+  const passwordError = errors?.fields?.password?.message;
+  const globalError = errors?.global?.[0]?.message;
+
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
-  const canLogin = !!email && !!password && !loginLoading;
+  const canLogin = !!email && !!password && fetchStatus !== "fetching";
 
   return (
     <View style={[styles.root, { backgroundColor: "#0D0D0D" }]}>
@@ -218,7 +214,7 @@ export default function WelcomeScreen() {
               {/* Email oval */}
               <View style={[
                 styles.ovalInput,
-                { borderColor: "#2E2E2E" },
+                { borderColor: emailError ? "#FF4B4B" : "#2E2E2E" },
               ]}>
                 <Ionicons name="mail-outline" size={17} color="#A1A1A1" style={{ marginLeft: 18 }} />
                 <TextInput
@@ -232,11 +228,12 @@ export default function WelcomeScreen() {
                   autoComplete="email"
                 />
               </View>
-          
+              {!!emailError && <Text style={styles.fieldErr}>{emailError}</Text>}
+
               {/* Password oval */}
               <View style={[
                 styles.ovalInput,
-                { borderColor: authError ? "#FF4B4B" : "#2E2E2E", marginTop: 12 },
+                { borderColor: passwordError ? "#FF4B4B" : "#2E2E2E", marginTop: 12 },
               ]}>
                 <Ionicons name="lock-closed-outline" size={17} color="#A1A1A1" style={{ marginLeft: 18 }} />
                 <TextInput
@@ -251,15 +248,15 @@ export default function WelcomeScreen() {
                   <Ionicons name={showPass ? "eye-off-outline" : "eye-outline"} size={17} color="#555" />
                 </TouchableOpacity>
               </View>
-              
+              {!!passwordError && <Text style={styles.fieldErr}>{passwordError}</Text>}
 
-          {!!authError && (
-            <View style={styles.globalErr}>
-              <Ionicons name="alert-circle-outline" size={14} color="#FF4B4B" />
-              <Text style={styles.globalErrText}>{authError}</Text>
-            </View>
-          )}
-            
+              {/* Global error */}
+              {!!globalError && (
+                <View style={styles.globalErr}>
+                  <Ionicons name="alert-circle-outline" size={14} color="#FF4B4B" />
+                  <Text style={styles.globalErrText}>{globalError}</Text>
+                </View>
+              )}
 
               {/* Black login bar */}
               <TouchableOpacity
@@ -268,8 +265,8 @@ export default function WelcomeScreen() {
                 activeOpacity={0.85}
                 style={[styles.loginBar, { opacity: canLogin ? 1 : 0.45 }]}
               >
-                {loginLoading
-                  ? <ActivityIndicator color="#F5F5F5" size="small" />
+                {fetchStatus === "fetching"
+                  ? <ActivityIndicator color="#F5F5F5" />
                   : <Text style={styles.loginBarText}>Login</Text>
                 }
               </TouchableOpacity>

@@ -19,7 +19,16 @@ export default function SignUpScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { isSignedIn } = useAuth();
-  const { signUp, setActive } = useSignUp() as any;
+
+  // Redirect already signed-in users
+  useEffect(() => {
+    if (isSignedIn) {
+      router.replace("/(tabs)");
+    }
+  }, [isSignedIn, router]);
+
+  // v3 API: useSignUp returns { signUp, errors, fetchStatus } — no isLoaded/setActive
+  const { signUp, errors, fetchStatus } = useSignUp();
   const { startSSOFlow } = useSSO();
 
   const [email, setEmail] = useState("");
@@ -29,12 +38,6 @@ export default function SignUpScreen() {
   const [code, setCode] = useState("");
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
-  const [authError, setAuthError] = useState("");
-  const [signupLoading, setSignupLoading] = useState(false);
-
-  useEffect(() => {
-    if (isSignedIn) router.replace("/(tabs)");
-  }, [isSignedIn, router]);
 
   useEffect(() => {
     if (Platform.OS !== "android") return;
@@ -43,65 +46,77 @@ export default function SignUpScreen() {
   }, []);
 
   const handleSignUp = async () => {
-    setAuthError("");
-    setSignupLoading(true);
-    try {
-      await signUp.create({
-        emailAddress: email.trim(),
-        password,
-        username: username.trim(),
-      });
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-    } catch (e: any) {
-      setAuthError(e?.errors?.[0]?.longMessage || "Sign up failed. Please try again.");
-    } finally {
-      setSignupLoading(false);
-    }
+    signUp.reset();
+    setCode("");
+    setEmail(email.trim());
+    setPassword(password);
+    setShowPass(false);
+    await signUp.create({
+      emailAddress: email.trim(),
+      password,
+      unsafeMetadata: { username: username.trim() },
+    });
+    await (signUp as any).prepareEmailAddressVerification({ strategy: "email_code" });
+    await (signUp as any).verifications.sendEmailCode();
   };
 
   const handleVerify = async () => {
-    setAuthError("");
-    try {
-      const result: any = await signUp.attemptEmailAddressVerification({ code });
-      if (result.status === "complete" && setActive) {
-        await setActive({ session: result.createdSessionId });
-        router.replace("/(tabs)");
-      }
-    } catch (e: any) {
-      setAuthError(e?.errors?.[0]?.longMessage || "Invalid code. Please try again.");
+    await (signUp as any).verifications.verifyEmailCode({ code });
+    if (signUp.status === "complete") {
+      router.replace("/(tabs)");
     }
   };
 
   const handleGoogle = useCallback(async () => {
     setGoogleLoading(true);
     try {
-      const { createdSessionId, setActive: sa } = await startSSOFlow({
+      signUp.reset();
+      setCode("");
+      const { createdSessionId, setActive } = await startSSOFlow({
         strategy: "oauth_google",
         redirectUrl: AuthSession.makeRedirectUri(),
       });
-      if (createdSessionId && sa) {
-        await sa({ session: createdSessionId, navigate: async () => router.replace("/(tabs)") });
+      if (createdSessionId && setActive) {
+        await setActive({
+          session: createdSessionId,
+          navigate: async () => router.replace("/(tabs)"),
+        });
       }
-    } catch {}
-    finally { setGoogleLoading(false); }
-  }, [startSSOFlow, router]);
+    } catch (e: any) {
+      // error handled via errors object from hook
+    } finally {
+      setGoogleLoading(false);
+    }
+  }, [signUp, startSSOFlow]);
 
   const handleApple = useCallback(async () => {
     setAppleLoading(true);
     try {
-      const { createdSessionId, setActive: sa } = await startSSOFlow({
+      signUp.reset();
+      setCode("");
+      const { createdSessionId, setActive } = await startSSOFlow({
         strategy: "oauth_apple",
         redirectUrl: AuthSession.makeRedirectUri(),
       });
-      if (createdSessionId && sa) {
-        await sa({ session: createdSessionId, navigate: async () => router.replace("/(tabs)") });
+      if (createdSessionId && setActive) {
+        await setActive({
+          session: createdSessionId,
+          navigate: async () => router.replace("/(tabs)"),
+        });
       }
-    } catch {}
-    finally { setAppleLoading(false); }
-  }, [startSSOFlow, router]);
+    } finally {
+      setAppleLoading(false);
+    }
+  }, [signUp, startSSOFlow, router]);
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
+
+  const emailError = errors?.fields?.emailAddress?.message;
+  const passwordError = errors?.fields?.password?.message;
+  const usernameError = errors?.fields?.username?.message;
+  const codeError = errors?.fields?.code?.message;
+  const globalError = errors?.global?.[0]?.message;
 
   const isVerifying =
     signUp.status === "missing_requirements" &&
@@ -119,7 +134,7 @@ export default function SignUpScreen() {
           <Text style={[styles.verifySubtitle, { color: colors.mutedForeground }]}>
             We sent a 6-digit code to{"\n"}{email}
           </Text>
-          <View style={[styles.inputWrap, { backgroundColor: "transparent", borderColor: colors.border, width: "100%" }]}>
+          <View style={[styles.inputWrap, { backgroundColor: "transparent", borderColor: codeError ? "#FF4B4B" : colors.border, width: "100%" }]}>
             <Ionicons name="key-outline" size={16} color={colors.mutedForeground} style={styles.inputIcon} />
             <TextInput
               style={[styles.inputField, { color: colors.foreground }]}
@@ -132,22 +147,26 @@ export default function SignUpScreen() {
               autoFocus
             />
           </View>
-          {!!authError && (
+          {!!codeError && <Text style={styles.fieldError}>{codeError}</Text>}
+          {!!globalError && (
             <View style={styles.errorBox}>
               <Ionicons name="alert-circle-outline" size={15} color="#FF4B4B" />
-              <Text style={styles.errorText}>{authError}</Text>
+              <Text style={styles.errorText}>{globalError}</Text>
             </View>
           )}
           <TouchableOpacity
             onPress={handleVerify}
-            disabled={code.length < 6}
+            disabled={fetchStatus === "fetching" || code.length < 6}
             style={[styles.primaryBtn, { opacity: code.length < 6 ? 0.6 : 1, width: "100%" }]}
           >
             <LinearGradient colors={["#FFFFFF", "#E8E8E8"]} style={styles.primaryBtnGrad}>
-              <Text style={styles.primaryBtnText}>Verify & Start Training</Text>
+              {fetchStatus === "fetching"
+                ? <ActivityIndicator color="#0D0D0D" />
+                : <Text style={styles.primaryBtnText}>Verify & Start Training</Text>
+              }
             </LinearGradient>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => signUp.prepareEmailAddressVerification({ strategy: "email_code" })} style={styles.resendBtn}>
+          <TouchableOpacity onPress={() => signUp.verifications.sendEmailCode()} style={styles.resendBtn}>
             <Text style={[styles.resendText, { color: colors.mutedForeground }]}>Resend code</Text>
           </TouchableOpacity>
         </View>
@@ -179,22 +198,28 @@ export default function SignUpScreen() {
         </View>
 
         <TouchableOpacity onPress={handleGoogle} disabled={googleLoading} style={styles.socialBtn}>
-          {googleLoading ? <ActivityIndicator size="small" color="#F5F5F5" /> : <>
-            <View style={styles.googleMark}>
-              <Ionicons name="logo-google" size={16} color="#4285F4" />
-              <View style={styles.googleDotRed} />
-              <View style={styles.googleDotYellow} />
-              <View style={styles.googleDotGreen} />
-            </View>
-            <Text style={[styles.googleText, { color: "#F5F5F5" }]}>Sign up with Google</Text>
-          </>}
+          {googleLoading
+            ? <ActivityIndicator size="small" color="#F5F5F5" />
+            : <>
+              <View style={styles.googleMark}>
+                <Ionicons name="logo-google" size={16} color="#4285F4" />
+                <View style={styles.googleDotRed} />
+                <View style={styles.googleDotYellow} />
+                <View style={styles.googleDotGreen} />
+              </View>
+              <Text style={[styles.googleText, { color: "#F5F5F5" }]}>Sign up with Google</Text>
+            </>
+          }
         </TouchableOpacity>
 
         <TouchableOpacity onPress={handleApple} disabled={appleLoading} style={styles.socialBtn}>
-          {appleLoading ? <ActivityIndicator size="small" color="#F5F5F5" /> : <>
-            <Ionicons name="logo-apple" size={18} color="#F5F5F5" />
-            <Text style={[styles.googleText, { color: "#F5F5F5" }]}>Sign up with Apple</Text>
-          </>}
+          {appleLoading
+            ? <ActivityIndicator size="small" color="#F5F5F5" />
+            : <>
+              <Ionicons name="logo-apple" size={18} color="#F5F5F5" />
+              <Text style={[styles.googleText, { color: "#F5F5F5" }]}>Sign up with Apple</Text>
+            </>
+          }
         </TouchableOpacity>
 
         <View style={styles.dividerRow}>
@@ -206,7 +231,7 @@ export default function SignUpScreen() {
         <View style={styles.form}>
           <View style={styles.field}>
             <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>username</Text>
-            <View style={[styles.inputWrap, { backgroundColor: "transparent", borderColor: colors.border }]}>
+            <View style={[styles.inputWrap, { backgroundColor: "transparent", borderColor: usernameError ? "#FF4B4B" : colors.border }]}>
               <Ionicons name="person-outline" size={16} color={colors.mutedForeground} style={styles.inputIcon} />
               <TextInput
                 style={[styles.inputField, { color: colors.foreground }]}
@@ -217,11 +242,12 @@ export default function SignUpScreen() {
                 autoCapitalize="none"
               />
             </View>
+            {!!usernameError && <Text style={styles.fieldError}>{usernameError}</Text>}
           </View>
 
           <View style={styles.field}>
-            <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>email</Text>
-            <View style={[styles.inputWrap, { backgroundColor: "transparent", borderColor: colors.border }]}>
+            <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>mail</Text>
+            <View style={[styles.inputWrap, { backgroundColor: "transparent", borderColor: emailError ? "#FF4B4B" : colors.border }]}>
               <Ionicons name="mail-outline" size={16} color={colors.mutedForeground} style={styles.inputIcon} />
               <TextInput
                 style={[styles.inputField, { color: colors.foreground }]}
@@ -233,11 +259,12 @@ export default function SignUpScreen() {
                 autoCapitalize="none"
               />
             </View>
+            {!!emailError && <Text style={styles.fieldError}>{emailError}</Text>}
           </View>
 
           <View style={styles.field}>
             <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>password</Text>
-            <View style={[styles.inputWrap, { backgroundColor: "transparent", borderColor: colors.border }]}>
+            <View style={[styles.inputWrap, { backgroundColor: "transparent", borderColor: passwordError ? "#FF4B4B" : colors.border }]}>
               <Ionicons name="lock-closed-outline" size={16} color={colors.mutedForeground} style={styles.inputIcon} />
               <TextInput
                 style={[styles.inputField, { color: colors.foreground }]}
@@ -251,23 +278,24 @@ export default function SignUpScreen() {
                 <Ionicons name={showPass ? "eye-off-outline" : "eye-outline"} size={16} color={colors.mutedForeground} />
               </TouchableOpacity>
             </View>
+            {!!passwordError && <Text style={styles.fieldError}>{passwordError}</Text>}
           </View>
         </View>
 
-        {!!authError && (
+        {!!globalError && (
           <View style={styles.errorBox}>
             <Ionicons name="alert-circle-outline" size={15} color="#FF4B4B" />
-            <Text style={styles.errorText}>{authError}</Text>
+            <Text style={styles.errorText}>{globalError}</Text>
           </View>
         )}
 
         <TouchableOpacity
           onPress={handleSignUp}
-          disabled={!email || !password || !username || signupLoading}
+          disabled={!email || !password || !username || fetchStatus === "fetching"}
           style={[styles.primaryBtn, { opacity: (!email || !password || !username) ? 0.6 : 1 }]}
         >
           <LinearGradient colors={["#FFFFFF", "#E8E8E8"]} style={styles.primaryBtnGrad}>
-            {signupLoading
+            {fetchStatus === "fetching"
               ? <ActivityIndicator color="#0D0D0D" />
               : <Text style={styles.primaryBtnText}>Create Account</Text>
             }
@@ -312,6 +340,7 @@ const styles = StyleSheet.create({
   form: { gap: 16, marginBottom: 16 },
   field: { gap: 6 },
   fieldLabel: { fontSize: 13, fontFamily: "Inter_500Medium" },
+  fieldError: { fontSize: 12, color: "#FF4B4B", fontFamily: "Inter_400Regular", marginTop: 2 },
   inputWrap: { flexDirection: "row", alignItems: "center", borderRadius: 14, borderWidth: 1, paddingHorizontal: 14, height: 50 },
   inputIcon: { marginRight: 8 },
   inputField: { flex: 1, fontSize: 15, fontFamily: "Inter_400Regular" },
