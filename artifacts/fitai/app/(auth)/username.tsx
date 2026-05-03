@@ -29,9 +29,11 @@ export default function UsernameScreen() {
     setSaving(true);
     await signIn.reset();
     await signUp.reset();
-    setSaving(false);
-    await AsyncStorage.setItem("@regime_username", name);
     const existingName = await AsyncStorage.getItem("@regime_username");
+    if (!existingName) {
+      await AsyncStorage.setItem("@regime_username", name);
+    }
+    setSaving(false);
     router.replace(existingName ? "/(auth)/welcome" : "/(auth)/sign-up");
   };
 
@@ -45,8 +47,8 @@ export default function UsernameScreen() {
           <Text style={[styles.appName, { color: colors.foreground }]}>ALIAS</Text>
         </View>
 
-        <Text style={[styles.title, { color: colors.foreground }]}>Create your username</Text>
-        <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>A new regime for the better.</Text>
+        <Text style={[styles.title, { color: colors.foreground, textTransform: "uppercase" }]}>A new routine for the better.</Text>
+        <Text style={[styles.subtitle, { color: colors.mutedForeground }]}> </Text>
 
         <View style={[styles.inputWrap, { backgroundColor: colors.input, borderColor: error ? "#FF4B4B" : colors.border }]}>
           <Ionicons name="person-outline" size={16} color={colors.mutedForeground} style={styles.inputIcon} />
