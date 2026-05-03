@@ -131,7 +131,7 @@ export default function WelcomeScreen() {
 
                 {/* Logo circle */}
                 <LinearGradient
-                  colors={["#8FB8FF", "#6B9EFF", "#A78BFA"]}
+                  colors={["#FFFFFF", "#D8D8D8"]}
                   style={styles.logoCircle}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#8FB8FF",
+    shadowColor: "#FFFFFF",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.55,
     shadowRadius: 24,
@@ -422,6 +422,6 @@ const styles = StyleSheet.create({
   signupLink: {
     fontSize: 14,
     fontFamily: "Inter_600SemiBold",
-    color: "#8FB8FF",
+    color: "#F5F5F5",
   },
 });

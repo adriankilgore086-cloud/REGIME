@@ -68,14 +68,14 @@ function AnimatedTab({
             style={styles.centerBtn}
           >
             <LinearGradient
-              colors={['#8FB8FF', '#6B9EFF']}
+              colors={['#FFFFFF', '#E0E0E0']}
               style={styles.centerBtnInner}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             >
               <Feather name="home" size={24} color="#0D0D0D" />
             </LinearGradient>
-            <View style={[styles.centerGlow, { backgroundColor: '#8FB8FF18' }]} />
+            <View style={[styles.centerGlow, { backgroundColor: '#FFFFFF12' }]} />
           </TouchableOpacity>
         </Animated.View>
         <Text style={[styles.centerLabel, { color: isFocused ? colors.primary : colors.mutedForeground }]}>
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#8FB8FF',
+    shadowColor: '#FFFFFF',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.45,
     shadowRadius: 14,

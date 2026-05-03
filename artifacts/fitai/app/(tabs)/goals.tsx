@@ -110,7 +110,7 @@ export default function GoalsScreen() {
               </View>
               <View style={[styles.progressTrack, { backgroundColor: colors.muted }]}>
                 <LinearGradient
-                  colors={isComplete ? ["#7BE0B8", "#5EC89A"] : ["#8FB8FF", "#6B9EFF"]}
+                  colors={isComplete ? ["#7BE0B8", "#5EC89A"] : ["#FFFFFF", "#D8D8D8"]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={[styles.progressFill, { width: `${progressPct}%` }]}

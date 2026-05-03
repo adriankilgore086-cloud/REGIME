@@ -44,7 +44,7 @@ export function XPProgressBar({ xp, level, rank, xpProgress }: Props) {
           width: widthAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }),
         }]}>
           <LinearGradient
-            colors={['#8FB8FF', '#A8CCFF']}
+            colors={['#FFFFFF', '#D8D8D8']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={StyleSheet.absoluteFill}

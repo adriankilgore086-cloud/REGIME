@@ -128,7 +128,7 @@ export default function SignUpScreen() {
             disabled={fetchStatus === "fetching" || code.length < 6}
             style={[styles.primaryBtn, { opacity: code.length < 6 ? 0.6 : 1, width: "100%" }]}
           >
-            <LinearGradient colors={["#8FB8FF", "#6B9EFF"]} style={styles.primaryBtnGrad}>
+            <LinearGradient colors={["#FFFFFF", "#E8E8E8"]} style={styles.primaryBtnGrad}>
               {fetchStatus === "fetching"
                 ? <ActivityIndicator color="#0D0D0D" />
                 : <Text style={styles.primaryBtnText}>Verify & Start Training</Text>
@@ -159,7 +159,7 @@ export default function SignUpScreen() {
         </TouchableOpacity>
 
         <View style={{ marginTop: 20, marginBottom: 32 }}>
-          <LinearGradient colors={["#8FB8FF", "#6B9EFF"]} style={[styles.logoIcon, { marginBottom: 20 }]}>
+          <LinearGradient colors={["#FFFFFF", "#E0E0E0"]} style={[styles.logoIcon, { marginBottom: 20 }]}>
             <Ionicons name="flash" size={22} color="#0D0D0D" />
           </LinearGradient>
           <Text style={[styles.title, { color: colors.foreground }]}>Join Regime</Text>
@@ -236,7 +236,7 @@ export default function SignUpScreen() {
           disabled={!email || !password || fetchStatus === "fetching"}
           style={[styles.primaryBtn, { opacity: (!email || !password) ? 0.6 : 1 }]}
         >
-          <LinearGradient colors={["#8FB8FF", "#6B9EFF"]} style={styles.primaryBtnGrad}>
+          <LinearGradient colors={["#FFFFFF", "#E8E8E8"]} style={styles.primaryBtnGrad}>
             {fetchStatus === "fetching"
               ? <ActivityIndicator color="#0D0D0D" />
               : <Text style={styles.primaryBtnText}>Create Account</Text>

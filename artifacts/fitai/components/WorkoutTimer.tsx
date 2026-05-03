@@ -75,7 +75,7 @@ export function WorkoutTimer({ initialSeconds, onComplete, label = 'Timer', auto
   const secs = seconds % 60;
 
   const typeColor = type === 'rest' ? colors.success : type === 'workout' ? colors.primary : colors.accent;
-  const gradColors: [string, string] = type === 'rest' ? ['#00E5A0', '#00B87A'] : type === 'workout' ? ['#8FB8FF', '#6B9EFF'] : ['#FF2D78', '#CC1155'];
+  const gradColors: [string, string] = type === 'rest' ? ['#00E5A0', '#00B87A'] : type === 'workout' ? ['#FFFFFF', '#E0E0E0'] : ['#FF2D78', '#CC1155'];
 
   return (
     <Animated.View style={[styles.container, { transform: [{ scale: pulseAnim }] }]}>

@@ -108,7 +108,7 @@ export default function WorkoutDetailScreen() {
             </View>
             <View style={[styles.progressTrack, { backgroundColor: colors.muted }]}>
               <LinearGradient
-                colors={["#8FB8FF", "#6B9EFF"]}
+                colors={["#FFFFFF", "#D0D0D0"]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={[styles.progressFill, { width: `${progress * 100}%` }]}
@@ -130,7 +130,7 @@ export default function WorkoutDetailScreen() {
               onPress={() => { setIsActive(true); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); }}
               style={styles.startBtn}
             >
-              <LinearGradient colors={["#8FB8FF", "#6B9EFF"]} style={styles.startBtnGrad}>
+              <LinearGradient colors={["#FFFFFF", "#E8E8E8"]} style={styles.startBtnGrad}>
                 <Ionicons name="play" size={20} color="#0D0D0D" />
                 <Text style={styles.startBtnText}>Start Workout</Text>
               </LinearGradient>
