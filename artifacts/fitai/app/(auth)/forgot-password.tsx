@@ -35,7 +35,7 @@ export default function ForgotPasswordScreen() {
     setError(""); setEmailError("");
     if (!email.trim()) { setEmailError("Email is required"); return; }
     try {
-      await signIn.create({ strategy: "reset_password_email_code", identifier: email.trim() });
+      await (signIn as any).create({ strategy: "reset_password_email_code", identifier: email.trim() });
       setStep("code");
     } catch (e: any) {
       const msg = e?.errors?.[0]?.message ?? e?.message ?? "Could not find an account with that email.";
@@ -48,11 +48,11 @@ export default function ForgotPasswordScreen() {
     if (!code.trim()) { setCodeError("Enter the 6-digit code"); return; }
     if (newPassword.length < 8) { setPassError("Password must be at least 8 characters"); return; }
     try {
-      const result = await signIn.attemptFirstFactor({
+      const result = await (signIn as any).attemptFirstFactor({
         strategy: "reset_password_email_code",
         code: code.trim(),
         password: newPassword,
-      } as any);
+      });
       if ((result as any).status === "complete") {
         setStep("done");
       }

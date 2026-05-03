@@ -48,12 +48,12 @@ export default function SignUpScreen() {
       password,
       unsafeMetadata: { username: username.trim() },
     });
-    await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-    await signUp.verifications.sendEmailCode();
+    await (signUp as any).prepareEmailAddressVerification({ strategy: "email_code" });
+    await (signUp as any).verifications.sendEmailCode();
   };
 
   const handleVerify = async () => {
-    await signUp.verifications.verifyEmailCode({ code });
+    await (signUp as any).verifications.verifyEmailCode({ code });
     if (signUp.status === "complete") {
       router.replace("/(tabs)");
     }
