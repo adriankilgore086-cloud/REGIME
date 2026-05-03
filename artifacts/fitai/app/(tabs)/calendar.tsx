@@ -291,37 +291,6 @@ export default function CalendarScreen() {
         </View>
       </View>
 
-      <TouchableOpacity
-        onPress={() => setShowReport(true)}
-        style={[styles.weekBanner, { backgroundColor: colors.card, borderColor: colors.border }]}
-        activeOpacity={0.85}
-      >
-        <LinearGradient colors={["#8FB8FF12", "#A78BFA10", "transparent"]} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
-        <View style={styles.weekBannerLeft}>
-          <View style={[styles.weekRingOuter, { borderColor: colors.primary + "40" }]}>
-            <View style={[styles.weekRingInner, { backgroundColor: colors.primary + "20" }]}>
-              <Text style={[styles.weekRingNum, { color: colors.primary }]}>{weekCompleted}</Text>
-              <Text style={[styles.weekRingOf, { color: colors.mutedForeground }]}>/ 5</Text>
-            </View>
-          </View>
-          <View>
-            <Text style={[styles.weekBannerTitle, { color: colors.foreground }]}>This Week</Text>
-            <Text style={[styles.weekBannerSub, { color: colors.mutedForeground }]}>
-              {weekCompleted === 0 ? "Let's get started" :
-                weekCompleted < 3 ? "Keep pushing" :
-                  weekCompleted < 5 ? "Great momentum" : "Perfect week!"}
-            </Text>
-          </View>
-        </View>
-        <View style={styles.weekBannerRight}>
-          <Text style={[styles.weekBannerStreak, { color: "#F3D27A" }]}>🔥 {userStats.streak}d</Text>
-          <Text style={[styles.weekBannerLabel, { color: colors.mutedForeground }]}>streak</Text>
-          <View style={[styles.viewBtn, { backgroundColor: colors.primary + "20" }]}>
-            <Text style={[styles.viewBtnText, { color: colors.primary }]}>View →</Text>
-          </View>
-        </View>
-      </TouchableOpacity>
-
       <View style={[styles.weekStrip, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
         <TouchableOpacity onPress={() => setWeekOffset(weekOffset - 1)} style={styles.weekNavBtn}>
           <Ionicons name="chevron-back" size={18} color={colors.mutedForeground} />
@@ -368,12 +337,15 @@ export default function CalendarScreen() {
         contentContainerStyle={[styles.content, { paddingBottom: 120 }]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.regimeHeader}>
-          <Text style={[styles.regimeTitle, { color: colors.foreground }]}>Today's Regime</Text>
-          <Text style={[styles.regimeDate, { color: colors.mutedForeground }]}>
-            {new Date(selectedDate + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
-          </Text>
-        </View>
+        {selectedWorkouts.length > 0 && (
+          <View style={[styles.regimeBanner, { backgroundColor: colors.primary + "15", borderColor: colors.primary + "35" }]}>
+            <LinearGradient colors={["#8FB8FF10", "transparent"]} style={StyleSheet.absoluteFill} />
+            <Text style={[styles.regimeTitle, { color: colors.foreground }]}>Today's Regime</Text>
+            <Text style={[styles.regimeDate, { color: colors.mutedForeground }]}>
+              {new Date(selectedDate + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+            </Text>
+          </View>
+        )}
 
         {selectedWorkouts.length === 0 ? (
           <View style={[styles.emptyCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -428,33 +400,6 @@ export default function CalendarScreen() {
           })
         )}
 
-        <Text style={[styles.sectionTitle, { color: colors.foreground, marginTop: 16 }]}>Workout Library</Text>
-        <Text style={[styles.sectionSub, { color: colors.mutedForeground }]}>Tap to schedule on selected date</Text>
-
-        {SAMPLE_WORKOUTS.map((workout) => {
-          const catColor = CATEGORY_COLORS[workout.category];
-          return (
-            <TouchableOpacity
-              key={workout.id}
-              onPress={() => handleAddWorkout(workout.id)}
-              style={[styles.libraryRow, { backgroundColor: colors.card, borderColor: colors.border }]}
-              activeOpacity={0.8}
-            >
-              <View style={[styles.libraryIcon, { backgroundColor: catColor + "20" }]}>
-                <Ionicons name="barbell-outline" size={18} color={catColor} />
-              </View>
-              <View style={styles.libraryInfo}>
-                <Text style={[styles.libraryName, { color: colors.foreground }]}>{workout.name}</Text>
-                <Text style={[styles.libraryMeta, { color: colors.mutedForeground }]}>
-                  {workout.durationMinutes}m · {workout.category} · {workout.difficulty}
-                </Text>
-              </View>
-              <View style={[styles.xpChip, { backgroundColor: colors.primary + "20" }]}>
-                <Text style={[styles.xpText, { color: colors.primary }]}>+{workout.xpReward} XP</Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
       </ScrollView>
 
       {showReport && (
@@ -499,19 +444,6 @@ const styles = StyleSheet.create({
   reportBtn: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 12, borderWidth: 1 },
   reportBtnText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
   addBtn: { width: 38, height: 38, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  weekBanner: { marginHorizontal: 20, marginBottom: 12, borderRadius: 18, borderWidth: 1, padding: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between", overflow: "hidden" },
-  weekBannerLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
-  weekRingOuter: { width: 52, height: 52, borderRadius: 16, borderWidth: 2, alignItems: "center", justifyContent: "center" },
-  weekRingInner: { width: 40, height: 40, borderRadius: 13, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 1 },
-  weekRingNum: { fontSize: 18, fontFamily: "Inter_700Bold" },
-  weekRingOf: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 4 },
-  weekBannerTitle: { fontSize: 15, fontFamily: "Inter_700Bold" },
-  weekBannerSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
-  weekBannerRight: { alignItems: "flex-end", gap: 2 },
-  weekBannerStreak: { fontSize: 17, fontFamily: "Inter_700Bold" },
-  weekBannerLabel: { fontSize: 10, fontFamily: "Inter_400Regular" },
-  viewBtn: { marginTop: 6, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
-  viewBtnText: { fontSize: 11, fontFamily: "Inter_700Bold" },
   weekStrip: { flexDirection: "row", paddingHorizontal: 12, paddingVertical: 12, borderBottomWidth: 1 },
   dayCell: { flex: 1, alignItems: "center", gap: 5 },
   dayName: { fontSize: 10, fontFamily: "Inter_500Medium" },
@@ -520,7 +452,7 @@ const styles = StyleSheet.create({
   dotIndicator: { width: 4, height: 4, borderRadius: 2 },
   content: { paddingHorizontal: 20, paddingTop: 14 },
   weekNavBtn: { width: 32, height: 32, alignItems: "center", justifyContent: "center" },
-  regimeHeader: { marginBottom: 16, gap: 2 },
+  regimeBanner: { borderRadius: 18, borderWidth: 1, padding: 16, marginBottom: 14, overflow: "hidden", gap: 2 },
   regimeTitle: { fontSize: 22, fontFamily: "Poppins_700Bold", letterSpacing: -0.5 },
   regimeDate: { fontSize: 13, fontFamily: "Inter_500Medium" },
   emptyCard: { borderRadius: 20, borderWidth: 1, padding: 28, alignItems: "center", gap: 12, marginBottom: 24 },
