@@ -70,9 +70,7 @@ export default function SignUpScreen() {
       if (createdSessionId && setActive) {
         await setActive({
           session: createdSessionId,
-          navigate: async ({ decorateUrl }) => {
-            router.replace("/(tabs)");
-          },
+          navigate: async () => router.replace("/(tabs)"),
         });
       }
     } catch (e: any) {
@@ -191,13 +189,13 @@ export default function SignUpScreen() {
         <TouchableOpacity
           onPress={handleGoogle}
           disabled={googleLoading}
-          style={[styles.googleBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+          style={styles.googleBtn}
         >
           {googleLoading
-            ? <ActivityIndicator size="small" color={colors.foreground} />
+            ? <ActivityIndicator size="small" color="#F5F5F5" />
             : <>
-              <Ionicons name="logo-google" size={18} color={colors.foreground} />
-              <Text style={[styles.googleText, { color: colors.foreground }]}>Sign up with Google</Text>
+              <Ionicons name="logo-google" size={18} color="#F5F5F5" />
+              <Text style={[styles.googleText, { color: "#F5F5F5" }]}>Sign up with Google</Text>
             </>
           }
         </TouchableOpacity>
@@ -205,13 +203,13 @@ export default function SignUpScreen() {
         <TouchableOpacity
           onPress={handleApple}
           disabled={appleLoading}
-          style={[styles.googleBtn, { backgroundColor: colors.card, borderColor: colors.border, marginBottom: 12 }]}
+          style={[styles.appleBtn, { marginBottom: 12 }]}
         >
           {appleLoading
-            ? <ActivityIndicator size="small" color={colors.foreground} />
+            ? <ActivityIndicator size="small" color="#F5F5F5" />
             : <>
-              <Ionicons name="logo-apple" size={18} color={colors.foreground} />
-              <Text style={[styles.googleText, { color: colors.foreground }]}>Sign up with Apple</Text>
+              <Ionicons name="logo-apple" size={18} color="#F5F5F5" />
+              <Text style={[styles.googleText, { color: "#F5F5F5" }]}>Sign up with Apple</Text>
             </>
           }
         </TouchableOpacity>
@@ -306,7 +304,8 @@ const styles = StyleSheet.create({
   logoIcon: { width: 36, height: 36, borderRadius: 11, alignItems: "center", justifyContent: "center" },
   title: { fontSize: 28, fontFamily: "Inter_700Bold", letterSpacing: -0.8, marginBottom: 6 },
   subtitle: { fontSize: 15, fontFamily: "Inter_400Regular", marginBottom: 0 },
-  googleBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, borderRadius: 16, borderWidth: 1, paddingVertical: 14, marginBottom: 20 },
+  googleBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, borderRadius: 16, borderWidth: 1, paddingVertical: 14, marginBottom: 12, backgroundColor: "#111111", borderColor: "#2E2E2E" },
+  appleBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, borderRadius: 16, borderWidth: 1, paddingVertical: 14, marginBottom: 20, backgroundColor: "#000000", borderColor: "#000000" },
   googleText: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
   dividerRow: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 20 },
   divider: { flex: 1, height: 1 },
