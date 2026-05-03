@@ -5,6 +5,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import { useColors } from "@/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
 import { AIChatModal } from "@/components/AIChatModal";
@@ -227,6 +228,7 @@ const hmStyles = StyleSheet.create({
 export default function HealthScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { healthMetrics, userStats, userProfile } = useFitness();
   const [showAICoach, setShowAICoach] = useState(false);
   const topPad = Platform.OS === "web" ? 67 : insets.top;
@@ -302,57 +304,82 @@ export default function HealthScreen() {
         </View>
 
         <View style={styles.widgetGrid}>
-          {HEALTH_WIDGETS.map((item) => (
-            <View key={item.title} style={[styles.widgetCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <View style={[styles.widgetIconWrap, { backgroundColor: item.color + "18" }]}>
-                <Ionicons name={item.icon as any} size={16} color={item.color} />
-              </View>
-              <Text style={[styles.widgetValue, { color: colors.foreground }]}>{item.label}</Text>
-              <Text style={[styles.widgetSub, { color: colors.mutedForeground }]}>{item.sub}</Text>
-              <Text style={[styles.widgetTitle, { color: colors.mutedForeground }]}>{item.title}</Text>
-            </View>
-          ))}
-        </View>
-
-        <View style={[styles.chartCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <LinearGradient colors={["#7BE0B810", "#8FB8FF08", "transparent"]} style={StyleSheet.absoluteFill} />
-          <View style={styles.recoveryTopRow}>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.recoveryBadge, { color: colors.success }]}>DAILY READINESS</Text>
-              <Text style={[styles.recoveryTitle, { color: colors.foreground }]}>Recovery Score</Text>
-              <Text style={[styles.recoveryBody, { color: colors.mutedForeground }]}>
-                Your body is primed for a heavy session today.{"\n"}Optimal recovery detected.
-              </Text>
-            </View>
-            <RecoveryRing score={recoveryScore} />
-          </View>
-
-          <View style={[styles.metricsListCard, { backgroundColor: colors.background + "80", borderColor: colors.border }]}>
-            {READINESS_METRICS.map((m, i) => (
-              <View
-                key={m.label}
-                style={[
-                  styles.metricRow,
-                  i < READINESS_METRICS.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border },
-                ]}
+          {HEALTH_WIDGETS.map((item) => {
+            const metricMap: Record<string, string> = {
+              "Today's Burn": "calories",
+              "Resting HR": "heartrate",
+              "Sleep": "sleep",
+              "Hydration": "hydration",
+            };
+            return (
+              <TouchableOpacity
+                key={item.title}
+                onPress={() => router.push(`/health-detail?metric=${metricMap[item.title] || "sleep"}` as any)}
+                activeOpacity={0.7}
               >
-                <View style={[styles.metricIconWrap, { backgroundColor: m.color + "18" }]}>
-                  <Ionicons name={m.icon as any} size={16} color={m.color} />
-                </View>
-                <View style={styles.metricInfo}>
-                  <Text style={[styles.metricLabel, { color: colors.foreground }]}>{m.label}</Text>
-                  <Text style={[styles.metricTip, { color: colors.mutedForeground }]}>{m.tip}</Text>
-                </View>
-                <View style={styles.metricRight}>
-                  <Text style={[styles.metricVal, { color: m.color }]}>{m.value}%</Text>
-                  <View style={[styles.metricTrack, { backgroundColor: m.color + "20" }]}>
-                    <View style={[styles.metricFill, { width: `${m.value}%`, backgroundColor: m.color }]} />
+                <View style={[styles.widgetCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                  <View style={[styles.widgetIconWrap, { backgroundColor: item.color + "18" }]}>
+                    <Ionicons name={item.icon as any} size={16} color={item.color} />
                   </View>
+                  <Text style={[styles.widgetValue, { color: colors.foreground }]}>{item.label}</Text>
+                  <Text style={[styles.widgetSub, { color: colors.mutedForeground }]}>{item.sub}</Text>
+                  <Text style={[styles.widgetTitle, { color: colors.mutedForeground }]}>{item.title}</Text>
                 </View>
-              </View>
-            ))}
-          </View>
+              </TouchableOpacity>
+            );
+          })}
         </View>
+
+        <TouchableOpacity onPress={() => router.push("/health-detail?metric=readiness" as any)}>
+          <View style={[styles.chartCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <LinearGradient colors={["#7BE0B810", "#8FB8FF08", "transparent"]} style={StyleSheet.absoluteFill} />
+            <View style={styles.recoveryTopRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.recoveryBadge, { color: colors.success }]}>DAILY READINESS</Text>
+                <Text style={[styles.recoveryTitle, { color: colors.foreground }]}>Recovery Score</Text>
+                <Text style={[styles.recoveryBody, { color: colors.mutedForeground }]}>
+                  Your body is primed for a heavy session today.{"\n"}Optimal recovery detected.
+                </Text>
+              </View>
+              <RecoveryRing score={recoveryScore} />
+            </View>
+
+            <View style={[styles.metricsListCard, { backgroundColor: colors.background + "80", borderColor: colors.border }]}>
+              {READINESS_METRICS.map((m, i) => {
+                const metricMap: Record<string, string> = {
+                  "Sleep Quality": "sleep",
+                  "Hydration": "hydration",
+                  "Heart Rate": "heartrate",
+                  "Muscle Recovery": "readiness",
+                };
+                return (
+                  <TouchableOpacity
+                    key={m.label}
+                    onPress={() => router.push(`/health-detail?metric=${metricMap[m.label] || "sleep"}` as any)}
+                    style={[
+                      styles.metricRow,
+                      i < READINESS_METRICS.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border },
+                    ]}
+                  >
+                    <View style={[styles.metricIconWrap, { backgroundColor: m.color + "18" }]}>
+                      <Ionicons name={m.icon as any} size={16} color={m.color} />
+                    </View>
+                    <View style={styles.metricInfo}>
+                      <Text style={[styles.metricLabel, { color: colors.foreground }]}>{m.label}</Text>
+                      <Text style={[styles.metricTip, { color: colors.mutedForeground }]}>{m.tip}</Text>
+                    </View>
+                    <View style={styles.metricRight}>
+                      <Text style={[styles.metricVal, { color: m.color }]}>{m.value}%</Text>
+                      <View style={[styles.metricTrack, { backgroundColor: m.color + "20" }]}>
+                        <View style={[styles.metricFill, { width: `${m.value}%`, backgroundColor: m.color }]} />
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        </TouchableOpacity>
 
         <View style={[styles.tipsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={styles.tipsHeader}>
