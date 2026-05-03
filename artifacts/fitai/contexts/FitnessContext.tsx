@@ -100,6 +100,7 @@ interface FitnessContextType extends FitnessState {
   skipWorkout: (scheduledId: string) => Promise<void>;
   addGoal: (goal: Omit<Goal, 'id' | 'completed'>) => Promise<void>;
   updateGoalProgress: (goalId: string, value: number) => Promise<void>;
+  deleteGoal: (goalId: string) => Promise<void>;
   dismissReward: () => void;
   markNotificationRead: (id: string) => void;
   addNotification: (n: Omit<AppNotification, 'id' | 'createdAt' | 'read'>) => void;
@@ -319,6 +320,13 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
     }));
   }, [updateState]);
 
+  const deleteGoal = useCallback(async (goalId: string) => {
+    await updateState((s) => ({
+      ...s,
+      goals: s.goals.filter((g) => g.id !== goalId),
+    }));
+  }, [updateState]);
+
   const dismissReward = useCallback(() => {
     setShowReward(false);
     setRewardData(null);
@@ -370,6 +378,7 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
       skipWorkout,
       addGoal,
       updateGoalProgress,
+      deleteGoal,
       dismissReward,
       markNotificationRead,
       addNotification,

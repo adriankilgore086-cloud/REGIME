@@ -144,7 +144,7 @@ const scStyles = StyleSheet.create({
 export default function GoalsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { goals, userStats, level, userProfile, addGoal, updateGoalProgress } = useFitness();
+  const { goals, userStats, level, userProfile, addGoal, updateGoalProgress, deleteGoal } = useFitness();
   const [showAdd, setShowAdd] = useState(false);
   const [newGoalTitle, setNewGoalTitle] = useState("");
   const [newGoalTarget, setNewGoalTarget] = useState("");
@@ -152,6 +152,7 @@ export default function GoalsScreen() {
   const [newGoalDuration, setNewGoalDuration] = useState("");
   const [newGoalPurpose, setNewGoalPurpose] = useState("");
   const [newGoalDescription, setNewGoalDescription] = useState("");
+  const [longPressedGoal, setLongPressedGoal] = useState<string | null>(null);
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
   const handleAddGoal = async () => {
@@ -233,8 +234,14 @@ export default function GoalsScreen() {
           const progress = Math.min(goal.currentValue / goal.targetValue, 1);
           const progressPct = Math.round(progress * 100);
           const isComplete = goal.completed;
+          const isPressed = longPressedGoal === goal.id;
           return (
-            <View key={goal.id} style={[styles.goalCard, { backgroundColor: colors.card, borderColor: isComplete ? colors.success + "40" : colors.border }]}>
+            <TouchableOpacity
+              key={goal.id}
+              onLongPress={() => setLongPressedGoal(goal.id)}
+              delayLongPress={500}
+              style={[styles.goalCard, { backgroundColor: colors.card, borderColor: isPressed ? colors.destructive : (isComplete ? colors.success + "40" : colors.border) }]}
+            >
               <View style={styles.goalTop}>
                 <Text style={[styles.goalTitle, { color: colors.foreground }]}>{goal.title}</Text>
                 {isComplete && <Ionicons name="checkmark-circle" size={18} color={colors.success} />}
@@ -254,15 +261,25 @@ export default function GoalsScreen() {
                 />
               </View>
               <View style={styles.goalActions}>
-                <TouchableOpacity
-                  onPress={() => updateGoalProgress(goal.id, Math.min(goal.currentValue + goal.targetValue * 0.1, goal.targetValue))}
-                  style={[styles.progressBtn, { backgroundColor: colors.primary + "20", borderColor: colors.primary + "30" }]}
-                >
-                  <Ionicons name="add" size={14} color={colors.primary} />
-                  <Text style={[styles.progressBtnText, { color: colors.primary }]}>Update Progress</Text>
-                </TouchableOpacity>
+                {isPressed ? (
+                  <TouchableOpacity
+                    onPress={() => { deleteGoal(goal.id); setLongPressedGoal(null); }}
+                    style={[styles.deleteBtn, { backgroundColor: colors.destructive }]}
+                  >
+                    <Ionicons name="trash" size={14} color="#FFF" />
+                    <Text style={styles.deleteBtnText}>Remove Goal</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    onPress={() => updateGoalProgress(goal.id, Math.min(goal.currentValue + goal.targetValue * 0.1, goal.targetValue))}
+                    style={[styles.progressBtn, { backgroundColor: colors.primary + "20", borderColor: colors.primary + "30" }]}
+                  >
+                    <Ionicons name="add" size={14} color={colors.primary} />
+                    <Text style={[styles.progressBtnText, { color: colors.primary }]}>Update Progress</Text>
+                  </TouchableOpacity>
+                )}
               </View>
-            </View>
+            </TouchableOpacity>
           );
         })}
 
@@ -402,6 +419,8 @@ const styles = StyleSheet.create({
   goalActions: {},
   progressBtn: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, borderWidth: 1 },
   progressBtnText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+  deleteBtn: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
+  deleteBtnText: { fontSize: 12, fontFamily: "Inter_600SemiBold", color: "#FFF" },
   weekCard: { borderRadius: 18, borderWidth: 1, padding: 16, marginBottom: 12 },
   weekHeader: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 12 },
   weekNum: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
