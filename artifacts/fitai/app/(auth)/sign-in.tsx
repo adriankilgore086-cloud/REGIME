@@ -222,7 +222,7 @@ export default function SignInScreen() {
         <View style={styles.form}>
           <View style={styles.field}>
             <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Email</Text>
-            <View style={[styles.inputWrap, { backgroundColor: colors.input, borderColor: emailError ? "#FF4B4B" : colors.border }]}>
+            <View style={[styles.inputWrap, { backgroundColor: "transparent", borderColor: emailError ? "#FF4B4B" : colors.border }]}>
               <Ionicons name="mail-outline" size={16} color={colors.mutedForeground} style={styles.inputIcon} />
               <TextInput
                 style={[styles.inputField, { color: colors.foreground }]}
@@ -240,7 +240,7 @@ export default function SignInScreen() {
 
           <View style={styles.field}>
             <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Password</Text>
-            <View style={[styles.inputWrap, { backgroundColor: colors.input, borderColor: passwordError ? "#FF4B4B" : colors.border }]}>
+            <View style={[styles.inputWrap, { backgroundColor: "transparent", borderColor: passwordError ? "#FF4B4B" : colors.border }]}>
               <Ionicons name="lock-closed-outline" size={16} color={colors.mutedForeground} style={styles.inputIcon} />
               <TextInput
                 style={[styles.inputField, { color: colors.foreground }]}
