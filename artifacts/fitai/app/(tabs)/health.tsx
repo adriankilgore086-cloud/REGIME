@@ -357,7 +357,6 @@ export default function HealthScreen() {
               </View>
               <RecoveryRing score={recoveryScore} />
             </TouchableOpacity>
-          </View>
         </View>
 
         <View style={[styles.tipsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
