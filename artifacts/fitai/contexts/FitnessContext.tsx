@@ -92,6 +92,7 @@ interface FitnessContextType extends FitnessState {
   todaysWorkouts: ScheduledWorkout[];
   updateProfile: (profile: Partial<UserProfile>) => Promise<void>;
   scheduleWorkout: (workoutId: string, date: string) => Promise<void>;
+  unscheduleWorkout: (scheduledWorkoutId: string) => Promise<void>;
   completeWorkout: (scheduledId: string) => Promise<void>;
   skipWorkout: (scheduledId: string) => Promise<void>;
   addGoal: (goal: Omit<Goal, 'id' | 'completed'>) => Promise<void>;
@@ -195,6 +196,13 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
             ...s.notifications,
           ]
         : s.notifications,
+    }));
+  }, [updateState]);
+
+  const unscheduleWorkout = useCallback(async (scheduledWorkoutId: string) => {
+    await updateState((s) => ({
+      ...s,
+      scheduledWorkouts: s.scheduledWorkouts.filter((w) => w.id !== scheduledWorkoutId),
     }));
   }, [updateState]);
 
@@ -354,6 +362,7 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
       todaysWorkouts,
       updateProfile,
       scheduleWorkout,
+      unscheduleWorkout,
       completeWorkout,
       skipWorkout,
       addGoal,
