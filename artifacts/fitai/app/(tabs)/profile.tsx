@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Platform, Alert, Image, TextInput, KeyboardAvoidingView,
 } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -298,7 +299,7 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { signOut } = useAuth();
-  const { userProfile, userStats, level, rank, xpProgress, earnedAchievements } = useFitness();
+  const { userProfile, userStats, level, rank, xpProgress, earnedAchievements, updateProfile } = useFitness();
   const { posts } = useSocial();
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const [activeTab, setActiveTab] = useState<Tab>("Overview");
@@ -319,6 +320,24 @@ export default function ProfileScreen() {
     ]);
   };
 
+  const handleSelectProfileImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const imageUri = result.assets[0].uri;
+        await updateProfile({ profileImage: imageUri });
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to select image");
+    }
+  };
+
   const earnedSet = useMemo(() => new Set(earnedAchievements.map((a) => a.id)), [earnedAchievements]);
   const earnedBadges = useMemo(() => ACHIEVEMENTS.filter((a) => earnedSet.has(a.id)), [earnedSet]);
   const lockedBadges = useMemo(() => ACHIEVEMENTS.filter((a) => !earnedSet.has(a.id)).slice(0, 4), [earnedSet]);
@@ -329,9 +348,18 @@ export default function ProfileScreen() {
         <LinearGradient colors={["#8FB8FF15", "#A78BFA10", "transparent"]} style={StyleSheet.absoluteFill} />
 
         <View style={styles.profileRow}>
-          <View style={[styles.avatarCircle, { backgroundColor: colors.primary + "20", borderColor: colors.primary + "50" }]}>
-            <Text style={[styles.avatarText, { color: colors.primary }]}>{userProfile.name.charAt(0).toUpperCase()}</Text>
-          </View>
+          <TouchableOpacity onPress={handleSelectProfileImage}>
+            <View style={[styles.avatarCircle, { backgroundColor: colors.primary + "20", borderColor: colors.primary + "50" }]}>
+              {userProfile.profileImage ? (
+                <Image source={{ uri: userProfile.profileImage }} style={styles.avatarImage} />
+              ) : (
+                <Text style={[styles.avatarText, { color: colors.primary }]}>{userProfile.name.charAt(0).toUpperCase()}</Text>
+              )}
+              <View style={[styles.editBadge, { backgroundColor: colors.primary }]}>
+                <Ionicons name="camera" size={12} color="#0D0D0D" />
+              </View>
+            </View>
+          </TouchableOpacity>
           <View style={styles.profileMeta}>
             <Text style={[styles.profileName, { color: colors.foreground }]}>{userProfile.name}</Text>
             <View style={styles.rankRow}>
@@ -615,8 +643,10 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   topSection: { paddingHorizontal: 20, paddingBottom: 0, overflow: "hidden" },
   profileRow: { flexDirection: "row", alignItems: "center", gap: 14, marginBottom: 18 },
-  avatarCircle: { width: 60, height: 60, borderRadius: 20, alignItems: "center", justifyContent: "center", borderWidth: 2 },
-  avatarText: { fontSize: 24, fontFamily: "Inter_700Bold" },
+  avatarCircle: { width: 78, height: 78, borderRadius: 26, alignItems: "center", justifyContent: "center", borderWidth: 2, position: "relative" },
+  avatarImage: { width: 78, height: 78, borderRadius: 24 },
+  avatarText: { fontSize: 32, fontFamily: "Inter_700Bold" },
+  editBadge: { position: "absolute", bottom: 0, right: 0, width: 26, height: 26, borderRadius: 13, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "#0D0D0D" },
   profileMeta: { flex: 1 },
   profileName: { fontSize: 18, fontFamily: "Inter_700Bold", letterSpacing: -0.4, marginBottom: 6 },
   rankRow: { flexDirection: "row", gap: 6 },
