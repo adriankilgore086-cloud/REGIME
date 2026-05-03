@@ -334,9 +334,12 @@ export default function CalendarScreen() {
       </View>
 
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 120 }]} showsVerticalScrollIndicator={false}>
-        <Text style={[styles.selectedDateLabel, { color: colors.mutedForeground }]}>
-          {new Date(selectedDate + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
-        </Text>
+        <View style={styles.regimeHeader}>
+          <Text style={[styles.regimeTitle, { color: colors.foreground }]}>Today's Regime</Text>
+          <Text style={[styles.regimeDate, { color: colors.mutedForeground }]}>
+            {new Date(selectedDate + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+          </Text>
+        </View>
 
         {selectedWorkouts.length === 0 ? (
           <View style={[styles.emptyCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -490,6 +493,9 @@ const styles = StyleSheet.create({
   dotIndicator: { width: 4, height: 4, borderRadius: 2 },
   content: { paddingHorizontal: 20, paddingTop: 14 },
   selectedDateLabel: { fontSize: 13, fontFamily: "Inter_500Medium", marginBottom: 14 },
+  regimeHeader: { marginBottom: 16, gap: 2 },
+  regimeTitle: { fontSize: 22, fontFamily: "Poppins_700Bold", letterSpacing: -0.5 },
+  regimeDate: { fontSize: 13, fontFamily: "Inter_500Medium" },
   emptyCard: { borderRadius: 20, borderWidth: 1, padding: 28, alignItems: "center", gap: 12, marginBottom: 24 },
   emptyText: { fontSize: 14, fontFamily: "Inter_400Regular" },
   addWorkoutBtn: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12, borderWidth: 1 },
