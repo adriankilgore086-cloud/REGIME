@@ -49,16 +49,7 @@ export default function SignInScreen() {
     if (error) return;
 
     if (signIn.status === "complete") {
-      await signIn.finalize({
-        navigate: ({ decorateUrl }) => {
-          const url = decorateUrl("/");
-          if (url.startsWith("http")) {
-            // web fallback
-          } else {
-            router.replace("/(tabs)");
-          }
-        },
-      });
+      router.replace("/(tabs)");
     } else if (signIn.status === "needs_client_trust") {
       await signIn.mfa.sendEmailCode();
       setShowMfa(true);
@@ -68,9 +59,7 @@ export default function SignInScreen() {
   const handleVerifyMfa = async () => {
     await signIn.mfa.verifyEmailCode({ code: mfaCode });
     if (signIn.status === "complete") {
-      await signIn.finalize({
-        navigate: () => router.replace("/(tabs)"),
-      });
+      router.replace("/(tabs)");
     }
   };
 

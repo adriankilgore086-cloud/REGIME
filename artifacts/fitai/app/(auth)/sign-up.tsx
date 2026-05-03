@@ -42,29 +42,18 @@ export default function SignUpScreen() {
     setEmail(email.trim());
     setPassword(password);
     setShowPass(false);
-    setEmail(email.trim());
     await signUp.create({
       emailAddress: email.trim(),
       password,
     });
-    const { error } = await signUp.password({ emailAddress: email.trim(), password });
-    if (error) return;
+    await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
     await signUp.verifications.sendEmailCode();
   };
 
   const handleVerify = async () => {
     await signUp.verifications.verifyEmailCode({ code });
     if (signUp.status === "complete") {
-      await signUp.finalize({
-        navigate: ({ decorateUrl }) => {
-          const url = decorateUrl("/");
-          if (url.startsWith("http")) {
-            // web fallback
-          } else {
-            router.replace("/(tabs)");
-          }
-        },
-      });
+      router.replace("/(tabs)");
     }
   };
 

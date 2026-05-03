@@ -289,6 +289,8 @@ export function AIChatModal({ visible, onClose }: Props) {
                 style={[styles.input, { backgroundColor: colors.muted, color: colors.foreground }]}
                 placeholder="Ask your coach..."
                 placeholderTextColor={colors.mutedForeground}
+              selectionColor={colors.primary}
+              cursorColor={colors.primary}
                 value={input}
                 onChangeText={setInput}
                 multiline
@@ -437,7 +439,7 @@ const styles = StyleSheet.create({
   quickChip: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12, borderWidth: 1, maxWidth: 160 },
   quickText: { fontSize: 11, fontFamily: 'Inter_500Medium' },
   inputRow: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 16, paddingTop: 10, gap: 8, borderTopWidth: 1 },
-  input: { flex: 1, borderRadius: 14, paddingHorizontal: 14, paddingTop: 10, paddingBottom: 10, fontSize: 14, fontFamily: 'Inter_400Regular', maxHeight: 90 },
+  input: { flex: 1, borderRadius: 14, paddingHorizontal: 14, paddingTop: 10, paddingBottom: 10, fontSize: 14, fontFamily: 'Inter_400Regular', maxHeight: 90, backgroundColor: "transparent" },
   sendBtn: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
 
   /* Voice picker */
