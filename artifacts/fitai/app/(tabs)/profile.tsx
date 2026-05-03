@@ -40,12 +40,13 @@ const IDENTITY_TITLES = [
 ];
 
 
-const PostCard = memo(function PostCard({ post, myUserId, myName, myAvatar, myBadge }: {
+const PostCard = memo(function PostCard({ post, myUserId, myName, myAvatar, myBadge, myProfileImage }: {
   post: SocialPost;
   myUserId: string;
   myName: string;
   myAvatar: string;
   myBadge: string;
+  myProfileImage?: string | null;
 }) {
   const colors = useColors();
   const { toggleReaction, addComment, deletePost, addReply } = useSocial();
@@ -424,7 +425,7 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 120 }]} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 120 }]} showsVerticalScrollIndicator={false} scrollEventThrottle={16} removeClippedSubviews={Platform.OS !== "web"}>
 
         {activeTab === "Overview" && (
           <>
@@ -583,6 +584,7 @@ export default function ProfileScreen() {
                 myName={userProfile.name}
                 myAvatar={myAvatar}
                 myBadge={rank}
+                myProfileImage={userProfile.profileImage}
               />
             ))}
 

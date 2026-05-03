@@ -23,9 +23,8 @@ function BarChart({ data, max, color }: { data: number[]; max: number; color: st
         return (
           <View key={i} style={bcStyles.barCol}>
             <View style={[bcStyles.barTrack, { backgroundColor: colors.muted }]}>
-              <LinearGradient
-                colors={[color, color + "70"]}
-                style={[bcStyles.barFill, { height: `${Math.max(pct * 100, 4)}%` }]}
+              <View
+                style={[bcStyles.barFill, { height: `${Math.max(pct * 100, 4)}%`, backgroundColor: color }]}
               />
             </View>
             <Text style={[bcStyles.label, { color: colors.mutedForeground }]}>
@@ -169,7 +168,7 @@ function ActivityHeatmap() {
         </View>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} scrollEventThrottle={16}>
         <View style={hmStyles.grid}>
           {byWeek.map((week, wi) => (
             <View key={wi} style={hmStyles.col}>
@@ -290,7 +289,7 @@ export default function HealthScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 120 }]} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 120 }]} showsVerticalScrollIndicator={false} scrollEventThrottle={16} removeClippedSubviews={Platform.OS !== "web"}>
 
         <TouchableOpacity onPress={() => router.push("/recovery-detail" as any)} activeOpacity={0.75}>
           <View style={[styles.recoveryCard, { backgroundColor: "#10241D", borderColor: "#2F6F5A" }]}>

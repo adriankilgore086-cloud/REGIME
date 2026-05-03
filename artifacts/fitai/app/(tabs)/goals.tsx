@@ -184,7 +184,7 @@ export default function GoalsScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 120 }]} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 120 }]} showsVerticalScrollIndicator={false} scrollEventThrottle={16} removeClippedSubviews={Platform.OS !== "web"}>
         <LinearGradient
           colors={["#8FB8FF15", "#A78BFA15", "transparent"]}
           style={styles.planBanner}
@@ -210,7 +210,7 @@ export default function GoalsScreen() {
         {goals.length > 0 && (
           <View style={[styles.goalsBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={styles.goalsBoxHeader}>
-              <Ionicons name="target" size={18} color={colors.primary} />
+              <Ionicons name="flag-outline" size={18} color={colors.primary} />
               <Text style={[styles.goalsBoxTitle, { color: colors.foreground }]}>Active Goals</Text>
             </View>
             {goals.slice(0, 2).map((goal) => (
@@ -324,7 +324,7 @@ export default function GoalsScreen() {
 
       <Modal visible={showAdd} transparent animationType="slide" onRequestClose={() => setShowAdd(false)}>
         <View style={styles.modalOverlay}>
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.modalScroll}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.modalScroll} scrollEventThrottle={16}>
             <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
               <Text style={[styles.modalTitle, { color: colors.foreground }]}>Create New Goal</Text>
               

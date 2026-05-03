@@ -212,7 +212,7 @@ export default function HealthDetailScreen() {
 
           <View style={styles.tipsSection}>
             <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Optimization Tips</Text>
-            {data.tips.map((tip, i) => (
+            {data.tips.map((tip: string, i: number) => (
               <View key={i} style={[styles.tipItem, { backgroundColor: colors.card, borderColor: colors.border }]}>
                 <View style={[styles.tipNumber, { backgroundColor: data.color + "20" }]}>
                   <Text style={[styles.tipNumberText, { color: data.color }]}>{i + 1}</Text>

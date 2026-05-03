@@ -51,7 +51,7 @@ export default function WelcomeScreen() {
     }
   }, [isSignedIn, router]);
 
-  const { signIn, setActive } = useSignIn();
+  const { signIn, setActive } = useSignIn() as any;
   const [authError, setAuthError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
  
@@ -79,7 +79,7 @@ export default function WelcomeScreen() {
      setAuthError("");
      setLoginLoading(true);
      try {
-       const result = await signIn.create({ identifier: email, password });
+       const result: any = await signIn.create({ identifier: email, password });
        if (result.status === "complete" && setActive) {
          await setActive({ session: result.createdSessionId });
          router.replace("/(tabs)");
@@ -218,7 +218,7 @@ export default function WelcomeScreen() {
               {/* Email oval */}
               <View style={[
                 styles.ovalInput,
-                { borderColor: emailError ? "#FF4B4B" : "#2E2E2E" },
+                { borderColor: "#2E2E2E" },
               ]}>
                 <Ionicons name="mail-outline" size={17} color="#A1A1A1" style={{ marginLeft: 18 }} />
                 <TextInput
@@ -236,7 +236,7 @@ export default function WelcomeScreen() {
               {/* Password oval */}
               <View style={[
                 styles.ovalInput,
-                { borderColor: passwordError ? "#FF4B4B" : "#2E2E2E", marginTop: 12 },
+                { borderColor: authError ? "#FF4B4B" : "#2E2E2E", marginTop: 12 },
               ]}>
                 <Ionicons name="lock-closed-outline" size={17} color="#A1A1A1" style={{ marginLeft: 18 }} />
                 <TextInput
@@ -268,7 +268,7 @@ export default function WelcomeScreen() {
                 activeOpacity={0.85}
                 style={[styles.loginBar, { opacity: canLogin ? 1 : 0.45 }]}
               >
-                {fetchStatus === "fetching"
+                {loginLoading
                   ? <ActivityIndicator color="#F5F5F5" size="small" />
                   : <Text style={styles.loginBarText}>Login</Text>
                 }

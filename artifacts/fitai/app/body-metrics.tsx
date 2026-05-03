@@ -130,7 +130,7 @@ export default function BodyMetricsScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 120 }]} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 120 }]} showsVerticalScrollIndicator={false} scrollEventThrottle={16} removeClippedSubviews={Platform.OS !== "web"}>
 
         <View style={styles.metricGrid}>
           {[
@@ -182,7 +182,7 @@ export default function BodyMetricsScreen() {
             <Text style={[styles.cardTitle, { color: colors.foreground }]}>Activity Heatmap</Text>
             <Text style={[styles.cardSub, { color: colors.mutedForeground }]}>10 weeks</Text>
           </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} scrollEventThrottle={16}>
             <HeatmapCompact healthMetrics={healthMetrics} />
           </ScrollView>
           <View style={styles.heatLegend}>

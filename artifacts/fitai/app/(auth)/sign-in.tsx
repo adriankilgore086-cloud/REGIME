@@ -19,7 +19,7 @@ export default function SignInScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { isSignedIn } = useAuth();
-  const { signIn, setActive } = useSignIn();
+  const { signIn, setActive } = useSignIn() as any;
   const { startSSOFlow } = useSSO();
 
   const [email, setEmail] = useState("");
@@ -44,7 +44,7 @@ export default function SignInScreen() {
     setAuthError("");
     setSigninLoading(true);
     try {
-      const result = await signIn.create({ identifier: email.trim(), password });
+      const result: any = await signIn.create({ identifier: email.trim(), password });
       if (result.status === "complete" && setActive) {
         await setActive({ session: result.createdSessionId });
         router.replace("/(tabs)");

@@ -60,7 +60,7 @@ export default function LibraryScreen() {
         <Text style={[styles.title, { color: colors.foreground }]}>Workout Library</Text>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
+      <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }} scrollEventThrottle={16} removeClippedSubviews={Platform.OS !== "web"}>
         <View style={styles.content}>
           {SAMPLE_WORKOUTS.map((workout) => {
             const isPressed = longPressedWorkout === workout.id;

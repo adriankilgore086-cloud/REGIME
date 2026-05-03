@@ -19,7 +19,7 @@ export default function SignUpScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { isSignedIn } = useAuth();
-  const { signUp, setActive } = useSignUp();
+  const { signUp, setActive } = useSignUp() as any;
   const { startSSOFlow } = useSSO();
 
   const [email, setEmail] = useState("");
@@ -62,7 +62,7 @@ export default function SignUpScreen() {
   const handleVerify = async () => {
     setAuthError("");
     try {
-      const result = await signUp.attemptEmailAddressVerification({ code });
+      const result: any = await signUp.attemptEmailAddressVerification({ code });
       if (result.status === "complete" && setActive) {
         await setActive({ session: result.createdSessionId });
         router.replace("/(tabs)");
