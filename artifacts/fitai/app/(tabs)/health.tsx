@@ -1,12 +1,13 @@
-import React, { useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
-  View, Text, StyleSheet, ScrollView, Platform, Animated,
+  View, Text, StyleSheet, ScrollView, Platform, Animated, TouchableOpacity,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
+import { AIChatModal } from "@/components/AIChatModal";
 
 const DAYS_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -116,6 +117,7 @@ export default function HealthScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { healthMetrics, userStats } = useFitness();
+  const [showAICoach, setShowAICoach] = useState(false);
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
   const sorted = [...healthMetrics].sort((a, b) => a.date.localeCompare(b.date));
@@ -152,15 +154,31 @@ export default function HealthScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { paddingTop: topPad + 12 }]}>
         <Text style={[styles.title, { color: colors.foreground }]}>Health</Text>
-        <View style={[styles.syncBadge, { backgroundColor: colors.success + "20", borderColor: colors.success + "40" }]}>
-          <View style={[styles.syncDot, { backgroundColor: colors.success }]} />
-          <Text style={[styles.syncText, { color: colors.success }]}>Synced</Text>
+
+        <View style={styles.headerRight}>
+          <View style={[styles.syncBadge, { backgroundColor: colors.success + "20", borderColor: colors.success + "40" }]}>
+            <View style={[styles.syncDot, { backgroundColor: colors.success }]} />
+            <Text style={[styles.syncText, { color: colors.success }]}>Synced</Text>
+          </View>
+
+          <TouchableOpacity
+            onPress={() => setShowAICoach(true)}
+            style={[styles.coachBtn, { backgroundColor: colors.primary + "18", borderColor: colors.primary + "40" }]}
+            activeOpacity={0.75}
+          >
+            <LinearGradient
+              colors={[colors.primary + "22", colors.primary + "08"]}
+              style={StyleSheet.absoluteFill}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            />
+            <Ionicons name="mic" size={18} color={colors.primary} />
+          </TouchableOpacity>
         </View>
       </View>
 
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 120 }]} showsVerticalScrollIndicator={false}>
 
-        {/* Full-width stats list */}
         <View style={[styles.statsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           {TOP_STATS.map((stat, i) => (
             <View
@@ -179,7 +197,6 @@ export default function HealthScreen() {
           ))}
         </View>
 
-        {/* Recovery card */}
         <View style={[styles.recoveryCard, { backgroundColor: colors.card, borderColor: "#7BE0B830" }]}>
           <LinearGradient colors={["#7BE0B810", "#8FB8FF08", "transparent"]} style={StyleSheet.absoluteFill} />
           <View style={styles.recoveryTopRow}>
@@ -193,7 +210,6 @@ export default function HealthScreen() {
             <RecoveryRing score={recoveryScore} />
           </View>
 
-          {/* Full-width readiness metrics list */}
           <View style={[styles.metricsListCard, { backgroundColor: colors.background + "80", borderColor: colors.border }]}>
             {READINESS_METRICS.map((m, i) => (
               <View
@@ -221,7 +237,6 @@ export default function HealthScreen() {
           </View>
         </View>
 
-        {/* AI Recovery Tips */}
         <View style={[styles.tipsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={styles.tipsHeader}>
             <Ionicons name="sparkles" size={16} color={colors.primary} />
@@ -243,7 +258,6 @@ export default function HealthScreen() {
           ))}
         </View>
 
-        {/* Calories chart */}
         <View style={[styles.chartCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={styles.chartHeader}>
             <View>
@@ -257,7 +271,6 @@ export default function HealthScreen() {
           <BarChart data={calorieData} max={maxCal} color="#FF2D78" />
         </View>
 
-        {/* Active minutes chart */}
         <View style={[styles.chartCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={styles.chartHeader}>
             <View>
@@ -273,7 +286,6 @@ export default function HealthScreen() {
           <BarChart data={minuteData} max={maxMin} color={colors.primary} />
         </View>
 
-        {/* Muscle groups chart */}
         <View style={[styles.chartCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={styles.chartHeader}>
             <View>
@@ -290,7 +302,6 @@ export default function HealthScreen() {
           )}
         </View>
 
-        {/* Lifetime stats list */}
         <View style={[styles.statsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <Text style={[styles.lifetimeTitle, { color: colors.foreground }]}>Lifetime Stats</Text>
           {[
@@ -316,6 +327,8 @@ export default function HealthScreen() {
         </View>
 
       </ScrollView>
+
+      <AIChatModal visible={showAICoach} onClose={() => setShowAICoach(false)} />
     </View>
   );
 }
@@ -324,9 +337,11 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingBottom: 14 },
   title: { fontSize: 26, fontFamily: "Poppins_700Bold", letterSpacing: -0.5 },
+  headerRight: { flexDirection: "row", alignItems: "center", gap: 10 },
   syncBadge: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, borderWidth: 1 },
   syncDot: { width: 6, height: 6, borderRadius: 3 },
   syncText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+  coachBtn: { width: 40, height: 40, borderRadius: 13, alignItems: "center", justifyContent: "center", borderWidth: 1, overflow: "hidden" },
   content: { paddingHorizontal: 20 },
 
   statsCard: { borderRadius: 18, borderWidth: 1, marginBottom: 14, overflow: "hidden" },

@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useColors } from "@/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
-import { SAMPLE_WORKOUTS } from "@/constants/workouts";
+import { SAMPLE_WORKOUTS, CATEGORY_COLORS, Exercise } from "@/constants/workouts";
 import { WorkoutSwipeCard } from "@/components/WorkoutSwipeCard";
 import { XPProgressBar } from "@/components/XPProgressBar";
 import { StatCard } from "@/components/StatCard";
@@ -35,6 +35,172 @@ const SMART_RECS = [
   { id: "rec2", name: "Mobility Flow", tag: "Recovery Focused", minutes: 20, xp: 80, color: "#7BE0B8", icon: "body" as const },
   { id: "rec3", name: "Core Crusher", tag: "AI Recommended", minutes: 25, xp: 120, color: "#A78BFA", icon: "sparkles" as const },
 ];
+
+function getDailyCuratedWorkout() {
+  const dayIndex = new Date().getDay();
+  return SAMPLE_WORKOUTS[dayIndex % SAMPLE_WORKOUTS.length];
+}
+
+function DailyCuratedWorkoutCard() {
+  const colors = useColors();
+  const workout = getDailyCuratedWorkout();
+  const accentColor = CATEGORY_COLORS[workout.category] ?? colors.primary;
+  const [started, setStarted] = useState(false);
+  const [completed, setCompleted] = useState<Record<string, boolean>>({});
+  const progressAnim = useRef(new Animated.Value(0)).current;
+
+  const exerciseList = workout.exercises.slice(0, 5);
+  const doneCount = exerciseList.filter((e) => completed[e.id]).length;
+  const pct = exerciseList.length > 0 ? doneCount / exerciseList.length : 0;
+  const showBar = started && doneCount > 0;
+
+  useEffect(() => {
+    if (showBar) {
+      Animated.timing(progressAnim, {
+        toValue: pct,
+        duration: 500,
+        useNativeDriver: false,
+      }).start();
+    }
+  }, [pct, showBar]);
+
+  const toggleExercise = (id: string) => {
+    setCompleted((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const barWidth = progressAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0%", "100%"],
+  });
+
+  return (
+    <View style={[dcStyles.card, { backgroundColor: colors.card, borderColor: accentColor + "35" }]}>
+      <LinearGradient
+        colors={[accentColor + "14", accentColor + "04", "transparent"]}
+        style={StyleSheet.absoluteFill}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      />
+
+      <View style={dcStyles.topRow}>
+        <View style={[dcStyles.badge, { backgroundColor: accentColor + "20", borderColor: accentColor + "40" }]}>
+          <Ionicons name="sparkles" size={10} color={accentColor} />
+          <Text style={[dcStyles.badgeText, { color: accentColor }]}>AI CURATED FOR TODAY</Text>
+        </View>
+        <View style={[dcStyles.xpPill, { backgroundColor: colors.primary + "18" }]}>
+          <Text style={[dcStyles.xpText, { color: colors.primary }]}>+{workout.xpReward} XP</Text>
+        </View>
+      </View>
+
+      <Text style={[dcStyles.workoutName, { color: colors.foreground }]}>{workout.name}</Text>
+
+      <View style={dcStyles.metaRow}>
+        <View style={dcStyles.metaItem}>
+          <Ionicons name="time-outline" size={13} color={colors.mutedForeground} />
+          <Text style={[dcStyles.metaText, { color: colors.mutedForeground }]}>{workout.durationMinutes} min</Text>
+        </View>
+        <View style={[dcStyles.dot, { backgroundColor: colors.mutedForeground }]} />
+        <View style={dcStyles.metaItem}>
+          <Ionicons name="flame-outline" size={13} color={colors.mutedForeground} />
+          <Text style={[dcStyles.metaText, { color: colors.mutedForeground }]}>{workout.calories} kcal</Text>
+        </View>
+        <View style={[dcStyles.dot, { backgroundColor: colors.mutedForeground }]} />
+        <Text style={[dcStyles.metaText, { color: accentColor }]}>
+          {workout.difficulty.charAt(0).toUpperCase() + workout.difficulty.slice(1)}
+        </Text>
+      </View>
+
+      {showBar && (
+        <View style={dcStyles.progressWrap}>
+          <View style={[dcStyles.progressTrack, { backgroundColor: accentColor + "20" }]}>
+            <Animated.View style={[dcStyles.progressFill, { width: barWidth, backgroundColor: accentColor }]} />
+          </View>
+          <Text style={[dcStyles.progressLabel, { color: accentColor }]}>
+            {doneCount}/{exerciseList.length} exercises
+          </Text>
+        </View>
+      )}
+
+      {started && (
+        <View style={dcStyles.exerciseList}>
+          {exerciseList.map((ex: Exercise) => {
+            const done = !!completed[ex.id];
+            return (
+              <TouchableOpacity
+                key={ex.id}
+                onPress={() => toggleExercise(ex.id)}
+                style={[
+                  dcStyles.exerciseRow,
+                  { borderColor: done ? accentColor + "40" : colors.border },
+                  done && { backgroundColor: accentColor + "0C" },
+                ]}
+                activeOpacity={0.75}
+              >
+                <View style={[
+                  dcStyles.checkbox,
+                  { borderColor: done ? accentColor : colors.border, backgroundColor: done ? accentColor : "transparent" },
+                ]}>
+                  {done && <Ionicons name="checkmark" size={11} color="#0D0D0D" />}
+                </View>
+                <View style={dcStyles.exInfo}>
+                  <Text style={[dcStyles.exName, { color: done ? colors.mutedForeground : colors.foreground }]}>{ex.name}</Text>
+                  <Text style={[dcStyles.exSub, { color: colors.mutedForeground }]}>
+                    {ex.sets} × {ex.reps}{typeof ex.reps === "number" ? " reps" : ""}
+                  </Text>
+                </View>
+                {done && <Ionicons name="checkmark-circle" size={16} color={accentColor} />}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      )}
+
+      {!started ? (
+        <TouchableOpacity
+          style={[dcStyles.startBtn, { backgroundColor: accentColor }]}
+          onPress={() => setStarted(true)}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="play" size={14} color="#0D0D0D" />
+          <Text style={dcStyles.startBtnText}>Start Today's Workout</Text>
+        </TouchableOpacity>
+      ) : doneCount === exerciseList.length ? (
+        <View style={[dcStyles.doneRow, { backgroundColor: "#7BE0B812", borderColor: "#7BE0B830" }]}>
+          <Ionicons name="checkmark-circle" size={16} color="#7BE0B8" />
+          <Text style={[dcStyles.doneText, { color: "#7BE0B8" }]}>Workout complete — great work!</Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+const dcStyles = StyleSheet.create({
+  card: { borderRadius: 22, borderWidth: 1, padding: 18, marginBottom: 20, overflow: "hidden" },
+  topRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
+  badge: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 9, paddingVertical: 4, borderRadius: 10, borderWidth: 1 },
+  badgeText: { fontSize: 9, fontFamily: "Inter_700Bold", letterSpacing: 0.8 },
+  xpPill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
+  xpText: { fontSize: 12, fontFamily: "Inter_700Bold" },
+  workoutName: { fontSize: 20, fontFamily: "Poppins_700Bold", letterSpacing: -0.4, marginBottom: 8 },
+  metaRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 14 },
+  metaItem: { flexDirection: "row", alignItems: "center", gap: 4 },
+  metaText: { fontSize: 12, fontFamily: "Inter_500Medium" },
+  dot: { width: 3, height: 3, borderRadius: 2 },
+  progressWrap: { gap: 6, marginBottom: 14 },
+  progressTrack: { height: 6, borderRadius: 3, overflow: "hidden" },
+  progressFill: { height: "100%", borderRadius: 3 },
+  progressLabel: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
+  exerciseList: { gap: 8, marginBottom: 14 },
+  exerciseRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: 14, borderWidth: 1 },
+  checkbox: { width: 20, height: 20, borderRadius: 6, borderWidth: 2, alignItems: "center", justifyContent: "center" },
+  exInfo: { flex: 1 },
+  exName: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  exSub: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 1 },
+  startBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 13, borderRadius: 14 },
+  startBtnText: { fontSize: 14, fontFamily: "Inter_700Bold", color: "#0D0D0D" },
+  doneRow: { flexDirection: "row", alignItems: "center", gap: 8, padding: 12, borderRadius: 14, borderWidth: 1 },
+  doneText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+});
 
 function GhostCard({ userStats, colors }: { userStats: any; colors: any }) {
   const scaleAnim = useRef(new Animated.Value(0.96)).current;
@@ -181,10 +347,20 @@ export default function HomeScreen() {
           <StatCard icon="barbell-outline" label="Workouts" value={`${userStats.totalWorkouts}`} subValue="done" color={colors.success} />
         </View>
 
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Daily Workout</Text>
+          <View style={[styles.aiBadge, { backgroundColor: colors.primary + "15" }]}>
+            <Ionicons name="sparkles" size={10} color={colors.primary} />
+            <Text style={[styles.aiLabel2, { color: colors.primary }]}>AI Curated</Text>
+          </View>
+        </View>
+
+        <DailyCuratedWorkoutCard />
+
         <GhostCard userStats={userStats} colors={colors} />
 
         <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Today's Workouts</Text>
+          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Scheduled Today</Text>
           <View style={[styles.countChip, { backgroundColor: colors.primary + "20" }]}>
             <Text style={[styles.countText, { color: colors.primary }]}>
               {completedToday}/{todaysWorkouts.length + completedToday} done
