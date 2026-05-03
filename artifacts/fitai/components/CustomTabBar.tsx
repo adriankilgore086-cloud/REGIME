@@ -20,7 +20,7 @@ const TAB_ICONS = [
 ];
 
 function TabIcon({ routeName, isFocused, color }: { routeName: string; isFocused: boolean; color: string }) {
-  const size = 21;
+  const size = 24;
   switch (routeName) {
     case 'calendar':
       return <Feather name="calendar" size={size} color={color} />;
@@ -150,11 +150,11 @@ const styles = StyleSheet.create({
   },
   pill: {
     flexDirection: 'row',
-    marginHorizontal: 16,
-    borderRadius: 24,
+    marginHorizontal: 12,
+    borderRadius: 28,
     borderWidth: 1,
-    paddingVertical: 6,
-    paddingHorizontal: 4,
+    paddingVertical: 10,
+    paddingHorizontal: 6,
     alignItems: 'flex-end',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
@@ -168,19 +168,19 @@ const styles = StyleSheet.create({
   },
   tabInner: {
     alignItems: 'center',
-    paddingVertical: 3,
-    paddingHorizontal: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
     position: 'relative',
   },
   label: {
-    fontSize: 10,
-    marginTop: 2,
+    fontSize: 11,
+    marginTop: 3,
     fontFamily: 'Inter_500Medium',
     letterSpacing: 0.2,
   },
   activeDot: {
     position: 'absolute',
-    top: -8,
+    top: -10,
     width: 3,
     height: 3,
     borderRadius: 2,
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   centerWrapper: {
     flex: 1,
     alignItems: 'center',
-    marginTop: -14,
+    marginTop: -18,
   },
   centerBtn: {
     alignItems: 'center',
@@ -196,9 +196,9 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   centerBtnInner: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -208,8 +208,8 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   centerLabel: {
-    fontSize: 10,
-    marginTop: 4,
+    fontSize: 11,
+    marginTop: 6,
     fontFamily: 'Inter_500Medium',
     letterSpacing: 0.2,
   },
