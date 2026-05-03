@@ -41,7 +41,7 @@ Always respond in the context of their current fitness level and goals.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-5.4",
+        model: "gpt-4o",
         max_completion_tokens: 512,
         messages: [
           { role: "system", content: systemPrompt },

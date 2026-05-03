@@ -61,6 +61,7 @@
     "zod-validation-error": "^3.4.0"
   },
   "dependencies": {
-    "@expo-google-fonts/poppins": "^0.4.1"
+    "@expo-google-fonts/poppins": "^0.4.1",
+    "expo-speech": "^14.0.8"
   }
 }

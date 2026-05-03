@@ -258,6 +258,7 @@ export default function HomeScreen() {
           {SMART_RECS.map((rec) => (
             <TouchableOpacity
               key={rec.id}
+              onPress={() => setShowAI(true)}
               style={[styles.recCard, { backgroundColor: colors.card, borderColor: rec.color + "30" }]}
               activeOpacity={0.85}
             >
