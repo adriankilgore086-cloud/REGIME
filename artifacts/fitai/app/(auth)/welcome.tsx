@@ -130,14 +130,14 @@ export default function WelcomeScreen() {
                 <PulseRing size={120} color="#8FB8FF50" delay={600} />
 
                 {/* Logo circle */}
-                <LinearGradient
-                  colors={["#FFFFFF", "#D8D8D8"]}
-                  style={styles.logoCircle}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <Ionicons name="flash" size={48} color="#0D0D0D" />
-                </LinearGradient>
+              <LinearGradient
+                colors={["#FFFFFF", "#D8D8D8"]}
+                style={styles.logoCircle}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Ionicons name="flash" size={64} color="#0D0D0D" />
+              </LinearGradient>
               </View>
 
               {/* App name + tagline */}
@@ -274,9 +274,9 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   logoCircle: {
-    width: 96,
-    height: 96,
-    borderRadius: 32,
+    width: 132,
+    height: 132,
+    borderRadius: 40,
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#FFFFFF",
@@ -286,18 +286,18 @@ const styles = StyleSheet.create({
     elevation: 12,
   },
   appName: {
-    fontSize: 36,
+    fontSize: 44,
     fontFamily: "Poppins_700Bold",
     color: "#F5F5F5",
     letterSpacing: -1,
-    marginBottom: 8,
+    marginBottom: 10,
   },
   tagline: {
-    fontSize: 15,
+    fontSize: 17,
     fontFamily: "Inter_400Regular",
     color: "#A1A1A1",
     textAlign: "center",
-    lineHeight: 22,
+    lineHeight: 25,
   },
 
   /* Form section */

@@ -164,7 +164,7 @@ export default function SignInScreen() {
 
         <View style={[styles.logoRow, { marginTop: 20 }]}>
           <LinearGradient colors={["#FFFFFF", "#E0E0E0"]} style={styles.logoIcon}>
-            <Ionicons name="flash" size={22} color="#0D0D0D" />
+            <Ionicons name="flash" size={34} color="#0D0D0D" />
           </LinearGradient>
           <Text style={[styles.appName, { color: colors.foreground }]}>Regime</Text>
         </View>
@@ -268,7 +268,7 @@ export default function SignInScreen() {
         <Link href="/(auth)/forgot-password" asChild>
           <TouchableOpacity style={[styles.manageBtn, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Ionicons name="key-outline" size={16} color={colors.mutedForeground} />
-            <Text style={[styles.manageBtnText, { color: colors.mutedForeground }]}>Manage Account</Text>
+            <Text style={[styles.manageBtnText, { color: colors.mutedForeground }]}>Reset password</Text>
             <Ionicons name="chevron-forward" size={14} color={colors.mutedForeground} style={{ marginLeft: "auto" }} />
           </TouchableOpacity>
         </Link>
@@ -287,10 +287,10 @@ const styles = StyleSheet.create({
   resendText: { fontSize: 14, fontFamily: "Inter_400Regular" },
   backBtn: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
   logoRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 32 },
-  logoIcon: { width: 36, height: 36, borderRadius: 11, alignItems: "center", justifyContent: "center" },
-  appName: { fontSize: 20, fontFamily: "Inter_700Bold" },
-  title: { fontSize: 28, fontFamily: "Inter_700Bold", letterSpacing: -0.8, marginBottom: 6 },
-  subtitle: { fontSize: 15, fontFamily: "Inter_400Regular", marginBottom: 28 },
+  logoIcon: { width: 76, height: 76, borderRadius: 24, alignItems: "center", justifyContent: "center" },
+  appName: { fontSize: 34, fontFamily: "Inter_700Bold" },
+  title: { fontSize: 30, fontFamily: "Inter_700Bold", letterSpacing: -0.8, marginBottom: 6 },
+  subtitle: { fontSize: 16, fontFamily: "Inter_400Regular", marginBottom: 28 },
   googleBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, borderRadius: 16, borderWidth: 1, paddingVertical: 14, marginBottom: 20 },
   googleText: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
   dividerRow: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 20 },

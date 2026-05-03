@@ -6,11 +6,14 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
+import { useSignIn, useSignUp } from "@clerk/expo";
 
 export default function UsernameScreen() {
   const colors = useColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { signIn } = useSignIn();
+  const { signUp } = useSignUp();
   const [username, setUsername] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -29,12 +32,17 @@ export default function UsernameScreen() {
       return;
     }
     setSaving(true);
-    const taken = (await AsyncStorage.getItem("@regime_username"))?.toLowerCase();
-    if (taken === name.toLowerCase()) {
-      setError("That username is already in use.");
+    const existingName = (await AsyncStorage.getItem("@regime_username"))?.trim().toLowerCase();
+    const email = (await AsyncStorage.getItem(`@regime_username_email:${name.toLowerCase()}`))?.trim();
+    if (existingName === name.toLowerCase() && email) {
+      await signIn.create({ identifier: email });
       setSaving(false);
+      router.replace("/(auth)/welcome");
       return;
     }
+    await signUp.create({ emailAddress: `${name.toLowerCase()}@regime.app`, password: `${name.toLowerCase()}-Regime1!` });
+    await AsyncStorage.setItem("@regime_username", name);
+    await AsyncStorage.setItem(`@regime_username_email:${name.toLowerCase()}`, `${name.toLowerCase()}@regime.app`);
     await AsyncStorage.setItem("@regime_username", name);
     setSaving(false);
     router.replace("/(auth)/welcome");
@@ -45,7 +53,7 @@ export default function UsernameScreen() {
       <ScrollView contentContainerStyle={[styles.scroll, { paddingTop: topPad + 16, paddingBottom: botPad + 24 }]} keyboardShouldPersistTaps="handled">
         <View style={styles.logoRow}>
           <LinearGradient colors={["#FFFFFF", "#E0E0E0"]} style={styles.logoIcon}>
-            <Ionicons name="flash" size={22} color="#0D0D0D" />
+            <Ionicons name="flash" size={34} color="#0D0D0D" />
           </LinearGradient>
           <Text style={[styles.appName, { color: colors.foreground }]}>Regime</Text>
         </View>
@@ -82,16 +90,16 @@ export default function UsernameScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scroll: { flexGrow: 1, paddingHorizontal: 28, justifyContent: "center" },
-  logoRow: { alignItems: "center", marginBottom: 28 },
-  logoIcon: { width: 56, height: 56, borderRadius: 18, alignItems: "center", justifyContent: "center", marginBottom: 14 },
-  appName: { fontSize: 34, fontFamily: "Poppins_700Bold", letterSpacing: -1 },
-  title: { fontSize: 26, fontFamily: "Poppins_700Bold", letterSpacing: -0.5, textAlign: "center" },
-  subtitle: { fontSize: 14, fontFamily: "Inter_400Regular", textAlign: "center", marginTop: 8, marginBottom: 24, lineHeight: 21 },
-  inputWrap: { flexDirection: "row", alignItems: "center", borderRadius: 100, borderWidth: 1, height: 54, overflow: "hidden" },
+  logoRow: { alignItems: "center", marginBottom: 30 },
+  logoIcon: { width: 86, height: 86, borderRadius: 28, alignItems: "center", justifyContent: "center", marginBottom: 16 },
+  appName: { fontSize: 42, fontFamily: "Poppins_700Bold", letterSpacing: -1.2 },
+  title: { fontSize: 28, fontFamily: "Poppins_700Bold", letterSpacing: -0.5, textAlign: "center" },
+  subtitle: { fontSize: 16, fontFamily: "Inter_400Regular", textAlign: "center", marginTop: 10, marginBottom: 26, lineHeight: 23 },
+  inputWrap: { flexDirection: "row", alignItems: "center", borderRadius: 100, borderWidth: 1, height: 72, overflow: "hidden" },
   inputIcon: { marginLeft: 18 },
-  inputField: { flex: 1, fontSize: 15, fontFamily: "Inter_400Regular", paddingHorizontal: 12, height: "100%" },
+  inputField: { flex: 1, fontSize: 21, fontFamily: "Inter_400Regular", paddingHorizontal: 12, height: "100%" },
   errorText: { color: "#FF4B4B", fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 8, marginLeft: 18 },
   primaryBtn: { marginTop: 18, borderRadius: 100, overflow: "hidden" },
-  primaryBtnGrad: { paddingVertical: 16, alignItems: "center", justifyContent: "center" },
+  primaryBtnGrad: { paddingVertical: 18, alignItems: "center", justifyContent: "center" },
   primaryBtnText: { fontSize: 16, fontFamily: "Inter_600SemiBold", color: "#0D0D0D" },
 });

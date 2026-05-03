@@ -73,7 +73,7 @@ export default function ForgotPasswordScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => router.replace("/(auth)/sign-in" as any)} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={20} color={colors.mutedForeground} />
         </TouchableOpacity>
 
