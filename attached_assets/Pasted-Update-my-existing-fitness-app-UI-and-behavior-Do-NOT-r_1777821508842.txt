@@ -1,0 +1,110 @@
+Update my existing fitness app UI and behavior. Do NOT rebuild the app. Only modify existing screens and components.
+
+SCHEDULE TAB:
+- Use gray gradient cards with white icons for workouts
+- Increase "Schedule" title size by ~10%
+- Add banner when workouts exist:
+  - Text: "Today’s Regime!"
+  - Show today’s date
+- Display workouts in 2–3 column grid, scrollable
+- Clicking a workout opens detail screen:
+  - Show workout name + targeted muscle group
+  - Top-left date selector (scrollable calendar)
+- Center swipe calendar on screen
+- Add top-right "+" button:
+  - Opens modal with calendar + search
+  - User can add/remove workouts for any future date
+
+GOALS TAB:
+- Add "+" button (top-right) for creating goals
+- Show preview of goal before saving
+- Place new goal widget below AI world map, above consistency map
+- AI workout widgets:
+  - Click → show full workout details + target muscles
+- AI nutrition section:
+  - Add button → opens detailed info modal
+- Remove "Your Goals" text
+- Consistency tracker:
+  - Reduce columns by 2
+  - Green = completed day
+  - Auto-green if no workouts assigned
+  - Red = missed workout and reset streak
+
+HOME TAB:
+- Profile image should display uploaded user image
+- Daily workout widget:
+  - Show user-created workout OR AI-generated workout
+- Clicking workout → open workout screen (no swipe-to-complete here)
+- Remove:
+  - "This Week"
+  - "0/4 done"
+  - Smart recommendations
+  - Bottom workout widgets
+- Increase home icon size by ~15% with circular white background on press
+- Ghost mode:
+  - Show past records + compare to last week
+
+NOTIFICATIONS:
+- Enable swipe-to-delete
+- Clicking notification → opens detail screen
+
+LEADERBOARD / TROPHY:
+- Increase ranking widget size (~5%)
+- Increase text size (~7%) and center it
+- XP, streak, sessions → larger text
+- Top 3 redesign:
+  - #1 gold (slightly bigger)
+  - #2 silver outline
+  - #3 blue outline
+  - Show profile images
+  - Click → open user profile
+- Ranking list:
+  - Larger usernames
+  - Rank under name
+  - Larger streak indicator
+
+HEALTH TAB:
+- Rename "Health" → "My Health" (+5% size)
+- Recovery widget:
+  - Keep message: "Your body is primed for a heavy session today" / "Optimal recovery detected"
+- Add "Sleep" button
+- Resize 4 stat widgets slightly smaller but increase text/icons
+- Replace empty widget with:
+  - Purple "Body Composition" button → opens new screen
+- Remove:
+  - Extra recovery widget
+  - Long calories widget
+- Add:
+  - Muscle groups widget
+  - Activity heat map widget
+- AI recovery tips:
+  - Click → show detailed explanations
+- Activity heat map:
+  - Opens full screen view
+- Activity widgets:
+  - Open timer modal (set duration + track progress)
+
+BODY COMPOSITION SCREEN:
+- Show:
+  - Weight, height, metrics
+  - Muscle groups trained
+- Clicking muscle groups:
+  - Show muscle usage + recovery suggestions
+
+SETTINGS:
+- Notifications settings page:
+  - Toggle switches for each type (workouts, alerts, badges, etc.)
+- Profile settings:
+  - Edit profile, email, password
+- Move fitness goal creator to bottom
+- Achievements section:
+  - Click → open full achievements list
+
+SOCIAL TAB:
+- Increase tab selector size by ~3%
+- Slightly increase all content sizes
+
+IMPORTANT:
+- Do not redesign navigation
+- Do not create unnecessary new files
+- Focus on UI updates, modals, and interactions only

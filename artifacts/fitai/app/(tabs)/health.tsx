@@ -266,7 +266,7 @@ export default function HealthScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { paddingTop: topPad + 12 }]}>
-        <Text style={[styles.title, { color: colors.foreground }]}>Health</Text>
+        <Text style={[styles.title, { color: colors.foreground, fontSize: 27.3 }]}>My Health</Text>
 
         <View style={styles.headerRight}>
           <View style={[styles.syncBadge, { backgroundColor: colors.success + "20", borderColor: colors.success + "40" }]}>
@@ -292,16 +292,18 @@ export default function HealthScreen() {
 
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 120 }]} showsVerticalScrollIndicator={false}>
 
-        <View style={[styles.recoveryCard, { backgroundColor: "#10241D", borderColor: "#2F6F5A" }]}>
-          <View style={styles.recoveryTopRow}>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.recoveryBadge, { color: "#7BE0B8" }]}>RECOVERY SCORE</Text>
-              <Text style={[styles.recoveryTitle, { color: "#F5F5F5" }]}>78</Text>
-              <Text style={[styles.recoveryBody, { color: "#B4C8BE" }]}>Good to train</Text>
+        <TouchableOpacity onPress={() => router.push("/recovery-detail" as any)} activeOpacity={0.75}>
+          <View style={[styles.recoveryCard, { backgroundColor: "#10241D", borderColor: "#2F6F5A" }]}>
+            <View style={styles.recoveryTopRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.recoveryBadge, { color: "#7BE0B8" }]}>RECOVERY SCORE</Text>
+                <Text style={[styles.recoveryTitle, { color: "#F5F5F5" }]}>78</Text>
+                <Text style={[styles.recoveryBody, { color: "#B4C8BE" }]}>Good to train</Text>
+              </View>
+              <RecoveryRing score={78} />
             </View>
-            <RecoveryRing score={78} />
           </View>
-        </View>
+        </TouchableOpacity>
 
         <View style={styles.widgetGrid}>
           {HEALTH_WIDGETS.filter(w => w.title !== "Today's Burn").map((item) => {
@@ -319,15 +321,29 @@ export default function HealthScreen() {
               >
                 <View style={[{ backgroundColor: colors.card, borderColor: colors.border }, styles.widgetCardInner]}>
                   <View style={[styles.widgetIconWrap, { backgroundColor: item.color + "18" }]}>
-                    <Ionicons name={item.icon as any} size={16} color={item.color} />
+                    <Ionicons name={item.icon as any} size={18} color={item.color} />
                   </View>
-                  <Text style={[styles.widgetValue, { color: colors.foreground }]}>{item.label}</Text>
+                  <Text style={[styles.widgetValue, { color: colors.foreground, fontSize: 26 }]}>{item.label}</Text>
                   <Text style={[styles.widgetSub, { color: colors.mutedForeground }]}>{item.sub}</Text>
                   <Text style={[styles.widgetTitle, { color: colors.mutedForeground }]}>{item.title}</Text>
                 </View>
               </TouchableOpacity>
             );
           })}
+          <TouchableOpacity
+            onPress={() => router.push("/health-detail?metric=sleep" as any)}
+            activeOpacity={0.7}
+            style={styles.widgetCard}
+          >
+            <View style={[{ backgroundColor: colors.card, borderColor: colors.border }, styles.widgetCardInner]}>
+              <View style={[styles.widgetIconWrap, { backgroundColor: "#A78BFA18" }]}>
+                <Ionicons name="moon-outline" size={18} color="#A78BFA" />
+              </View>
+              <Text style={[styles.widgetValue, { color: colors.foreground, fontSize: 26 }]}>7.2</Text>
+              <Text style={[styles.widgetSub, { color: colors.mutedForeground }]}>hours</Text>
+              <Text style={[styles.widgetTitle, { color: colors.mutedForeground }]}>Sleep</Text>
+            </View>
+          </TouchableOpacity>
         </View>
 
         <TouchableOpacity onPress={() => router.push("/recovery-detail" as any)} style={{ marginBottom: 14 }}>
@@ -345,19 +361,6 @@ export default function HealthScreen() {
           </View>
         </TouchableOpacity>
 
-        <View style={[styles.chartCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <LinearGradient colors={["#7BE0B810", "#8FB8FF08", "transparent"]} style={StyleSheet.absoluteFill} />
-            <TouchableOpacity onPress={() => router.push("/recovery-detail" as any)} style={styles.recoveryTopRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.recoveryBadge, { color: colors.success }]}>DAILY READINESS</Text>
-                <Text style={[styles.recoveryTitle, { color: colors.foreground }]}>Recovery Score</Text>
-                <Text style={[styles.recoveryBody, { color: colors.mutedForeground }]}>
-                  Your body is primed for a heavy session today.{"\n"}Optimal recovery detected.
-                </Text>
-              </View>
-              <RecoveryRing score={recoveryScore} />
-            </TouchableOpacity>
-        </View>
 
         <View style={[styles.tipsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={styles.tipsHeader}>
@@ -365,8 +368,10 @@ export default function HealthScreen() {
             <Text style={[styles.tipsTitle, { color: colors.foreground }]}>AI Recovery Tips</Text>
           </View>
           {RECOVERY_TIPS.map((tip, i) => (
-            <View
+            <TouchableOpacity
               key={tip.text}
+              onPress={() => alert(`${tip.text}\n\nDetailed explanation: ${tip.text}`)}
+              activeOpacity={0.7}
               style={[
                 styles.tipRow,
                 i < RECOVERY_TIPS.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border },
@@ -376,7 +381,7 @@ export default function HealthScreen() {
                 <Ionicons name={tip.icon as any} size={14} color={tip.color} />
               </View>
               <Text style={[styles.tipText, { color: colors.mutedForeground }]}>{tip.text}</Text>
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
 
