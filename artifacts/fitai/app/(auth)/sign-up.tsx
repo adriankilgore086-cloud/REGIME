@@ -183,7 +183,7 @@ export default function SignUpScreen() {
             <Ionicons name="flash" size={22} color="#0D0D0D" />
           </LinearGradient>
           <Text style={[styles.title, { color: colors.foreground }]}>Join Regime</Text>
-          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Start your transformation today</Text>
+          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Build the body. Break the excuses.</Text>
         </View>
 
         <TouchableOpacity onPress={handleGoogle} disabled={googleLoading} style={styles.socialBtn}>
@@ -213,7 +213,7 @@ export default function SignUpScreen() {
 
         <View style={styles.dividerRow}>
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <Text style={[styles.dividerText, { color: colors.mutedForeground }]}>or</Text>
+          <Text style={[styles.dividerText, { color: colors.mutedForeground }]}>use email</Text>
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
         </View>
 
@@ -299,8 +299,8 @@ const styles = StyleSheet.create({
   resendText: { fontSize: 14, fontFamily: "Inter_400Regular" },
   backBtn: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
   logoIcon: { width: 36, height: 36, borderRadius: 11, alignItems: "center", justifyContent: "center" },
-  title: { fontSize: 28, fontFamily: "Inter_700Bold", letterSpacing: -0.8, marginBottom: 6 },
-  subtitle: { fontSize: 15, fontFamily: "Inter_400Regular", marginBottom: 0 },
+  title: { fontSize: 34, fontFamily: "Inter_700Bold", letterSpacing: -1.1, marginBottom: 6 },
+  subtitle: { fontSize: 18, fontFamily: "Inter_500Medium", marginBottom: 0, lineHeight: 26 },
   socialBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, borderRadius: 999, borderWidth: 1, paddingVertical: 15, marginBottom: 14, backgroundColor: "#171717", borderColor: "#2A2A2A" },
   googleMark: { width: 18, height: 18, position: "relative", alignItems: "center", justifyContent: "center" },
   googleDotRed: { position: "absolute", width: 4, height: 4, borderRadius: 2, backgroundColor: "#EA4335", top: 2, right: -1 },
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
   googleText: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
   dividerRow: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 20 },
   divider: { flex: 1, height: 1 },
-  dividerText: { fontSize: 13, fontFamily: "Inter_400Regular" },
+  dividerText: { fontSize: 13, fontFamily: "Inter_600SemiBold", letterSpacing: 0.2 },
   form: { gap: 16, marginBottom: 16 },
   field: { gap: 6 },
   fieldLabel: { fontSize: 13, fontFamily: "Inter_500Medium" },

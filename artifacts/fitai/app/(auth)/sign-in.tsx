@@ -186,7 +186,7 @@ export default function SignInScreen() {
         </View>
 
         <Text style={[styles.title, { color: colors.foreground }]}>Welcome back</Text>
-        <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Your next session starts here</Text>
+        <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Get in. Lock in. Earn the next level.</Text>
 
         <TouchableOpacity onPress={handleGoogle} disabled={googleLoading} style={styles.socialBtn}>
           {googleLoading
@@ -316,8 +316,8 @@ const styles = StyleSheet.create({
   logoRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 32 },
   logoIcon: { width: 76, height: 76, borderRadius: 24, alignItems: "center", justifyContent: "center" },
   appName: { fontSize: 34, fontFamily: "Inter_700Bold" },
-  title: { fontSize: 30, fontFamily: "Inter_700Bold", letterSpacing: -0.8, marginBottom: 6 },
-  subtitle: { fontSize: 16, fontFamily: "Inter_400Regular", marginBottom: 28 },
+  title: { fontSize: 34, fontFamily: "Inter_700Bold", letterSpacing: -1.1, marginBottom: 6 },
+  subtitle: { fontSize: 18, fontFamily: "Inter_500Medium", marginBottom: 28, lineHeight: 26 },
   socialBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, borderRadius: 999, borderWidth: 1, paddingVertical: 15, marginBottom: 14, backgroundColor: "#171717", borderColor: "#2A2A2A" },
   googleMark: { width: 18, height: 18, position: "relative", alignItems: "center", justifyContent: "center" },
   googleDotRed: { position: "absolute", width: 4, height: 4, borderRadius: 2, backgroundColor: "#EA4335", top: 2, right: -1 },

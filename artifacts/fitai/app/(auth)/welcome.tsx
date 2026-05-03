@@ -164,8 +164,8 @@ export default function WelcomeScreen() {
               </View>
 
               {/* App name + tagline */}
-              <Text style={styles.appName}>Regime</Text>
-              <Text style={styles.tagline}>Start your transformation today</Text>
+              <Text style={styles.appName}>REGIME</Text>
+              <Text style={styles.tagline}>Every rep changes you. Show up and earn it.</Text>
             </View>
 
             {/* ── AUTH FORM ── */}
@@ -200,7 +200,7 @@ export default function WelcomeScreen() {
               {/* Divider */}
               <View style={styles.dividerRow}>
                 <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>Sign in</Text>
+                <Text style={styles.dividerText}>Use email</Text>
                 <View style={styles.dividerLine} />
               </View>
 
@@ -319,18 +319,18 @@ const styles = StyleSheet.create({
     elevation: 12,
   },
   appName: {
-    fontSize: 44,
-    fontFamily: "Poppins_700Bold",
+    fontSize: 58,
+    fontFamily: "Inter_700Bold",
     color: "#F5F5F5",
-    letterSpacing: -1,
-    marginBottom: 10,
+    letterSpacing: -1.4,
+    marginBottom: 12,
   },
   tagline: {
-    fontSize: 17,
-    fontFamily: "Inter_400Regular",
+    fontSize: 20,
+    fontFamily: "Inter_500Medium",
     color: "#A1A1A1",
     textAlign: "center",
-    lineHeight: 25,
+    lineHeight: 30,
   },
 
   /* Form section */
@@ -404,9 +404,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#2E2E2E",
   },
   dividerText: {
-    fontSize: 11,
-    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
     color: "#555",
+    letterSpacing: 0.2,
   },
 
   /* Oval inputs */
