@@ -70,7 +70,7 @@ const AnimatedTab = memo(function AnimatedTab({
             style={styles.centerBtn}
           >
             <View style={[styles.centerBtnInner, { backgroundColor: colors.primary }]}>
-              <Feather name="home" size={22} color="#0D0D0D" />
+              <Feather name="home" size={23} color="#0D0D0D" />
             </View>
           </TouchableOpacity>
         </Animated.View>
