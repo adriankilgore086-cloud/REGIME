@@ -4,7 +4,7 @@ import {
   KeyboardAvoidingView, ScrollView, Platform, ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useSignUp, useSSO } from "@clerk/expo";
+import { useSignUp, useSSO, useAuth } from "@clerk/expo";
 import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 import { useRouter, Link } from "expo-router";
@@ -18,6 +18,14 @@ export default function SignUpScreen() {
   const colors = useColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { isSignedIn } = useAuth();
+
+  // Redirect already signed-in users
+  useEffect(() => {
+    if (isSignedIn) {
+      router.replace("/(tabs)");
+    }
+  }, [isSignedIn, router]);
 
   // v3 API: useSignUp returns { signUp, errors, fetchStatus } — no isLoaded/setActive
   const { signUp, errors, fetchStatus } = useSignUp();

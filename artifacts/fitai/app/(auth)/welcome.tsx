@@ -8,7 +8,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, Link } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useSignIn, useSSO } from "@clerk/expo";
+import { useSignIn, useSSO, useAuth } from "@clerk/expo";
 import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 import { useColors } from "@/hooks/useColors";
@@ -42,6 +42,14 @@ export default function WelcomeScreen() {
   const colors = useColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { isSignedIn } = useAuth();
+
+  // Redirect already signed-in users
+  useEffect(() => {
+    if (isSignedIn) {
+      router.replace("/(tabs)");
+    }
+  }, [isSignedIn, router]);
 
   const { signIn, errors, fetchStatus } = useSignIn();
   const { startSSOFlow } = useSSO();
