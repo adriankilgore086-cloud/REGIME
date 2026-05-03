@@ -12,11 +12,11 @@ import { SAMPLE_WORKOUTS, CATEGORY_COLORS } from "@/constants/workouts";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-function getWeekDates() {
+function getWeekDates(weekOffset = 0) {
   const today = new Date();
   const week = [];
   const start = new Date(today);
-  start.setDate(today.getDate() - today.getDay());
+  start.setDate(today.getDate() - today.getDay() + weekOffset * 7);
   for (let i = 0; i < 7; i++) {
     const d = new Date(start);
     d.setDate(start.getDate() + i);
@@ -246,13 +246,15 @@ const rStyles = StyleSheet.create({
 export default function CalendarScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { scheduledWorkouts, scheduleWorkout, userStats } = useFitness();
+  const { scheduledWorkouts, scheduleWorkout, unscheduleWorkout, userStats } = useFitness();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showReport, setShowReport] = useState(false);
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [longPressedWorkout, setLongPressedWorkout] = useState<string | null>(null);
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
-  const weekDates = getWeekDates();
+  const weekDates = getWeekDates(weekOffset);
   const today = new Date().toISOString().split("T")[0];
 
   const getWorkoutsForDate = (date: string) => scheduledWorkouts.filter((sw) => sw.date === date);
@@ -321,6 +323,9 @@ export default function CalendarScreen() {
       </TouchableOpacity>
 
       <View style={[styles.weekStrip, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+        <TouchableOpacity onPress={() => setWeekOffset(weekOffset - 1)} style={styles.weekNavBtn}>
+          <Ionicons name="chevron-back" size={18} color={colors.mutedForeground} />
+        </TouchableOpacity>
         {weekDates.map((date) => {
           const iso = date.toISOString().split("T")[0];
           const isToday = iso === today;
@@ -352,6 +357,9 @@ export default function CalendarScreen() {
             </TouchableOpacity>
           );
         })}
+        <TouchableOpacity onPress={() => setWeekOffset(weekOffset + 1)} style={styles.weekNavBtn}>
+          <Ionicons name="chevron-forward" size={18} color={colors.mutedForeground} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -360,9 +368,12 @@ export default function CalendarScreen() {
         contentContainerStyle={[styles.content, { paddingBottom: 120 }]}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={[styles.selectedDateLabel, { color: colors.mutedForeground }]}>
-          {new Date(selectedDate + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
-        </Text>
+        <View style={styles.regimeHeader}>
+          <Text style={[styles.regimeTitle, { color: colors.foreground }]}>Today's Regime</Text>
+          <Text style={[styles.regimeDate, { color: colors.mutedForeground }]}>
+            {new Date(selectedDate + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+          </Text>
+        </View>
 
         {selectedWorkouts.length === 0 ? (
           <View style={[styles.emptyCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -378,14 +389,28 @@ export default function CalendarScreen() {
             const workout = SAMPLE_WORKOUTS.find((w) => w.id === sw.workoutId);
             if (!workout) return null;
             const catColor = CATEGORY_COLORS[workout.category];
+            const isLongPressed = longPressedWorkout === sw.id;
             return (
-              <View key={sw.id} style={[styles.workoutRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <TouchableOpacity
+                key={sw.id}
+                onLongPress={() => setLongPressedWorkout(isLongPressed ? null : sw.id)}
+                activeOpacity={0.9}
+                style={[styles.workoutRow, { backgroundColor: colors.card, borderColor: isLongPressed ? colors.destructive + "60" : colors.border }]}
+              >
                 <View style={[styles.catBar, { backgroundColor: catColor }]} />
                 <View style={styles.workoutInfo}>
                   <View style={styles.workoutTop}>
                     <Text style={[styles.workoutName, { color: colors.foreground }]}>{workout.name}</Text>
-                    {sw.completed && <Ionicons name="checkmark-circle" size={18} color={colors.success} />}
-                    {sw.skipped && <Ionicons name="close-circle" size={18} color={colors.destructive} />}
+                    {isLongPressed ? (
+                      <TouchableOpacity onPress={() => { unscheduleWorkout(sw.id); setLongPressedWorkout(null); }}>
+                        <Ionicons name="trash-outline" size={18} color={colors.destructive} />
+                      </TouchableOpacity>
+                    ) : (
+                      <>
+                        {sw.completed && <Ionicons name="checkmark-circle" size={18} color={colors.success} />}
+                        {sw.skipped && <Ionicons name="close-circle" size={18} color={colors.destructive} />}
+                      </>
+                    )}
                   </View>
                   <Text style={[styles.workoutMeta, { color: colors.mutedForeground }]}>
                     {workout.durationMinutes}m · {workout.calories} cal · {workout.difficulty}
@@ -398,7 +423,7 @@ export default function CalendarScreen() {
                     ))}
                   </View>
                 </View>
-              </View>
+              </TouchableOpacity>
             );
           })
         )}
@@ -494,7 +519,10 @@ const styles = StyleSheet.create({
   dayNumText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
   dotIndicator: { width: 4, height: 4, borderRadius: 2 },
   content: { paddingHorizontal: 20, paddingTop: 14 },
-  selectedDateLabel: { fontSize: 13, fontFamily: "Inter_500Medium", marginBottom: 14 },
+  weekNavBtn: { width: 32, height: 32, alignItems: "center", justifyContent: "center" },
+  regimeHeader: { marginBottom: 16, gap: 2 },
+  regimeTitle: { fontSize: 22, fontFamily: "Poppins_700Bold", letterSpacing: -0.5 },
+  regimeDate: { fontSize: 13, fontFamily: "Inter_500Medium" },
   emptyCard: { borderRadius: 20, borderWidth: 1, padding: 28, alignItems: "center", gap: 12, marginBottom: 24 },
   emptyText: { fontSize: 14, fontFamily: "Inter_400Regular" },
   addWorkoutBtn: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12, borderWidth: 1 },
