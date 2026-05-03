@@ -291,7 +291,6 @@ export default function CalendarScreen() {
   const [showYearView, setShowYearView] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date().toISOString().split("T")[0]);
   const [selectedWorkoutIds, setSelectedWorkoutIds] = useState<string[]>([]);
-  const [upcomingOrder, setUpcomingOrder] = useState<string[]>([]);
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
   const weekDates = getWeekDates();
@@ -300,55 +299,6 @@ export default function CalendarScreen() {
 
   const getWorkoutsForDate = (date: string) => scheduledWorkouts.filter((sw) => sw.date === date);
   const selectedWorkouts = getWorkoutsForDate(selectedDate);
-  
-  // Get upcoming workouts (next 7 days from today)
-  const getUpcomingWorkouts = () => {
-    const upcoming: typeof scheduledWorkouts = [];
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(today + "T12:00:00");
-      d.setDate(d.getDate() + i);
-      const dateStr = d.toISOString().split("T")[0];
-      const dayWorkouts = getWorkoutsForDate(dateStr);
-      upcoming.push(...dayWorkouts);
-    }
-    // Sort by upcomingOrder if it exists, otherwise keep original order
-    if (upcomingOrder.length === 0) {
-      return upcoming;
-    }
-    return upcoming.sort((a, b) => {
-      const aIdx = upcomingOrder.indexOf(a.id);
-      const bIdx = upcomingOrder.indexOf(b.id);
-      if (aIdx === -1) return 1;
-      if (bIdx === -1) return -1;
-      return aIdx - bIdx;
-    });
-  };
-  
-  const upcomingWorkouts = getUpcomingWorkouts();
-  
-  const moveWorkoutUp = (workoutId: string) => {
-    if (upcomingOrder.length === 0) {
-      setUpcomingOrder(upcomingWorkouts.map(w => w.id));
-    }
-    const newOrder = [...(upcomingOrder.length > 0 ? upcomingOrder : upcomingWorkouts.map(w => w.id))];
-    const idx = newOrder.indexOf(workoutId);
-    if (idx > 0) {
-      [newOrder[idx], newOrder[idx - 1]] = [newOrder[idx - 1], newOrder[idx]];
-      setUpcomingOrder(newOrder);
-    }
-  };
-  
-  const moveWorkoutDown = (workoutId: string) => {
-    if (upcomingOrder.length === 0) {
-      setUpcomingOrder(upcomingWorkouts.map(w => w.id));
-    }
-    const newOrder = [...(upcomingOrder.length > 0 ? upcomingOrder : upcomingWorkouts.map(w => w.id))];
-    const idx = newOrder.indexOf(workoutId);
-    if (idx < newOrder.length - 1) {
-      [newOrder[idx], newOrder[idx + 1]] = [newOrder[idx + 1], newOrder[idx]];
-      setUpcomingOrder(newOrder);
-    }
-  };
 
   const weekCompleted = weekDates.filter((d) => {
     const iso = d.toISOString().split("T")[0];
@@ -471,54 +421,6 @@ export default function CalendarScreen() {
           })}
         </View>
       </View>
-
-      {/* Upcoming Workouts Section */}
-      {upcomingWorkouts.length > 0 && (
-        <View style={[styles.upcomingSection, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.upcomingSectionTitle, { color: colors.foreground }]}>Next 7 Days</Text>
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.upcomingScroll}
-            style={{ maxHeight: 140 }}
-          >
-            {upcomingWorkouts.map((sw, idx) => {
-              const workout = SAMPLE_WORKOUTS.find((w) => w.id === sw.workoutId);
-              if (!workout) return null;
-              const catColor = CATEGORY_COLORS[workout.category];
-              const workoutDate = new Date(sw.date + "T12:00:00");
-              const dayName = workoutDate.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-              
-              return (
-                <View key={sw.id} style={[styles.upcomingCard, { backgroundColor: colors.background, borderColor: catColor }]}>
-                  <View style={[styles.upcomingCardColor, { backgroundColor: catColor }]} />
-                  <View style={styles.upcomingCardContent}>
-                    <Text style={[styles.upcomingDate, { color: colors.mutedForeground }]}>{dayName}</Text>
-                    <Text style={[styles.upcomingName, { color: colors.foreground }]} numberOfLines={2}>{workout.name}</Text>
-                    <Text style={[styles.upcomingMeta, { color: colors.mutedForeground }]}>{workout.durationMinutes}m</Text>
-                  </View>
-                  <View style={styles.upcomingActions}>
-                    <TouchableOpacity 
-                      onPress={() => moveWorkoutUp(sw.id)}
-                      disabled={idx === 0}
-                      style={[styles.moveBtn, { opacity: idx === 0 ? 0.3 : 1 }]}
-                    >
-                      <Ionicons name="chevron-up" size={16} color={colors.primary} />
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                      onPress={() => moveWorkoutDown(sw.id)}
-                      disabled={idx === upcomingWorkouts.length - 1}
-                      style={[styles.moveBtn, { opacity: idx === upcomingWorkouts.length - 1 ? 0.3 : 1 }]}
-                    >
-                      <Ionicons name="chevron-down" size={16} color={colors.primary} />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              );
-            })}
-          </ScrollView>
-        </View>
-      )}
 
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 120 }]} showsVerticalScrollIndicator={false}>
         <Text style={[styles.selectedDateLabel, { color: colors.mutedForeground }]}>
@@ -783,16 +685,4 @@ const styles = StyleSheet.create({
   
   cancelText: { textAlign: "center", fontSize: 14, fontFamily: "Inter_400Regular", paddingTop: 8 },
   fab: { position: "absolute", bottom: 24, right: 20, width: 56, height: 56, borderRadius: 28, alignItems: "center", justifyContent: "center", elevation: 6, shadowColor: "#000", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 4 },
-  
-  upcomingSection: { marginHorizontal: 20, marginBottom: 16, borderRadius: 16, borderWidth: 1, padding: 12, paddingTop: 12 },
-  upcomingSectionTitle: { fontSize: 13, fontFamily: "Inter_600SemiBold", marginBottom: 10 },
-  upcomingScroll: { paddingRight: 8 },
-  upcomingCard: { width: 140, borderRadius: 12, borderWidth: 2, marginRight: 8, overflow: "hidden", paddingTop: 8 },
-  upcomingCardColor: { height: 3 },
-  upcomingCardContent: { flex: 1, paddingHorizontal: 10, paddingVertical: 6, gap: 2 },
-  upcomingDate: { fontSize: 10, fontFamily: "Inter_500Medium" },
-  upcomingName: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
-  upcomingMeta: { fontSize: 9, fontFamily: "Inter_400Regular" },
-  upcomingActions: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, paddingHorizontal: 6, paddingBottom: 6 },
-  moveBtn: { width: 24, height: 24, borderRadius: 6, alignItems: "center", justifyContent: "center" },
 });
