@@ -13,6 +13,7 @@ export interface SocialComment {
   userAvatar: string;
   userBadge: string;
   text: string;
+  parentId?: string | null;
   createdAt: string;
 }
 
@@ -40,6 +41,7 @@ interface SocialContextType {
   posts: SocialPost[];
   addPost: (post: Omit<SocialPost, "id" | "createdAt" | "reactions" | "comments">) => void;
   addComment: (postId: string, comment: Omit<SocialComment, "id" | "createdAt">) => void;
+  addReply: (postId: string, parentId: string, reply: Omit<SocialComment, "id" | "createdAt" | "parentId">) => void;
   toggleReaction: (postId: string, reaction: "fire" | "flex" | "clap", userId: string) => void;
   deletePost: (postId: string, userId: string) => void;
 }
@@ -149,7 +151,19 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
     setPosts((prev) => {
       const next = prev.map((p) =>
         p.id === postId
-          ? { ...p, comments: [...p.comments, { ...comment, id: "c_" + Date.now().toString(), createdAt: new Date().toISOString() }] }
+          ? { ...p, comments: [...p.comments, { ...comment, parentId: comment.parentId ?? null, id: "c_" + Date.now().toString(), createdAt: new Date().toISOString() }] }
+          : p
+      );
+      save(next);
+      return next;
+    });
+  }, [save]);
+
+  const addReply = useCallback((postId: string, parentId: string, reply: Omit<SocialComment, "id" | "createdAt" | "parentId">) => {
+    setPosts((prev) => {
+      const next = prev.map((p) =>
+        p.id === postId
+          ? { ...p, comments: [...p.comments, { ...reply, parentId, id: "r_" + Date.now().toString(), createdAt: new Date().toISOString() }] }
           : p
       );
       save(next);
@@ -181,7 +195,7 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
   }, [save]);
 
   return (
-    <SocialContext.Provider value={{ posts, addPost, addComment, toggleReaction, deletePost }}>
+    <SocialContext.Provider value={{ posts, addPost, addComment, addReply, toggleReaction, deletePost }}>
       {children}
     </SocialContext.Provider>
   );

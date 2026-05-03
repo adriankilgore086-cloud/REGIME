@@ -79,7 +79,12 @@ function PostCard({ post, myUserId, myName, myAvatar, myBadge }: {
   const { toggleReaction, addComment, deletePost } = useSocial();
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
+  const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
   const meta = TYPE_META[post.type] ?? TYPE_META.text;
+  const { addReply } = useSocial();
+  const topLevelComments = post.comments.filter((c) => !c.parentId);
+  const repliesByParent = post.comments.filter((c) => c.parentId);
 
   const fire = post.reactions.fire.includes(myUserId);
   const flex = post.reactions.flex.includes(myUserId);
@@ -90,6 +95,14 @@ function PostCard({ post, myUserId, myName, myAvatar, myBadge }: {
     if (!t) return;
     addComment(post.id, { userId: myUserId, userName: myName, userAvatar: myAvatar, userBadge: myBadge, text: t });
     setCommentText("");
+  };
+
+  const submitReply = () => {
+    const t = replyText.trim();
+    if (!t || !replyTo) return;
+    addReply(post.id, replyTo, { userId: myUserId, userName: myName, userAvatar: myAvatar, userBadge: myBadge, text: t });
+    setReplyText("");
+    setReplyTo(null);
   };
 
   return (
@@ -175,24 +188,65 @@ function PostCard({ post, myUserId, myName, myAvatar, myBadge }: {
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setShowComments(!showComments)} style={[pcStyles.reactionBtn, showComments && { backgroundColor: "#A78BFA15" }]}>
           <Ionicons name="chatbubble-outline" size={13} color={showComments ? "#A78BFA" : colors.mutedForeground} />
-          <Text style={[pcStyles.reactionCount, { color: showComments ? "#A78BFA" : colors.mutedForeground }]}>{post.comments.length}</Text>
+          <Text style={[pcStyles.reactionCount, { color: showComments ? "#A78BFA" : colors.mutedForeground }]}>{post.comments.length} Reply{post.comments.length === 1 ? "" : "ies"}</Text>
         </TouchableOpacity>
       </View>
 
       {showComments && (
         <View style={[pcStyles.commentsSection, { borderTopColor: colors.border }]}>
-          {post.comments.map((c) => (
-            <View key={c.id} style={pcStyles.commentRow}>
-              <View style={[pcStyles.commentAvatar, { backgroundColor: colors.muted }]}>
-                <Text style={[pcStyles.commentAvatarText, { color: colors.mutedForeground }]}>{c.userAvatar}</Text>
+          {topLevelComments.map((c) => {
+            const replyCount = repliesByParent.filter((r) => r.parentId === c.id).length;
+            return (
+              <View key={c.id}>
+                <View style={pcStyles.commentRow}>
+                  <View style={[pcStyles.commentAvatar, { backgroundColor: colors.muted }]}>
+                    <Text style={[pcStyles.commentAvatarText, { color: colors.mutedForeground }]}>{c.userAvatar}</Text>
+                  </View>
+                  <View style={[pcStyles.commentBubble, { backgroundColor: colors.muted }]}>
+                    <Text style={[pcStyles.commentUser, { color: colors.foreground }]}>{c.userName}</Text>
+                    <Text style={[pcStyles.commentText, { color: colors.foreground }]}>{c.text}</Text>
+                    <Text style={[pcStyles.commentTime, { color: colors.mutedForeground }]}>{timeAgo(c.createdAt)}</Text>
+                  </View>
+                </View>
+                <View style={pcStyles.commentActionsRow}>
+                  <TouchableOpacity onPress={() => { setReplyTo(replyTo === c.id ? null : c.id); setReplyText(""); }} style={pcStyles.replyBtn}>
+                    <Text style={[pcStyles.replyText, { color: colors.mutedForeground }]}>Reply</Text>
+                  </TouchableOpacity>
+                  <Text style={[pcStyles.replyCountText, { color: colors.mutedForeground }]}>
+                    {replyCount} repl{replyCount === 1 ? "y" : "ies"}
+                  </Text>
+                </View>
+                {replyTo === c.id && (
+                  <View style={pcStyles.replyComposer}>
+                    <TextInput
+                      style={[pcStyles.commentInput, { backgroundColor: colors.muted, color: colors.foreground }]}
+                      placeholder="Write a reply..."
+                      placeholderTextColor={colors.mutedForeground}
+                      value={replyText}
+                      onChangeText={setReplyText}
+                      returnKeyType="send"
+                      onSubmitEditing={submitReply}
+                    />
+                    <TouchableOpacity onPress={submitReply} disabled={!replyText.trim()} style={[pcStyles.sendBtn, { backgroundColor: replyText.trim() ? colors.primary : colors.muted }]}>
+                      <Ionicons name="send" size={12} color={replyText.trim() ? "#0D0D0D" : colors.mutedForeground} />
+                    </TouchableOpacity>
+                  </View>
+                )}
+                {repliesByParent.filter((r) => r.parentId === c.id).map((r) => (
+                  <View key={r.id} style={pcStyles.replyRow}>
+                    <View style={[pcStyles.commentAvatar, { backgroundColor: colors.card }]}>
+                      <Text style={[pcStyles.commentAvatarText, { color: colors.mutedForeground }]}>{r.userAvatar}</Text>
+                    </View>
+                    <View style={[pcStyles.replyBubble, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                      <Text style={[pcStyles.commentUser, { color: colors.foreground }]}>{r.userName}</Text>
+                      <Text style={[pcStyles.commentText, { color: colors.foreground }]}>{r.text}</Text>
+                      <Text style={[pcStyles.commentTime, { color: colors.mutedForeground }]}>{timeAgo(r.createdAt)}</Text>
+                    </View>
+                  </View>
+                ))}
               </View>
-              <View style={[pcStyles.commentBubble, { backgroundColor: colors.muted }]}>
-                <Text style={[pcStyles.commentUser, { color: colors.foreground }]}>{c.userName}</Text>
-                <Text style={[pcStyles.commentText, { color: colors.foreground }]}>{c.text}</Text>
-                <Text style={[pcStyles.commentTime, { color: colors.mutedForeground }]}>{timeAgo(c.createdAt)}</Text>
-              </View>
-            </View>
-          ))}
+            );
+          })}
           <View style={[pcStyles.commentInputRow, { borderTopColor: colors.border }]}>
             <View style={[pcStyles.commentInputAvatar, { backgroundColor: colors.primary + "25" }]}>
               <Text style={[pcStyles.commentAvatarText, { color: colors.primary }]}>{myAvatar}</Text>
@@ -240,10 +294,17 @@ const pcStyles = StyleSheet.create({
   reactionCount: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
   commentsSection: { marginTop: 12, borderTopWidth: 1, paddingTop: 12, gap: 10 },
   commentRow: { flexDirection: "row", gap: 8, alignItems: "flex-start" },
+  commentActionsRow: { flexDirection: "row", alignItems: "center", gap: 10, marginLeft: 36, marginTop: -4 },
+  replyBtn: { paddingVertical: 2 },
+  replyText: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
+  replyCountText: { fontSize: 10, fontFamily: "Inter_400Regular" },
   commentAvatar: { width: 28, height: 28, borderRadius: 9, alignItems: "center", justifyContent: "center" },
   commentInputAvatar: { width: 28, height: 28, borderRadius: 9, alignItems: "center", justifyContent: "center" },
   commentAvatarText: { fontSize: 11, fontFamily: "Inter_700Bold" },
   commentBubble: { flex: 1, borderRadius: 12, padding: 10, gap: 2 },
+  replyRow: { flexDirection: "row", gap: 8, alignItems: "flex-start", marginLeft: 36 },
+  replyBubble: { flex: 1, borderRadius: 12, padding: 10, gap: 2, borderWidth: 1 },
+  replyComposer: { flexDirection: "row", gap: 8, alignItems: "center", marginLeft: 36 },
   commentUser: { fontSize: 12, fontFamily: "Inter_700Bold" },
   commentText: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 18 },
   commentTime: { fontSize: 10, fontFamily: "Inter_400Regular", marginTop: 2 },
