@@ -124,21 +124,21 @@ function StreakCalendar() {
 }
 
 const scStyles = StyleSheet.create({
-  card: { borderRadius: 20, borderWidth: 1, padding: 16, marginBottom: 20 },
+  card: { borderRadius: 20, borderWidth: 1, padding: 18, marginBottom: 20, flex: 1, minHeight: 320 },
   header: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 14 },
   title: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
   sub: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 2 },
   streakPill: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, borderWidth: 1 },
   streakText: { fontSize: 14, fontFamily: "Inter_700Bold" },
-  dayLabels: { flexDirection: "row", gap: 2.5, marginBottom: 8, paddingLeft: 2 },
-  dayLabel: { width: 14, fontSize: 8, fontFamily: "Inter_500Medium", textAlign: "center" },
-  grid: { flexDirection: "column", gap: 2.5 },
-  col: { flexDirection: "row", gap: 2.5 },
-  cell: { width: 14, height: 14, borderRadius: 3 },
-  legend: { flexDirection: "row", alignItems: "center", gap: 5, marginTop: 14 },
-  legendDot: { width: 10, height: 10, borderRadius: 3 },
-  legendDotToday: { width: 10, height: 10, borderRadius: 3, borderWidth: 1.5, backgroundColor: "transparent" },
-  legendText: { fontSize: 10, fontFamily: "Inter_400Regular" },
+  dayLabels: { flexDirection: "row", gap: 4, marginBottom: 12, justifyContent: "center" },
+  dayLabel: { flex: 1, fontSize: 11, fontFamily: "Inter_600SemiBold", textAlign: "center" },
+  grid: { flexDirection: "column", gap: 4, flex: 1, justifyContent: "space-evenly" },
+  col: { flexDirection: "row", gap: 4, justifyContent: "space-evenly" },
+  cell: { flex: 1, aspectRatio: 1, borderRadius: 6, minWidth: 32, minHeight: 32 },
+  legend: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 12, marginTop: 14 },
+  legendDot: { width: 12, height: 12, borderRadius: 4 },
+  legendDotToday: { width: 12, height: 12, borderRadius: 4, borderWidth: 2, backgroundColor: "transparent" },
+  legendText: { fontSize: 11, fontFamily: "Inter_500Medium" },
 });
 
 export default function GoalsScreen() {
