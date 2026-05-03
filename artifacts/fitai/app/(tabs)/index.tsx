@@ -331,11 +331,13 @@ export default function HomeScreen() {
           <XPProgressBar xp={userStats.xp} level={level} rank={rank} xpProgress={xpProgress} />
         </View>
 
-        <View style={styles.statsRow}>
-          <StatCard icon="flame-outline" label="Calories" value={`${todayCalories}`} subValue="today" color={colors.accent} />
-          <StatCard icon="time-outline" label="Minutes" value={`${userStats.totalMinutes}`} subValue="total" color={colors.primary} />
-          <StatCard icon="barbell-outline" label="Workouts" value={`${userStats.totalWorkouts}`} subValue="done" color={colors.success} />
-        </View>
+        <TouchableOpacity onPress={() => router.push("/stats-overview" as any)}>
+          <View style={styles.statsRow}>
+            <StatCard icon="flame-outline" label="Calories" value={`${todayCalories}`} subValue="today" color={colors.accent} />
+            <StatCard icon="time-outline" label="Minutes" value={`${userStats.totalMinutes}`} subValue="total" color={colors.primary} />
+            <StatCard icon="barbell-outline" label="Workouts" value={`${userStats.totalWorkouts}`} subValue="done" color={colors.success} />
+          </View>
+        </TouchableOpacity>
 
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Daily Workout</Text>
@@ -393,34 +395,36 @@ export default function HomeScreen() {
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>This Week</Text>
         </View>
 
-        <View style={[styles.weekWidget, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={styles.weekStatCol}>
-            <View style={[styles.weekStatIcon, { backgroundColor: colors.success + "20" }]}>
-              <Ionicons name="checkmark-circle-outline" size={20} color={colors.success} />
+        <TouchableOpacity onPress={() => router.push("/stats-overview" as any)}>
+          <View style={[styles.weekWidget, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={styles.weekStatCol}>
+              <View style={[styles.weekStatIcon, { backgroundColor: colors.success + "20" }]}>
+                <Ionicons name="checkmark-circle-outline" size={20} color={colors.success} />
+              </View>
+              <Text style={[styles.weekStatLabel, { color: colors.mutedForeground }]}>Workouts</Text>
+              <Text style={[styles.weekStatValue, { color: colors.foreground }]}>{weekWorkouts}</Text>
+              <Text style={[styles.weekStatSub, { color: colors.mutedForeground }]}>this week</Text>
             </View>
-            <Text style={[styles.weekStatLabel, { color: colors.mutedForeground }]}>Workouts</Text>
-            <Text style={[styles.weekStatValue, { color: colors.foreground }]}>{weekWorkouts}</Text>
-            <Text style={[styles.weekStatSub, { color: colors.mutedForeground }]}>this week</Text>
-          </View>
-          <View style={[styles.weekStatDivider, { backgroundColor: colors.border }]} />
-          <View style={styles.weekStatCol}>
-            <View style={[styles.weekStatIcon, { backgroundColor: colors.primary + "20" }]}>
-              <Ionicons name="time-outline" size={20} color={colors.primary} />
+            <View style={[styles.weekStatDivider, { backgroundColor: colors.border }]} />
+            <View style={styles.weekStatCol}>
+              <View style={[styles.weekStatIcon, { backgroundColor: colors.primary + "20" }]}>
+                <Ionicons name="time-outline" size={20} color={colors.primary} />
+              </View>
+              <Text style={[styles.weekStatLabel, { color: colors.mutedForeground }]}>Minutes</Text>
+              <Text style={[styles.weekStatValue, { color: colors.foreground }]}>{weekMinutes}</Text>
+              <Text style={[styles.weekStatSub, { color: colors.mutedForeground }]}>this week</Text>
             </View>
-            <Text style={[styles.weekStatLabel, { color: colors.mutedForeground }]}>Minutes</Text>
-            <Text style={[styles.weekStatValue, { color: colors.foreground }]}>{weekMinutes}</Text>
-            <Text style={[styles.weekStatSub, { color: colors.mutedForeground }]}>this week</Text>
-          </View>
-          <View style={[styles.weekStatDivider, { backgroundColor: colors.border }]} />
-          <View style={styles.weekStatCol}>
-            <View style={[styles.weekStatIcon, { backgroundColor: colors.accent + "20" }]}>
-              <Ionicons name="flame-outline" size={20} color={colors.accent} />
+            <View style={[styles.weekStatDivider, { backgroundColor: colors.border }]} />
+            <View style={styles.weekStatCol}>
+              <View style={[styles.weekStatIcon, { backgroundColor: colors.accent + "20" }]}>
+                <Ionicons name="flame-outline" size={20} color={colors.accent} />
+              </View>
+              <Text style={[styles.weekStatLabel, { color: colors.mutedForeground }]}>Calories</Text>
+              <Text style={[styles.weekStatValue, { color: colors.foreground }]}>{weekCalories}</Text>
+              <Text style={[styles.weekStatSub, { color: colors.mutedForeground }]}>this week</Text>
             </View>
-            <Text style={[styles.weekStatLabel, { color: colors.mutedForeground }]}>Calories</Text>
-            <Text style={[styles.weekStatValue, { color: colors.foreground }]}>{weekCalories}</Text>
-            <Text style={[styles.weekStatSub, { color: colors.mutedForeground }]}>this week</Text>
           </View>
-        </View>
+        </TouchableOpacity>
 
         <TouchableOpacity
           onPress={() => setShowAI(true)}
@@ -445,20 +449,27 @@ export default function HomeScreen() {
           </View>
         </TouchableOpacity>
 
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Personal Records</Text>
-          <View style={[styles.aiBadge, { backgroundColor: "#F3D27A15" }]}>
-            <Ionicons name="trophy-outline" size={10} color="#F3D27A" />
-            <Text style={[styles.aiLabel2, { color: "#F3D27A" }]}>Your PRs</Text>
+        <TouchableOpacity onPress={() => router.push("/stats-overview" as any)}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Personal Records</Text>
+            <View style={[styles.aiBadge, { backgroundColor: "#F3D27A15" }]}>
+              <Ionicons name="trophy-outline" size={10} color="#F3D27A" />
+              <Text style={[styles.aiLabel2, { color: "#F3D27A" }]}>Your PRs</Text>
+            </View>
           </View>
-        </View>
+        </TouchableOpacity>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.recsScroll} contentContainerStyle={styles.recsContent}>
           {PR_BOARD.map((pr) => {
             const gain = pr.current - pr.prev;
             const gainPct = Math.round((gain / pr.prev) * 100);
             return (
-              <View key={pr.lift} style={[prStyles.card, { backgroundColor: colors.card, borderColor: pr.color + "30" }]}>
+              <TouchableOpacity 
+                key={pr.lift} 
+                onPress={() => router.push("/stats-overview" as any)}
+                style={[prStyles.card, { backgroundColor: colors.card, borderColor: pr.color + "30" }]}
+                activeOpacity={0.8}
+              >
                 <LinearGradient colors={[pr.color + "14", "transparent"]} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} />
                 <View style={[prStyles.iconWrap, { backgroundColor: pr.color + "20" }]}>
                   <Ionicons name={pr.icon} size={18} color={pr.color} />
@@ -472,24 +483,26 @@ export default function HomeScreen() {
                   <Ionicons name="arrow-up" size={9} color={pr.color} />
                   <Text style={[prStyles.badgeText, { color: pr.color }]}>+{gain} ({gainPct}%)</Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             );
           })}
         </ScrollView>
 
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Smart Recommendations</Text>
-          <View style={[styles.aiBadge, { backgroundColor: colors.primary + "15" }]}>
-            <Ionicons name="sparkles" size={10} color={colors.primary} />
-            <Text style={[styles.aiLabel2, { color: colors.primary }]}>AI Curated</Text>
+        <TouchableOpacity onPress={() => router.push("/stats-overview" as any)}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Smart Recommendations</Text>
+            <View style={[styles.aiBadge, { backgroundColor: colors.primary + "15" }]}>
+              <Ionicons name="sparkles" size={10} color={colors.primary} />
+              <Text style={[styles.aiLabel2, { color: colors.primary }]}>AI Curated</Text>
+            </View>
           </View>
-        </View>
+        </TouchableOpacity>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.recsScroll} contentContainerStyle={styles.recsContent}>
           {SMART_RECS.map((rec) => (
             <TouchableOpacity
               key={rec.id}
-              onPress={() => setShowAI(true)}
+              onPress={() => router.push("/stats-overview" as any)}
               style={[styles.recCard, { backgroundColor: colors.card, borderColor: rec.color + "30" }]}
               activeOpacity={0.85}
             >
