@@ -63,7 +63,12 @@ export default function WelcomeScreen() {
     return () => { if (Platform.OS === "ios") void WebBrowser.coolDownAsync(); };
   }, []);
 
+  useEffect(() => {
+    signIn.reset();
+  }, [signIn]);
+
   const handleLogin = async () => {
+    signIn.reset();
     const { error } = await signIn.password({ emailAddress: email, password });
     if (error) return;
     if (signIn.status === "complete") {
@@ -79,6 +84,7 @@ export default function WelcomeScreen() {
   const handleGoogle = useCallback(async () => {
     setGoogleLoading(true);
     try {
+      signIn.reset();
       const { createdSessionId, setActive } = await startSSOFlow({
         strategy: "oauth_google",
         redirectUrl: AuthSession.makeRedirectUri(),
@@ -92,7 +98,7 @@ export default function WelcomeScreen() {
     } catch { /* errors shown via hook */ } finally {
       setGoogleLoading(false);
     }
-  }, [startSSOFlow]);
+  }, [signIn, startSSOFlow]);
 
   const emailError = errors?.fields?.identifier?.message;
   const passwordError = errors?.fields?.password?.message;

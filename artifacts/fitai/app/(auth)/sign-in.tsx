@@ -36,7 +36,12 @@ export default function SignInScreen() {
     return () => { void WebBrowser.coolDownAsync(); };
   }, []);
 
+  useEffect(() => {
+    router.setParams({ auth: "sign-in" });
+  }, [router]);
+
   const handleSubmit = async () => {
+    signIn.reset();
     const { error } = await signIn.password({ emailAddress: email, password });
     if (error) return;
 
@@ -69,6 +74,7 @@ export default function SignInScreen() {
   const handleGoogle = useCallback(async () => {
     setGoogleLoading(true);
     try {
+      signIn.reset();
       const { createdSessionId, setActive } = await startSSOFlow({
         strategy: "oauth_google",
         redirectUrl: AuthSession.makeRedirectUri(),
@@ -86,7 +92,7 @@ export default function SignInScreen() {
     } finally {
       setGoogleLoading(false);
     }
-  }, [startSSOFlow]);
+  }, [signIn, startSSOFlow]);
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;

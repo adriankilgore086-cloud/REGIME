@@ -35,7 +35,12 @@ export default function SignUpScreen() {
     return () => { void WebBrowser.coolDownAsync(); };
   }, []);
 
+  useEffect(() => {
+    signUp.reset();
+  }, [signUp]);
+
   const handleSignUp = async () => {
+    signUp.reset();
     const { error } = await signUp.password({ emailAddress: email, password });
     if (error) return;
     await signUp.verifications.sendEmailCode();
@@ -60,6 +65,7 @@ export default function SignUpScreen() {
   const handleGoogle = useCallback(async () => {
     setGoogleLoading(true);
     try {
+      signUp.reset();
       const { createdSessionId, setActive } = await startSSOFlow({
         strategy: "oauth_google",
         redirectUrl: AuthSession.makeRedirectUri(),
@@ -77,7 +83,7 @@ export default function SignUpScreen() {
     } finally {
       setGoogleLoading(false);
     }
-  }, [startSSOFlow]);
+  }, [signUp, startSSOFlow]);
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
