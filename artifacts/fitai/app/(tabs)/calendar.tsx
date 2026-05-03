@@ -10,6 +10,7 @@ import { useRouter } from "expo-router";
 import { useColors } from "@/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
 import { SAMPLE_WORKOUTS, CATEGORY_COLORS } from "@/constants/workouts";
+import { WorkoutPlayerModal } from "@/components/WorkoutPlayerModal";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -248,13 +249,22 @@ export default function CalendarScreen() {
   const router = useRouter();
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { scheduledWorkouts, scheduleWorkout, userStats, unscheduleWorkout } = useFitness();
+  const { scheduledWorkouts, scheduleWorkout, userStats, unscheduleWorkout, completeWorkout } = useFitness();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [weekOffset, setWeekOffset] = useState(0);
   const [longPressedWorkout, setLongPressedWorkout] = useState<string | null>(null);
+  const [playerWorkout, setPlayerWorkout] = useState<import("@/constants/workouts").Workout | null>(null);
+  const [playerScheduledId, setPlayerScheduledId] = useState<string | null>(null);
   const topPad = Platform.OS === "web" ? 67 : insets.top;
+
+  const openPlayer = (workout: import("@/constants/workouts").Workout, scheduledId: string) => {
+    setPlayerWorkout(workout);
+    setPlayerScheduledId(scheduledId);
+  };
+
+  const closePlayer = () => { setPlayerWorkout(null); setPlayerScheduledId(null); };
 
   const weekDates = getWeekDates(weekOffset);
   const today = new Date().toISOString().split("T")[0];
@@ -361,6 +371,7 @@ export default function CalendarScreen() {
             return (
               <TouchableOpacity 
                 key={sw.id}
+                onPress={() => !isPressed && openPlayer(workout, sw.id)}
                 onLongPress={() => setLongPressedWorkout(sw.id)}
                 delayLongPress={500}
                 style={[styles.workoutRow, { backgroundColor: colors.card, borderColor: isPressed ? colors.destructive : colors.border }]}
@@ -461,6 +472,16 @@ export default function CalendarScreen() {
           </View>
         </View>
       </Modal>
+
+      {playerWorkout && (
+        <WorkoutPlayerModal
+          visible={!!playerWorkout}
+          workout={playerWorkout}
+          scheduledId={playerScheduledId}
+          onClose={closePlayer}
+          onComplete={(sid) => { completeWorkout(sid); closePlayer(); }}
+        />
+      )}
     </View>
   );
 }
