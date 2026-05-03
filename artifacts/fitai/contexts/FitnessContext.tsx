@@ -1,9 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from "@clerk/expo";
 import { SAMPLE_WORKOUTS, getLevel, getRank, getXpProgress } from '@/constants/workouts';
 import { ACHIEVEMENTS, Achievement, checkAchievements } from '@/constants/achievements';
 
 const STORAGE_KEY = '@regime_data_v2';
+const USER_PREFIX = '@regime_user_';
 
 export interface UserProfile {
   name: string;
@@ -99,94 +101,61 @@ interface FitnessContextType extends FitnessState {
   addNotification: (n: Omit<AppNotification, 'id' | 'createdAt' | 'read'>) => void;
 }
 
-const DEFAULT_PROFILE: UserProfile = {
-  name: 'Athlete',
-  age: 25,
-  weight: 75,
-  height: 175,
-  fitnessGoal: 'muscle_gain',
-};
-
-const DEFAULT_STATS: UserStats = {
-  xp: 1250,
-  streak: 7,
-  longestStreak: 12,
-  totalWorkouts: 28,
-  caloriesBurned: 14200,
-  totalMinutes: 1840,
-  lastWorkoutDate: new Date(Date.now() - 86400000).toISOString().split('T')[0],
-};
-
-const today = new Date().toISOString().split('T')[0];
-const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-
-const DEFAULT_SCHEDULED: ScheduledWorkout[] = [
-  { id: 'sw1', workoutId: 'w1', date: today, completed: false, skipped: false, completedAt: null },
-  { id: 'sw2', workoutId: 'w3', date: today, completed: false, skipped: false, completedAt: null },
-  { id: 'sw3', workoutId: 'w7', date: today, completed: false, skipped: false, completedAt: null },
-  { id: 'sw4', workoutId: 'w2', date: yesterday, completed: true, skipped: false, completedAt: yesterday + 'T10:00:00Z' },
-  { id: 'sw5', workoutId: 'w4', date: yesterday, completed: true, skipped: false, completedAt: yesterday + 'T12:00:00Z' },
-];
-
-const DEFAULT_GOALS: Goal[] = [
-  { id: 'g1', title: 'Lose 5kg', targetValue: 5, currentValue: 2.3, unit: 'kg', category: 'weight', deadline: null, completed: false },
-  { id: 'g2', title: 'Run 5K', targetValue: 5, currentValue: 3.2, unit: 'km', category: 'cardio', deadline: null, completed: false },
-  { id: 'g3', title: 'Bench 100kg', targetValue: 100, currentValue: 82, unit: 'kg', category: 'strength', deadline: null, completed: false },
-  { id: 'g4', title: 'Workout 5x/week', targetValue: 5, currentValue: 4, unit: 'days', category: 'consistency', deadline: null, completed: false },
-];
-
-const DEFAULT_EARNED: EarnedAchievement[] = [
-  { id: 'a1', earnedAt: new Date(Date.now() - 20 * 86400000).toISOString() },
-  { id: 'a2', earnedAt: new Date(Date.now() - 15 * 86400000).toISOString() },
-  { id: 'a5', earnedAt: new Date(Date.now() - 5 * 86400000).toISOString() },
-];
-
-const DEFAULT_HEALTH: HealthMetric[] = Array.from({ length: 7 }, (_, i) => ({
-  date: new Date(Date.now() - i * 86400000).toISOString().split('T')[0],
-  calories: Math.floor(300 + Math.random() * 350),
-  activeMinutes: Math.floor(30 + Math.random() * 50),
-  muscleGroups: i % 3 === 0 ? ['Chest', 'Triceps'] : i % 3 === 1 ? ['Legs', 'Glutes'] : ['Back', 'Biceps'],
-}));
-
-const DEFAULT_NOTIFICATIONS: AppNotification[] = [
-  { id: 'n1', title: '7-Day Streak!', message: "You're on fire! Keep your streak alive today.", type: 'streak', read: false, createdAt: new Date().toISOString() },
-  { id: 'n2', title: 'New Workout Ready', message: 'Power Upper Body is scheduled for today.', type: 'workout', read: false, createdAt: new Date(Date.now() - 3600000).toISOString() },
-  { id: 'n3', title: 'AI Insight', message: "You haven't trained legs in 2 days. Consider a leg workout today.", type: 'ai', read: true, createdAt: new Date(Date.now() - 7200000).toISOString() },
-];
+const createEmptyState = (): FitnessState => ({
+  userProfile: {
+    name: "",
+    age: 0,
+    weight: 0,
+    height: 0,
+    fitnessGoal: "general",
+  },
+  userStats: {
+    xp: 0,
+    streak: 0,
+    longestStreak: 0,
+    totalWorkouts: 0,
+    caloriesBurned: 0,
+    totalMinutes: 0,
+    lastWorkoutDate: null,
+  },
+  scheduledWorkouts: [],
+  goals: [],
+  earnedAchievements: [],
+  healthMetrics: [],
+  notifications: [],
+});
 
 const FitnessContext = createContext<FitnessContextType | null>(null);
 
-const DEFAULT_STATE: FitnessState = {
-  userProfile: DEFAULT_PROFILE,
-  userStats: DEFAULT_STATS,
-  scheduledWorkouts: DEFAULT_SCHEDULED,
-  goals: DEFAULT_GOALS,
-  earnedAchievements: DEFAULT_EARNED,
-  healthMetrics: DEFAULT_HEALTH,
-  notifications: DEFAULT_NOTIFICATIONS,
-};
-
 export function FitnessProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<FitnessState>(DEFAULT_STATE);
+  const { userId } = useAuth();
+  const [state, setState] = useState<FitnessState>(createEmptyState());
   const [loaded, setLoaded] = useState(false);
   const [showReward, setShowReward] = useState(false);
   const [rewardData, setRewardData] = useState<RewardData | null>(null);
 
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY).then((raw) => {
+    setLoaded(false);
+    setState(createEmptyState());
+    if (!userId) {
+      setLoaded(true);
+      return;
+    }
+    AsyncStorage.getItem(`${USER_PREFIX}${userId}:${STORAGE_KEY}`).then((raw) => {
       if (raw) {
         try {
           const saved = JSON.parse(raw) as Partial<FitnessState>;
-          setState((s) => ({ ...s, ...saved }));
+          setState((s) => ({ ...createEmptyState(), ...s, ...saved }));
         } catch {}
       }
       setLoaded(true);
     });
-  }, []);
+  }, [userId]);
 
   const save = useCallback(async (newState: FitnessState) => {
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
-  }, []);
+    if (!userId) return;
+    await AsyncStorage.setItem(`${USER_PREFIX}${userId}:${STORAGE_KEY}`, JSON.stringify(newState));
+  }, [userId]);
 
   const updateState = useCallback(async (updater: (s: FitnessState) => FitnessState) => {
     setState((prev) => {
@@ -364,10 +333,10 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
   const level = useMemo(() => getLevel(state.userStats.xp), [state.userStats.xp]);
   const rank = useMemo(() => getRank(level), [level]);
   const xpProgress = useMemo(() => getXpProgress(state.userStats.xp), [state.userStats.xp]);
-  const todaysWorkouts = useMemo(
-    () => state.scheduledWorkouts.filter((sw) => sw.date === today && !sw.completed && !sw.skipped),
-    [state.scheduledWorkouts]
-  );
+  const todaysWorkouts = useMemo(() => {
+    const today = new Date().toISOString().split("T")[0];
+    return state.scheduledWorkouts.filter((sw) => sw.date === today && !sw.completed && !sw.skipped);
+  }, [state.scheduledWorkouts]);
   const unreadCount = useMemo(
     () => state.notifications.filter((n) => !n.read).length,
     [state.notifications]

@@ -28,12 +28,11 @@ export default function UsernameScreen() {
     }
     await signIn.reset();
     await signUp.reset();
-    const existingName = await AsyncStorage.getItem("@regime_username");
-    if (!existingName) {
-      await AsyncStorage.setItem("@regime_username", name);
-    }
+    await AsyncStorage.setItem("@regime_username", name);
+    await AsyncStorage.removeItem("@regime_data_v2");
+    await AsyncStorage.removeItem("@regime_social_v1");
     setSaving(true);
-    router.replace(existingName ? "/(auth)/welcome" : "/(auth)/sign-up");
+    router.replace("/(auth)/welcome");
   };
 
   return (

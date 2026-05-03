@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "@clerk/expo";
 
 const STORAGE_KEY = "@regime_social_v1";
+const USER_PREFIX = "@regime_user_";
 
 export type PostType = "text" | "workout" | "milestone" | "pr" | "media";
 export type Audience = "global" | "friends";
@@ -48,89 +50,29 @@ interface SocialContextType {
 
 const SocialContext = createContext<SocialContextType | null>(null);
 
-const SEED_POSTS: SocialPost[] = [
-  {
-    id: "sp1", userId: "sarah_l", userName: "Sarah L.", userAvatar: "S",
-    userBadge: "Iron Discipline", type: "pr", audience: "global",
-    text: "New deadlift PR today — 120kg! 🔥 Consistent progressive overload finally paying off. Three months of this program and the results are undeniable.",
-    value: "120kg Deadlift PR",
-    reactions: { fire: ["u2", "u3", "u4", "u5", "u6", "u7", "u8", "u9", "u10", "u11", "u12", "u13", "u14", "u15", "u16", "u17", "u18"], flex: ["u2", "u3", "u4", "u5", "u6", "u7"], clap: ["u2", "u3", "u4", "u5", "u6", "u7", "u8", "u9", "u10", "u11"] },
-    comments: [
-      { id: "c1", userId: "marcus_k", userName: "Marcus K.", userAvatar: "M", userBadge: "Elite Performer", text: "Absolute beast mode! What program are you running?", createdAt: new Date(Date.now() - 1200000).toISOString() },
-      { id: "c2", userId: "priya_r", userName: "Priya R.", userAvatar: "P", userBadge: "Endurance Champ", text: "Goals!! You've been so consistent. It shows 💪", createdAt: new Date(Date.now() - 900000).toISOString() },
-    ],
-    createdAt: new Date(Date.now() - 1380000).toISOString(),
-  },
-  {
-    id: "sp2", userId: "marcus_k", userName: "Marcus K.", userAvatar: "M",
-    userBadge: "Elite Performer", type: "milestone", audience: "global",
-    text: "Crushed a 34-day streak. Never missed a Monday this year. Consistency > intensity, every single time.",
-    milestoneTitle: "34-Day Streak",
-    value: "34 days straight",
-    reactions: { fire: ["u1", "u3", "u4", "u5", "u6", "u7", "u8", "u9", "u10", "u11", "u12", "u13", "u14", "u15", "u16", "u17", "u18", "u19", "u20", "u21", "u22", "u23", "u24"], flex: ["u1", "u3", "u4", "u5", "u6", "u7", "u8", "u9"], clap: ["u1", "u3", "u4", "u5", "u6", "u7", "u8", "u9", "u10", "u11", "u12", "u13", "u14", "u15"] },
-    comments: [
-      { id: "c3", userId: "jake_t", userName: "Jake T.", userAvatar: "J", userBadge: "The Grinder", text: "Legend. I'm at 12 days and already struggling on weekends 😅", createdAt: new Date(Date.now() - 3300000).toISOString() },
-    ],
-    createdAt: new Date(Date.now() - 3600000).toISOString(),
-  },
-  {
-    id: "sp3", userId: "priya_r", userName: "Priya R.", userAvatar: "P",
-    userBadge: "Endurance Champ", type: "workout", audience: "global",
-    text: "5K in 22:14 — shaved 45 seconds off my previous best. The AI pacing plan actually works. Interval training with progressive overload on rest times.",
-    workoutName: "Morning 5K Run", workoutDuration: "22:14", workoutCalories: 280,
-    value: "22:14 5K",
-    reactions: { fire: ["u1", "u2", "u4", "u5", "u6", "u7", "u8", "u9", "u10", "u11", "u12", "u13", "u14", "u15", "u16", "u17", "u18", "u19", "u20", "u21", "u22", "u23", "u24", "u25", "u26", "u27", "u28", "u29", "u30", "u31"], flex: ["u1", "u2", "u4", "u5"], clap: ["u1", "u2", "u4", "u5", "u6", "u7", "u8", "u9", "u10", "u11", "u12", "u13", "u14", "u15", "u16", "u17", "u18", "u19", "u20"] },
-    comments: [],
-    createdAt: new Date(Date.now() - 10800000).toISOString(),
-  },
-  {
-    id: "sp4", userId: "jake_t", userName: "Jake T.", userAvatar: "J",
-    userBadge: "The Grinder", type: "milestone", audience: "friends",
-    text: "Week 8 of the strength program. Volume is up 30% from baseline and I finally hit my first bodyweight bench. Slow progress is still progress.",
-    milestoneTitle: "Week 8 Complete",
-    value: "+30% volume",
-    reactions: { fire: ["u1", "u2", "u3", "u5", "u6", "u7", "u8"], flex: ["u1", "u2", "u3", "u5", "u6", "u7", "u8", "u9", "u10", "u11", "u12"], clap: ["u1", "u2", "u3", "u5", "u6"] },
-    comments: [
-      { id: "c4", userId: "amy_w", userName: "Amy W.", userAvatar: "A", userBadge: "Consistency King", text: "Bodyweight bench is such an underrated milestone. Congrats!", createdAt: new Date(Date.now() - 16000000).toISOString() },
-    ],
-    createdAt: new Date(Date.now() - 18000000).toISOString(),
-  },
-  {
-    id: "sp5", userId: "amy_w", userName: "Amy W.", userAvatar: "A",
-    userBadge: "Consistency King", type: "milestone", audience: "global",
-    text: "Unlocked the 'Week Warrior' badge after 7 straight days of training. Every session counts, no matter how short.",
-    milestoneTitle: "Week Warrior Badge",
-    value: "Badge Unlocked",
-    reactions: { fire: ["u1", "u2", "u3", "u4", "u6", "u7", "u8", "u9", "u10", "u11", "u12", "u13", "u14"], flex: ["u1", "u2", "u3"], clap: ["u1", "u2", "u3", "u4", "u6", "u7", "u8", "u9"] },
-    comments: [],
-    createdAt: new Date(Date.now() - 28800000).toISOString(),
-  },
-];
-
 export function SocialProvider({ children }: { children: React.ReactNode }) {
-  const [posts, setPosts] = useState<SocialPost[]>(SEED_POSTS);
+  const { userId } = useAuth();
+  const [posts, setPosts] = useState<SocialPost[]>([]);
 
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY).then((raw) => {
+    if (!userId) {
+      setPosts([]);
+      return;
+    }
+    AsyncStorage.getItem(`${USER_PREFIX}${userId}:${STORAGE_KEY}`).then((raw) => {
       if (raw) {
         try {
           const saved = JSON.parse(raw) as SocialPost[];
-          if (Array.isArray(saved) && saved.length > 0) {
-            setPosts((prev) => {
-              const savedIds = new Set(saved.map((p) => p.id));
-              const merged = [...saved, ...prev.filter((p) => !savedIds.has(p.id))];
-              return merged;
-            });
-          }
+          if (Array.isArray(saved)) setPosts(saved);
         } catch {}
       }
     });
-  }, []);
+  }, [userId]);
 
   const save = useCallback((newPosts: SocialPost[]) => {
-    const userPosts = newPosts.filter((p) => !SEED_POSTS.some((s) => s.id === p.id));
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(userPosts));
-  }, []);
+    if (!userId) return;
+    AsyncStorage.setItem(`${USER_PREFIX}${userId}:${STORAGE_KEY}`, JSON.stringify(newPosts));
+  }, [userId]);
 
   const addPost = useCallback((post: Omit<SocialPost, "id" | "createdAt" | "reactions" | "comments">) => {
     const newPost: SocialPost = {
