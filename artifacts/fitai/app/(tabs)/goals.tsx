@@ -149,6 +149,9 @@ export default function GoalsScreen() {
   const [newGoalTitle, setNewGoalTitle] = useState("");
   const [newGoalTarget, setNewGoalTarget] = useState("");
   const [newGoalUnit, setNewGoalUnit] = useState("kg");
+  const [newGoalDuration, setNewGoalDuration] = useState("");
+  const [newGoalPurpose, setNewGoalPurpose] = useState("");
+  const [newGoalDescription, setNewGoalDescription] = useState("");
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
   const handleAddGoal = async () => {
@@ -158,11 +161,16 @@ export default function GoalsScreen() {
       targetValue: parseFloat(newGoalTarget),
       currentValue: 0,
       unit: newGoalUnit,
-      category: "custom",
-      deadline: null,
+      category: newGoalPurpose || "custom",
+      deadline: newGoalDuration ? new Date(Date.now() + parseInt(newGoalDuration) * 24 * 60 * 60 * 1000).toISOString() : null,
+      description: newGoalDescription,
+      purpose: newGoalPurpose,
     });
     setNewGoalTitle("");
     setNewGoalTarget("");
+    setNewGoalDuration("");
+    setNewGoalPurpose("");
+    setNewGoalDescription("");
     setShowAdd(false);
   };
 
@@ -197,6 +205,25 @@ export default function GoalsScreen() {
             ))}
           </View>
         </LinearGradient>
+
+        {goals.length > 0 && (
+          <View style={[styles.goalsBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={styles.goalsBoxHeader}>
+              <Ionicons name="target" size={18} color={colors.primary} />
+              <Text style={[styles.goalsBoxTitle, { color: colors.foreground }]}>Active Goals</Text>
+            </View>
+            {goals.slice(0, 2).map((goal) => (
+              <View key={goal.id} style={[styles.goalBoxItem, { borderTopColor: colors.border }]}>
+                <View>
+                  <Text style={[styles.goalBoxName, { color: colors.foreground }]}>{goal.title}</Text>
+                  {goal.purpose && <Text style={[styles.goalBoxPurpose, { color: colors.mutedForeground }]}>For: {goal.purpose}</Text>}
+                  {goal.description && <Text style={[styles.goalBoxDesc, { color: colors.mutedForeground }]}>{goal.description}</Text>}
+                </View>
+                <Text style={[styles.goalBoxTarget, { color: colors.primary }]}>{goal.currentValue} / {goal.targetValue} {goal.unit}</Text>
+              </View>
+            ))}
+          </View>
+        )}
 
         <StreakCalendar />
 
@@ -280,39 +307,70 @@ export default function GoalsScreen() {
 
       <Modal visible={showAdd} transparent animationType="slide" onRequestClose={() => setShowAdd(false)}>
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
-            <Text style={[styles.modalTitle, { color: colors.foreground }]}>New Goal</Text>
-            <TextInput
-              style={[styles.modalInput, { backgroundColor: colors.muted, color: colors.foreground, borderColor: colors.border }]}
-              placeholder="Goal title"
-              placeholderTextColor={colors.mutedForeground}
-              value={newGoalTitle}
-              onChangeText={setNewGoalTitle}
-            />
-            <View style={styles.modalRow}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.modalScroll}>
+            <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
+              <Text style={[styles.modalTitle, { color: colors.foreground }]}>Create New Goal</Text>
+              
               <TextInput
-                style={[styles.modalInput, { flex: 1, backgroundColor: colors.muted, color: colors.foreground, borderColor: colors.border }]}
-                placeholder="Target value"
+                style={[styles.modalInput, { backgroundColor: colors.muted, color: colors.foreground, borderColor: colors.border }]}
+                placeholder="Goal title (e.g., Bench Press PR)"
                 placeholderTextColor={colors.mutedForeground}
-                value={newGoalTarget}
-                onChangeText={setNewGoalTarget}
+                value={newGoalTitle}
+                onChangeText={setNewGoalTitle}
+              />
+              
+              <TextInput
+                style={[styles.modalInput, { backgroundColor: colors.muted, color: colors.foreground, borderColor: colors.border }]}
+                placeholder="What is this goal for? (e.g., Strength, Endurance)"
+                placeholderTextColor={colors.mutedForeground}
+                value={newGoalPurpose}
+                onChangeText={setNewGoalPurpose}
+              />
+              
+              <TextInput
+                style={[styles.modalInput, { height: 60, backgroundColor: colors.muted, color: colors.foreground, borderColor: colors.border, textAlignVertical: "top" }]}
+                placeholder="Add a description (e.g., Want to reach 150kg on bench press within 8 weeks)"
+                placeholderTextColor={colors.mutedForeground}
+                value={newGoalDescription}
+                onChangeText={setNewGoalDescription}
+                multiline
+              />
+              
+              <View style={styles.modalRow}>
+                <TextInput
+                  style={[styles.modalInput, { flex: 1, backgroundColor: colors.muted, color: colors.foreground, borderColor: colors.border }]}
+                  placeholder="Target"
+                  placeholderTextColor={colors.mutedForeground}
+                  value={newGoalTarget}
+                  onChangeText={setNewGoalTarget}
+                  keyboardType="numeric"
+                />
+                <TextInput
+                  style={[styles.modalInput, { width: 70, backgroundColor: colors.muted, color: colors.foreground, borderColor: colors.border }]}
+                  placeholder="Unit"
+                  placeholderTextColor={colors.mutedForeground}
+                  value={newGoalUnit}
+                  onChangeText={setNewGoalUnit}
+                />
+              </View>
+              
+              <TextInput
+                style={[styles.modalInput, { backgroundColor: colors.muted, color: colors.foreground, borderColor: colors.border }]}
+                placeholder="Duration (days)"
+                placeholderTextColor={colors.mutedForeground}
+                value={newGoalDuration}
+                onChangeText={setNewGoalDuration}
                 keyboardType="numeric"
               />
-              <TextInput
-                style={[styles.modalInput, { width: 70, backgroundColor: colors.muted, color: colors.foreground, borderColor: colors.border }]}
-                placeholder="Unit"
-                placeholderTextColor={colors.mutedForeground}
-                value={newGoalUnit}
-                onChangeText={setNewGoalUnit}
-              />
+              
+              <TouchableOpacity onPress={handleAddGoal} style={[styles.modalBtn, { backgroundColor: colors.primary }]}>
+                <Text style={styles.modalBtnText}>Add Goal</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setShowAdd(false)}>
+                <Text style={[styles.cancelText, { color: colors.mutedForeground }]}>Cancel</Text>
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity onPress={handleAddGoal} style={[styles.modalBtn, { backgroundColor: colors.primary }]}>
-              <Text style={styles.modalBtnText}>Add Goal</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setShowAdd(false)}>
-              <Text style={[styles.cancelText, { color: colors.mutedForeground }]}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
+          </ScrollView>
         </View>
       </Modal>
     </View>
@@ -368,4 +426,13 @@ const styles = StyleSheet.create({
   modalBtn: { borderRadius: 14, paddingVertical: 14, alignItems: "center" },
   modalBtnText: { color: "#0D0D0D", fontSize: 16, fontFamily: "Inter_700Bold" },
   cancelText: { textAlign: "center", fontSize: 14, fontFamily: "Inter_400Regular" },
+  modalScroll: { flexGrow: 1, justifyContent: "flex-end" },
+  goalsBox: { borderRadius: 18, borderWidth: 1, padding: 16, marginBottom: 20 },
+  goalsBoxHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 },
+  goalsBoxTitle: { fontSize: 16, fontFamily: "Inter_700Bold" },
+  goalBoxItem: { paddingVertical: 12, borderTopWidth: 1, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  goalBoxName: { fontSize: 14, fontFamily: "Inter_600SemiBold", marginBottom: 4 },
+  goalBoxPurpose: { fontSize: 11, fontFamily: "Inter_500Medium", marginBottom: 2 },
+  goalBoxDesc: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 2 },
+  goalBoxTarget: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
 });

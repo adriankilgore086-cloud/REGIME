@@ -44,6 +44,8 @@ export interface Goal {
   category: string;
   deadline: string | null;
   completed: boolean;
+  description?: string;
+  purpose?: string;
 }
 
 export interface EarnedAchievement {
