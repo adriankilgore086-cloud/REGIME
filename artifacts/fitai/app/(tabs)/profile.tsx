@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Platform, Alert, Animated,
+  Platform, Alert, Image, TextInput, KeyboardAvoidingView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, Feather } from "@expo/vector-icons";
@@ -9,8 +9,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/expo";
 import { useColors } from "@/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
+import { useSocial, SocialPost, Audience } from "@/contexts/SocialContext";
 import { ACHIEVEMENTS, RARITY_COLORS } from "@/constants/achievements";
 import { XPProgressBar } from "@/components/XPProgressBar";
+import CreatePostModal from "@/components/CreatePostModal";
 
 const LEADERBOARD_DATA = [
   { rank: 1, name: "Sarah L.", xp: 8420, streak: 34, badge: "Iron Discipline", isMe: false },
@@ -22,38 +24,23 @@ const LEADERBOARD_DATA = [
   { rank: 7, name: "Chris B.", xp: 0, streak: 3, badge: "Rookie", isMe: false },
 ];
 
-const SOCIAL_POSTS = [
-  {
-    id: "p1", user: "Sarah L.", avatar: "S", badge: "Iron Discipline",
-    text: "New deadlift PR today — 120kg! 🔥 Consistent progressive overload finally paying off.",
-    type: "pr", value: "120kg DL", xpEarned: 300, time: "23m ago",
-    reactions: { fire: 18, flex: 7, clap: 11 },
-  },
-  {
-    id: "p2", user: "Marcus K.", avatar: "M", badge: "Elite Performer",
-    text: "Crushed a 34-day streak. Never missed a Monday this year.",
-    type: "streak", value: "34 days", xpEarned: 500, time: "1h ago",
-    reactions: { fire: 24, flex: 9, clap: 15 },
-  },
-  {
-    id: "p3", user: "Priya R.", avatar: "P", badge: "Endurance Champ",
-    text: "5K in 22:14 — shaved 45 seconds off my previous best. The AI pacing plan actually works.",
-    type: "run", value: "22:14 5K", xpEarned: 200, time: "3h ago",
-    reactions: { fire: 31, flex: 5, clap: 20 },
-  },
-  {
-    id: "p4", user: "Jake T.", avatar: "J", badge: "The Grinder",
-    text: "Week 8 of the strength program. Volume is up 30% from baseline. Feeling the gains.",
-    type: "volume", value: "+30% vol", xpEarned: 150, time: "5h ago",
-    reactions: { fire: 8, flex: 12, clap: 6 },
-  },
-  {
-    id: "p5", user: "Amy W.", avatar: "A", badge: "Consistency King",
-    text: "Unlocked the 'Week Warrior' badge. Every session counts.",
-    type: "badge", value: "Week Warrior", xpEarned: 100, time: "8h ago",
-    reactions: { fire: 14, flex: 3, clap: 9 },
-  },
-];
+function timeAgo(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
+
+const TYPE_META: Record<string, { color: string; icon: string; label: string }> = {
+  text:      { color: "#8FB8FF", icon: "chatbubble",  label: "Post" },
+  workout:   { color: "#7BE0B8", icon: "barbell",     label: "Workout" },
+  milestone: { color: "#F3D27A", icon: "trophy",      label: "Milestone" },
+  pr:        { color: "#FF2D78", icon: "flash",       label: "PR" },
+  media:     { color: "#A78BFA", icon: "image",       label: "Photo" },
+};
 
 const IDENTITY_TITLES = [
   "The Grinder", "Elite Performer", "Iron Discipline", "Consistency King",
@@ -81,32 +68,188 @@ const medallStyles = StyleSheet.create({
   text: { fontSize: 12, fontFamily: "Inter_700Bold" },
 });
 
-function PostReactionRow({ reactions, postId }: { reactions: { fire: number; flex: number; clap: number }; postId: string }) {
+function PostCard({ post, myUserId, myName, myAvatar, myBadge }: {
+  post: SocialPost;
+  myUserId: string;
+  myName: string;
+  myAvatar: string;
+  myBadge: string;
+}) {
   const colors = useColors();
-  const [liked, setLiked] = useState(false);
+  const { toggleReaction, addComment, deletePost } = useSocial();
+  const [showComments, setShowComments] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const meta = TYPE_META[post.type] ?? TYPE_META.text;
+
+  const fire = post.reactions.fire.includes(myUserId);
+  const flex = post.reactions.flex.includes(myUserId);
+  const clap = post.reactions.clap.includes(myUserId);
+
+  const submitComment = () => {
+    const t = commentText.trim();
+    if (!t) return;
+    addComment(post.id, { userId: myUserId, userName: myName, userAvatar: myAvatar, userBadge: myBadge, text: t });
+    setCommentText("");
+  };
+
   return (
-    <View style={reactionStyles.row}>
-      <TouchableOpacity onPress={() => setLiked(!liked)} style={[reactionStyles.btn, liked && { backgroundColor: "#FF2D7820" }]}>
-        <Text style={reactionStyles.emoji}>🔥</Text>
-        <Text style={[reactionStyles.count, { color: liked ? "#FF2D78" : colors.mutedForeground }]}>{reactions.fire + (liked ? 1 : 0)}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={reactionStyles.btn}>
-        <Text style={reactionStyles.emoji}>💪</Text>
-        <Text style={[reactionStyles.count, { color: colors.mutedForeground }]}>{reactions.flex}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={reactionStyles.btn}>
-        <Text style={reactionStyles.emoji}>👏</Text>
-        <Text style={[reactionStyles.count, { color: colors.mutedForeground }]}>{reactions.clap}</Text>
-      </TouchableOpacity>
+    <View style={[pcStyles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+      <LinearGradient colors={[meta.color + "08", "transparent"]} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
+
+      <View style={pcStyles.header}>
+        <View style={[pcStyles.avatar, { backgroundColor: meta.color + "25", borderColor: meta.color + "45" }]}>
+          <Text style={[pcStyles.avatarText, { color: meta.color }]}>{post.userAvatar}</Text>
+        </View>
+        <View style={pcStyles.meta}>
+          <Text style={[pcStyles.userName, { color: colors.foreground }]}>{post.userName}</Text>
+          <Text style={[pcStyles.userBadge, { color: colors.mutedForeground }]}>{post.userBadge} · {timeAgo(post.createdAt)}</Text>
+        </View>
+        <View style={pcStyles.headerRight}>
+          <View style={[pcStyles.typeChip, { backgroundColor: meta.color + "20", borderColor: meta.color + "40" }]}>
+            <Ionicons name={meta.icon as any} size={10} color={meta.color} />
+            <Text style={[pcStyles.typeText, { color: meta.color }]}>{meta.label}</Text>
+          </View>
+          <View style={[pcStyles.audienceChip, { backgroundColor: post.audience === "global" ? "#8FB8FF15" : "#A78BFA15" }]}>
+            <Ionicons name={post.audience === "global" ? "globe-outline" : "people-outline"} size={10} color={post.audience === "global" ? "#8FB8FF" : "#A78BFA"} />
+          </View>
+          {post.userId === myUserId && (
+            <TouchableOpacity onPress={() => Alert.alert("Delete post?", "", [
+              { text: "Cancel", style: "cancel" },
+              { text: "Delete", style: "destructive", onPress: () => deletePost(post.id, myUserId) },
+            ])}>
+              <Ionicons name="trash-outline" size={14} color={colors.mutedForeground} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
+      {post.text.length > 0 && (
+        <Text style={[pcStyles.text, { color: colors.foreground }]}>{post.text}</Text>
+      )}
+
+      {post.mediaUri && (
+        <Image source={{ uri: post.mediaUri }} style={pcStyles.media} resizeMode="cover" />
+      )}
+
+      {post.type === "workout" && post.workoutName && (
+        <View style={[pcStyles.workoutCard, { backgroundColor: "#7BE0B810", borderColor: "#7BE0B830" }]}>
+          <Ionicons name="barbell" size={14} color="#7BE0B8" />
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: "#7BE0B8", fontSize: 13, fontFamily: "Inter_700Bold" }}>{post.workoutName}</Text>
+            {(post.workoutDuration || post.workoutCalories) && (
+              <Text style={{ color: "#7BE0B880", fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 2 }}>
+                {[post.workoutDuration, post.workoutCalories && `${post.workoutCalories} kcal`].filter(Boolean).join(" · ")}
+              </Text>
+            )}
+          </View>
+          <Ionicons name="checkmark-circle" size={18} color="#7BE0B8" />
+        </View>
+      )}
+
+      {post.type === "milestone" && post.milestoneTitle && (
+        <View style={[pcStyles.workoutCard, { backgroundColor: "#F3D27A10", borderColor: "#F3D27A30" }]}>
+          <Ionicons name="trophy" size={14} color="#F3D27A" />
+          <Text style={{ color: "#F3D27A", fontSize: 13, fontFamily: "Inter_700Bold", flex: 1 }}>{post.milestoneTitle}</Text>
+          <Text style={{ fontSize: 18 }}>🏆</Text>
+        </View>
+      )}
+
+      {post.value && (
+        <View style={[pcStyles.valueChip, { backgroundColor: meta.color + "18", borderColor: meta.color + "35" }]}>
+          <Text style={[pcStyles.valueText, { color: meta.color }]}>{post.value}</Text>
+        </View>
+      )}
+
+      <View style={pcStyles.actions}>
+        <TouchableOpacity onPress={() => toggleReaction(post.id, "fire", myUserId)} style={[pcStyles.reactionBtn, fire && { backgroundColor: "#FF2D7820" }]}>
+          <Text style={pcStyles.reactionEmoji}>🔥</Text>
+          <Text style={[pcStyles.reactionCount, { color: fire ? "#FF2D78" : colors.mutedForeground }]}>{post.reactions.fire.length}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => toggleReaction(post.id, "flex", myUserId)} style={[pcStyles.reactionBtn, flex && { backgroundColor: "#7BE0B820" }]}>
+          <Text style={pcStyles.reactionEmoji}>💪</Text>
+          <Text style={[pcStyles.reactionCount, { color: flex ? "#7BE0B8" : colors.mutedForeground }]}>{post.reactions.flex.length}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => toggleReaction(post.id, "clap", myUserId)} style={[pcStyles.reactionBtn, clap && { backgroundColor: "#8FB8FF20" }]}>
+          <Text style={pcStyles.reactionEmoji}>👏</Text>
+          <Text style={[pcStyles.reactionCount, { color: clap ? "#8FB8FF" : colors.mutedForeground }]}>{post.reactions.clap.length}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setShowComments(!showComments)} style={[pcStyles.reactionBtn, showComments && { backgroundColor: "#A78BFA15" }]}>
+          <Ionicons name="chatbubble-outline" size={13} color={showComments ? "#A78BFA" : colors.mutedForeground} />
+          <Text style={[pcStyles.reactionCount, { color: showComments ? "#A78BFA" : colors.mutedForeground }]}>{post.comments.length}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {showComments && (
+        <View style={[pcStyles.commentsSection, { borderTopColor: colors.border }]}>
+          {post.comments.map((c) => (
+            <View key={c.id} style={pcStyles.commentRow}>
+              <View style={[pcStyles.commentAvatar, { backgroundColor: colors.muted }]}>
+                <Text style={[pcStyles.commentAvatarText, { color: colors.mutedForeground }]}>{c.userAvatar}</Text>
+              </View>
+              <View style={[pcStyles.commentBubble, { backgroundColor: colors.muted }]}>
+                <Text style={[pcStyles.commentUser, { color: colors.foreground }]}>{c.userName}</Text>
+                <Text style={[pcStyles.commentText, { color: colors.foreground }]}>{c.text}</Text>
+                <Text style={[pcStyles.commentTime, { color: colors.mutedForeground }]}>{timeAgo(c.createdAt)}</Text>
+              </View>
+            </View>
+          ))}
+          <View style={[pcStyles.commentInputRow, { borderTopColor: colors.border }]}>
+            <View style={[pcStyles.commentInputAvatar, { backgroundColor: colors.primary + "25" }]}>
+              <Text style={[pcStyles.commentAvatarText, { color: colors.primary }]}>{myAvatar}</Text>
+            </View>
+            <TextInput
+              style={[pcStyles.commentInput, { backgroundColor: colors.muted, color: colors.foreground }]}
+              placeholder="Add a comment..."
+              placeholderTextColor={colors.mutedForeground}
+              value={commentText}
+              onChangeText={setCommentText}
+              onSubmitEditing={submitComment}
+              returnKeyType="send"
+              maxLength={200}
+            />
+            <TouchableOpacity onPress={submitComment} disabled={!commentText.trim()} style={[pcStyles.sendBtn, { backgroundColor: commentText.trim() ? colors.primary : colors.muted }]}>
+              <Ionicons name="send" size={12} color={commentText.trim() ? "#0D0D0D" : colors.mutedForeground} />
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
 
-const reactionStyles = StyleSheet.create({
-  row: { flexDirection: "row", gap: 6, marginTop: 10 },
-  btn: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20, backgroundColor: "#FFFFFF08" },
-  emoji: { fontSize: 13 },
-  count: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+const pcStyles = StyleSheet.create({
+  card: { borderRadius: 20, borderWidth: 1, padding: 16, marginBottom: 12, overflow: "hidden" },
+  header: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 12 },
+  avatar: { width: 42, height: 42, borderRadius: 14, alignItems: "center", justifyContent: "center", borderWidth: 1 },
+  avatarText: { fontSize: 17, fontFamily: "Inter_700Bold" },
+  meta: { flex: 1 },
+  userName: { fontSize: 14, fontFamily: "Inter_700Bold" },
+  userBadge: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 1 },
+  headerRight: { flexDirection: "row", alignItems: "center", gap: 6 },
+  typeChip: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, borderWidth: 1 },
+  typeText: { fontSize: 10, fontFamily: "Inter_600SemiBold" },
+  audienceChip: { width: 22, height: 22, borderRadius: 7, alignItems: "center", justifyContent: "center" },
+  text: { fontSize: 14, fontFamily: "Inter_400Regular", lineHeight: 21, marginBottom: 10 },
+  media: { width: "100%", height: 200, borderRadius: 12, marginBottom: 10 },
+  workoutCard: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 12, borderWidth: 1, padding: 12, marginBottom: 10 },
+  valueChip: { alignSelf: "flex-start", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, borderWidth: 1, marginBottom: 10 },
+  valueText: { fontSize: 12, fontFamily: "Inter_700Bold" },
+  actions: { flexDirection: "row", gap: 4 },
+  reactionBtn: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20, backgroundColor: "#FFFFFF08" },
+  reactionEmoji: { fontSize: 13 },
+  reactionCount: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+  commentsSection: { marginTop: 12, borderTopWidth: 1, paddingTop: 12, gap: 10 },
+  commentRow: { flexDirection: "row", gap: 8, alignItems: "flex-start" },
+  commentAvatar: { width: 28, height: 28, borderRadius: 9, alignItems: "center", justifyContent: "center" },
+  commentInputAvatar: { width: 28, height: 28, borderRadius: 9, alignItems: "center", justifyContent: "center" },
+  commentAvatarText: { fontSize: 11, fontFamily: "Inter_700Bold" },
+  commentBubble: { flex: 1, borderRadius: 12, padding: 10, gap: 2 },
+  commentUser: { fontSize: 12, fontFamily: "Inter_700Bold" },
+  commentText: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 18 },
+  commentTime: { fontSize: 10, fontFamily: "Inter_400Regular", marginTop: 2 },
+  commentInputRow: { flexDirection: "row", gap: 8, alignItems: "center", borderTopWidth: 1, paddingTop: 10, marginTop: 2 },
+  commentInput: { flex: 1, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 8, fontSize: 13, fontFamily: "Inter_400Regular" },
+  sendBtn: { width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center" },
 });
 
 const TABS = ["Overview", "Social", "Leaderboard"] as const;
@@ -117,9 +260,16 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { signOut } = useAuth();
   const { userProfile, userStats, level, rank, xpProgress, earnedAchievements } = useFitness();
+  const { posts } = useSocial();
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const [activeTab, setActiveTab] = useState<Tab>("Overview");
   const [lbFilter, setLbFilter] = useState<"global" | "friends">("global");
+  const [feedFilter, setFeedFilter] = useState<Audience>("global");
+  const [showCreatePost, setShowCreatePost] = useState(false);
+
+  const myUserId = "me";
+  const myAvatar = userProfile.name.charAt(0).toUpperCase();
+  const filteredPosts = posts.filter((p) => feedFilter === "global" ? true : p.audience === "friends" || p.userId === myUserId);
 
   const handleSignOut = () => {
     Alert.alert("Sign Out", "Are you sure you want to sign out?", [
@@ -295,41 +445,63 @@ export default function ProfileScreen() {
               </View>
             </View>
 
-            {SOCIAL_POSTS.map((post) => (
-              <View key={post.id} style={[styles.postCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <View style={styles.postHeader}>
-                  <View style={[styles.postAvatar, { backgroundColor: colors.primary + "30", borderColor: colors.primary + "50" }]}>
-                    <Text style={[styles.postAvatarText, { color: colors.primary }]}>{post.avatar}</Text>
-                  </View>
-                  <View style={styles.postMeta}>
-                    <Text style={[styles.postUser, { color: colors.foreground }]}>{post.user}</Text>
-                    <Text style={[styles.postBadge, { color: colors.mutedForeground }]}>{post.badge} · {post.time}</Text>
-                  </View>
-                  <View style={[styles.postXp, { backgroundColor: colors.primary + "15" }]}>
-                    <Text style={[styles.postXpText, { color: colors.primary }]}>+{post.xpEarned} XP</Text>
-                  </View>
-                </View>
-
-                <Text style={[styles.postText, { color: colors.foreground }]}>{post.text}</Text>
-
-                <View style={[styles.postValueChip, {
-                  backgroundColor: post.type === "pr" ? "#FF2D7815" :
-                    post.type === "streak" ? "#F3D27A15" :
-                      post.type === "run" ? "#8FB8FF15" : "#A78BFA15",
-                  borderColor: post.type === "pr" ? "#FF2D7830" :
-                    post.type === "streak" ? "#F3D27A30" :
-                      post.type === "run" ? "#8FB8FF30" : "#A78BFA30",
-                }]}>
-                  <Text style={[styles.postValueText, {
-                    color: post.type === "pr" ? "#FF2D78" :
-                      post.type === "streak" ? "#F3D27A" :
-                        post.type === "run" ? "#8FB8FF" : "#A78BFA",
-                  }]}>{post.value}</Text>
-                </View>
-
-                <PostReactionRow reactions={post.reactions} postId={post.id} />
+            <View style={styles.feedControls}>
+              <View style={[styles.feedFilterRow, { backgroundColor: colors.muted, borderColor: colors.border }]}>
+                {(["global", "friends"] as const).map((f) => (
+                  <TouchableOpacity
+                    key={f}
+                    onPress={() => setFeedFilter(f)}
+                    style={[styles.feedFilterBtn, feedFilter === f && { backgroundColor: colors.card }]}
+                  >
+                    <Ionicons name={f === "global" ? "globe-outline" : "people-outline"} size={12} color={feedFilter === f ? colors.foreground : colors.mutedForeground} />
+                    <Text style={[styles.feedFilterText, { color: feedFilter === f ? colors.foreground : colors.mutedForeground }]}>
+                      {f === "global" ? "Everyone" : "Friends"}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
+              <TouchableOpacity
+                onPress={() => setShowCreatePost(true)}
+                style={[styles.createPostBtn, { backgroundColor: colors.primary }]}
+              >
+                <Ionicons name="add" size={16} color="#0D0D0D" />
+                <Text style={styles.createPostText}>Post</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              onPress={() => setShowCreatePost(true)}
+              style={[styles.composeBar, { backgroundColor: colors.card, borderColor: colors.border }]}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.composeAvatar, { backgroundColor: colors.primary + "25", borderColor: colors.primary + "40" }]}>
+                <Text style={[styles.composeAvatarText, { color: colors.primary }]}>{myAvatar}</Text>
+              </View>
+              <View style={[styles.composePlaceholder, { backgroundColor: colors.muted, borderColor: colors.border }]}>
+                <Text style={[styles.composePlaceholderText, { color: colors.mutedForeground }]}>Share a workout, milestone, or PR...</Text>
+              </View>
+              <View style={styles.composeActions}>
+                <Ionicons name="image-outline" size={18} color={colors.mutedForeground} />
+              </View>
+            </TouchableOpacity>
+
+            {filteredPosts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                myUserId={myUserId}
+                myName={userProfile.name}
+                myAvatar={myAvatar}
+                myBadge={rank}
+              />
             ))}
+
+            {filteredPosts.length === 0 && (
+              <View style={[styles.emptyCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <Ionicons name="people-outline" size={28} color={colors.mutedForeground} />
+                <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>No friend posts yet — be the first to share!</Text>
+              </View>
+            )}
           </>
         )}
 
@@ -412,6 +584,8 @@ export default function ProfileScreen() {
           </>
         )}
       </ScrollView>
+
+      <CreatePostModal visible={showCreatePost} onClose={() => setShowCreatePost(false)} />
     </View>
   );
 }
@@ -455,23 +629,23 @@ const styles = StyleSheet.create({
   settingsRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderRadius: 14, borderWidth: 1, marginBottom: 8 },
   settingsIcon: { width: 34, height: 34, borderRadius: 10, alignItems: "center", justifyContent: "center" },
   settingsLabel: { flex: 1, fontSize: 14, fontFamily: "Inter_500Medium" },
-  feedHeader: { flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 14, borderWidth: 1, padding: 12, marginBottom: 14, overflow: "hidden" },
+  feedHeader: { flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 14, borderWidth: 1, padding: 12, marginBottom: 10, overflow: "hidden" },
   feedHeaderText: { flex: 1, fontSize: 14, fontFamily: "Inter_700Bold" },
   liveBadge: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10, borderWidth: 1 },
   liveDot: { width: 5, height: 5, borderRadius: 3 },
   liveText: { fontSize: 10, fontFamily: "Inter_700Bold", letterSpacing: 0.5 },
-  postCard: { borderRadius: 18, borderWidth: 1, padding: 16, marginBottom: 12 },
-  postHeader: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 12 },
-  postAvatar: { width: 40, height: 40, borderRadius: 13, alignItems: "center", justifyContent: "center", borderWidth: 1 },
-  postAvatarText: { fontSize: 16, fontFamily: "Inter_700Bold" },
-  postMeta: { flex: 1 },
-  postUser: { fontSize: 14, fontFamily: "Inter_700Bold" },
-  postBadge: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 1 },
-  postXp: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10 },
-  postXpText: { fontSize: 11, fontFamily: "Inter_700Bold" },
-  postText: { fontSize: 14, fontFamily: "Inter_400Regular", lineHeight: 20, marginBottom: 10 },
-  postValueChip: { alignSelf: "flex-start", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, borderWidth: 1 },
-  postValueText: { fontSize: 12, fontFamily: "Inter_700Bold" },
+  feedControls: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 12 },
+  feedFilterRow: { flex: 1, flexDirection: "row", borderRadius: 12, borderWidth: 1, padding: 3 },
+  feedFilterBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5, paddingVertical: 7, borderRadius: 9 },
+  feedFilterText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+  createPostBtn: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 12 },
+  createPostText: { fontSize: 13, fontFamily: "Inter_700Bold", color: "#0D0D0D" },
+  composeBar: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 16, borderWidth: 1, padding: 12, marginBottom: 14 },
+  composeAvatar: { width: 34, height: 34, borderRadius: 11, alignItems: "center", justifyContent: "center", borderWidth: 1 },
+  composeAvatarText: { fontSize: 13, fontFamily: "Inter_700Bold" },
+  composePlaceholder: { flex: 1, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 9, borderWidth: 1 },
+  composePlaceholderText: { fontSize: 13, fontFamily: "Inter_400Regular" },
+  composeActions: { flexDirection: "row", gap: 8 },
   lbFilters: { flexDirection: "row", gap: 10, marginBottom: 14 },
   lbFilterBtn: { flex: 1, paddingVertical: 9, borderRadius: 12, borderWidth: 1, alignItems: "center" },
   lbFilterText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },

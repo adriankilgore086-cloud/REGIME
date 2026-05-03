@@ -55,12 +55,12 @@ export default function WelcomeScreen() {
   const slideAnim = useRef(new Animated.Value(30)).current;
 
   useEffect(() => {
-    if (Platform.OS !== "android") void WebBrowser.warmUpAsync();
+    if (Platform.OS === "ios") void WebBrowser.warmUpAsync();
     Animated.parallel([
       Animated.timing(fadeAnim, { toValue: 1, duration: 900, useNativeDriver: Platform.OS !== "web" }),
       Animated.spring(slideAnim, { toValue: 0, tension: 38, friction: 8, useNativeDriver: Platform.OS !== "web" }),
     ]).start();
-    return () => { if (Platform.OS !== "android") void WebBrowser.coolDownAsync(); };
+    return () => { if (Platform.OS === "ios") void WebBrowser.coolDownAsync(); };
   }, []);
 
   const handleLogin = async () => {

@@ -22,6 +22,7 @@ import React, { Component, useEffect } from "react";
 import { View, Text, Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { FitnessProvider } from "@/contexts/FitnessContext";
+import { SocialProvider } from "@/contexts/SocialContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -96,6 +97,7 @@ export default function RootLayout() {
             <QueryClientProvider client={queryClient}>
               <ErrorBoundary>
                 <FitnessProvider>
+                  <SocialProvider>
                   <Stack
                     screenOptions={{
                       headerShown: false,
@@ -112,6 +114,7 @@ export default function RootLayout() {
                       options={{ presentation: "modal", contentStyle: { backgroundColor: BG } }}
                     />
                   </Stack>
+                  </SocialProvider>
                 </FitnessProvider>
               </ErrorBoundary>
             </QueryClientProvider>
