@@ -266,6 +266,7 @@ function AddWorkoutModal({
   const today = new Date().toISOString().split("T")[0];
   const [search, setSearch] = useState("");
 
+  const router = useRouter();
   const filteredWorkouts = SAMPLE_WORKOUTS.filter((w) =>
     w.name.toLowerCase().includes(search.toLowerCase()) ||
     w.category.toLowerCase().includes(search.toLowerCase())
@@ -347,7 +348,16 @@ function AddWorkoutModal({
               </TouchableOpacity>
             )}
           </View>
+        
 
+            <TouchableOpacity
+              onPress={() => { onClose(); router.push("/(tabs)/library" as any); }}
+              style={{ marginHorizontal: 20, marginTop: 8, marginBottom: 12, padding: 14, borderRadius: 14, alignItems: "center", backgroundColor: "#1A1A1A" }}
+            >
+              <Text style={{ color: "#FFFFFF", fontSize: 14, fontFamily: "Inter_600SemiBold" }}>Browse Workout Library</Text>
+            </TouchableOpacity>
+
+          
           {/* Workout List */}
           <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 320 }}>
             {filteredWorkouts.map((w) => {
@@ -377,7 +387,7 @@ function AddWorkoutModal({
             })}
             {filteredWorkouts.length === 0 && (
               <Text style={[mStyles.noResults, { color: colors.mutedForeground }]}>No workouts found</Text>
-            )}
+    )}
           </ScrollView>
         </View>
       </View>

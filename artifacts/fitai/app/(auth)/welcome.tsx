@@ -51,7 +51,10 @@ export default function WelcomeScreen() {
     }
   }, [isSignedIn, router]);
 
-  const { signIn, errors, fetchStatus } = useSignIn();
+  const { signIn, setActive } = useSignIn();
+  const [authError, setAuthError] = useState("");
+  const [loginLoading, setLoginLoading] = useState(false);
+ 
   const { startSSOFlow } = useSSO();
 
   const [email, setEmail] = useState("");
@@ -72,18 +75,23 @@ export default function WelcomeScreen() {
     return () => { if (Platform.OS === "ios") void WebBrowser.coolDownAsync(); };
   }, []);
 
-  const handleLogin = async () => {
-    signIn.reset();
-    try {
-      const result = await signIn.password({ emailAddress: email, password });
-      if (result.error) return;
-      if (signIn.status === "complete") {
-        router.replace("/(tabs)");
-      }
-    } catch (e: any) {
-      // error handled via errors object from hook
-    }
-  };
+   const handleLogin = async () => {
+     setAuthError("");
+     setLoginLoading(true);
+     try {
+       const result = await signIn.create({ identifier: email, password });
+       if (result.status === "complete" && setActive) {
+         await setActive({ session: result.createdSessionId });
+         router.replace("/(tabs)");
+       }
+     } catch (e: any) {
+       setAuthError(e?.errors?.[0]?.longMessage || "Login failed. Check your email and password.");
+     } finally {
+       setLoginLoading(false);
+     }
+   };
+  
+       
 
   const handleGoogle = useCallback(async () => {
     setGoogleLoading(true);
@@ -124,13 +132,9 @@ export default function WelcomeScreen() {
     }
   }, [signIn, startSSOFlow, router]);
 
-  const emailError = errors?.fields?.identifier?.message;
-  const passwordError = errors?.fields?.password?.message;
-  const globalError = errors?.global?.[0]?.message;
-
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
-  const canLogin = !!email && !!password && fetchStatus !== "fetching";
+  const canLogin = !!email && !!password && !loginLoading;
 
   return (
     <View style={[styles.root, { backgroundColor: "#0D0D0D" }]}>
@@ -228,8 +232,7 @@ export default function WelcomeScreen() {
                   autoComplete="email"
                 />
               </View>
-              {!!emailError && <Text style={styles.fieldErr}>{emailError}</Text>}
-
+          
               {/* Password oval */}
               <View style={[
                 styles.ovalInput,
@@ -248,15 +251,15 @@ export default function WelcomeScreen() {
                   <Ionicons name={showPass ? "eye-off-outline" : "eye-outline"} size={17} color="#555" />
                 </TouchableOpacity>
               </View>
-              {!!passwordError && <Text style={styles.fieldErr}>{passwordError}</Text>}
+              
 
-              {/* Global error */}
-              {!!globalError && (
-                <View style={styles.globalErr}>
-                  <Ionicons name="alert-circle-outline" size={14} color="#FF4B4B" />
-                  <Text style={styles.globalErrText}>{globalError}</Text>
-                </View>
-              )}
+          {!!authError && (
+            <View style={styles.globalErr}>
+              <Ionicons name="alert-circle-outline" size={14} color="#FF4B4B" />
+              <Text style={styles.globalErrText}>{authError}</Text>
+            </View>
+          )}
+            
 
               {/* Black login bar */}
               <TouchableOpacity
@@ -266,7 +269,7 @@ export default function WelcomeScreen() {
                 style={[styles.loginBar, { opacity: canLogin ? 1 : 0.45 }]}
               >
                 {fetchStatus === "fetching"
-                  ? <ActivityIndicator color="#F5F5F5" />
+                  ? <ActivityIndicator color="#F5F5F5" size="small" />
                   : <Text style={styles.loginBarText}>Login</Text>
                 }
               </TouchableOpacity>
