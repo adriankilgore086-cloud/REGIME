@@ -25,6 +25,18 @@ function getWeekDates() {
   return week;
 }
 
+function getYearMonths() {
+  return Array.from({ length: 12 }, (_, month) => {
+    const date = new Date();
+    date.setMonth(month, 1);
+    return {
+      month,
+      label: date.toLocaleDateString("en-US", { month: "long" }),
+      days: new Date(date.getFullYear(), month + 1, 0).getDate(),
+    };
+  });
+}
+
 function WeeklyReport({ userStats, scheduledWorkouts, onClose }: {
   userStats: any; scheduledWorkouts: any[]; onClose: () => void;
 }) {
@@ -250,6 +262,7 @@ export default function CalendarScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showReport, setShowReport] = useState(false);
+  const [showYearView, setShowYearView] = useState(false);
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
   const weekDates = getWeekDates();
@@ -262,6 +275,7 @@ export default function CalendarScreen() {
     const iso = d.toISOString().split("T")[0];
     return scheduledWorkouts.some((sw) => sw.date === iso && sw.completed);
   }).length;
+  const yearMonths = getYearMonths();
 
   const handleAddWorkout = async (workoutId: string) => {
     await scheduleWorkout(workoutId, selectedDate);
@@ -273,6 +287,13 @@ export default function CalendarScreen() {
       <View style={[styles.header, { paddingTop: topPad + 12, backgroundColor: colors.background }]}>
         <Text style={[styles.title, { color: colors.foreground }]}>Schedule</Text>
         <View style={styles.headerBtns}>
+          <TouchableOpacity
+            onPress={() => setShowYearView(true)}
+            style={[styles.reportBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+          >
+            <Ionicons name="calendar-outline" size={15} color={colors.primary} />
+            <Text style={[styles.reportBtnText, { color: colors.primary }]}>Full Year</Text>
+          </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setShowReport(true)}
             style={[styles.reportBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
@@ -435,6 +456,51 @@ export default function CalendarScreen() {
         />
       )}
 
+      <Modal visible={showYearView} transparent animationType="slide" onRequestClose={() => setShowYearView(false)}>
+        <View style={styles.yearOverlay}>
+          <View style={[styles.yearSheet, { backgroundColor: colors.background }]}>
+            <View style={styles.yearHeader}>
+              <View>
+                <Text style={[styles.yearTitle, { color: colors.foreground }]}>Full Year Calendar</Text>
+                <Text style={[styles.yearSub, { color: colors.mutedForeground }]}>Tap any month to jump there</Text>
+              </View>
+              <TouchableOpacity onPress={() => setShowYearView(false)} style={[styles.yearClose, { backgroundColor: colors.muted }]}>
+                <Ionicons name="close" size={18} color={colors.mutedForeground} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView contentContainerStyle={styles.yearContent} showsVerticalScrollIndicator={false}>
+              <View style={styles.yearGrid}>
+                {yearMonths.map((month) => {
+                  const monthDays = scheduledWorkouts.filter((sw) => sw.date.slice(0, 7) === `${new Date().getFullYear()}-${String(month.month + 1).padStart(2, "0")}`);
+                  const doneCount = monthDays.filter((sw) => sw.completed).length;
+                  return (
+                    <TouchableOpacity
+                      key={month.month}
+                      onPress={() => {
+                        const next = new Date(selectedDate);
+                        next.setMonth(month.month, 1);
+                        setSelectedDate(next.toISOString().split("T")[0]);
+                        setShowYearView(false);
+                      }}
+                      style={[styles.monthCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+                    >
+                      <Text style={[styles.monthLabel, { color: colors.foreground }]}>{month.label}</Text>
+                      <Text style={[styles.monthMeta, { color: colors.mutedForeground }]}>{month.days} days</Text>
+                      <View style={[styles.monthPill, { backgroundColor: colors.primary + "18" }]}>
+                        <Text style={[styles.monthPillText, { color: colors.primary }]}>
+                          {doneCount} done
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
       <Modal visible={showAddModal} transparent animationType="slide" onRequestClose={() => setShowAddModal(false)}>
         <View style={styles.modalOverlay}>
           <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
@@ -469,6 +535,19 @@ const styles = StyleSheet.create({
   reportBtn: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 12, borderWidth: 1 },
   reportBtnText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
   addBtn: { width: 38, height: 38, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  yearOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.65)", justifyContent: "flex-end" },
+  yearSheet: { maxHeight: "88%", borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 20 },
+  yearHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18 },
+  yearTitle: { fontSize: 20, fontFamily: "Inter_700Bold" },
+  yearSub: { fontSize: 13, fontFamily: "Inter_400Regular", marginTop: 4 },
+  yearClose: { width: 36, height: 36, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  yearContent: { paddingBottom: 8 },
+  yearGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  monthCard: { width: "48%", borderRadius: 18, borderWidth: 1, padding: 14, gap: 6 },
+  monthLabel: { fontSize: 15, fontFamily: "Inter_700Bold" },
+  monthMeta: { fontSize: 12, fontFamily: "Inter_400Regular" },
+  monthPill: { alignSelf: "flex-start", borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5, marginTop: 4 },
+  monthPillText: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
   weekBanner: { marginHorizontal: 20, marginBottom: 12, borderRadius: 18, borderWidth: 1, padding: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between", overflow: "hidden" },
   weekBannerLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
   weekRingOuter: { width: 52, height: 52, borderRadius: 16, borderWidth: 2, alignItems: "center", justifyContent: "center" },

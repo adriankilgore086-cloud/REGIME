@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Regime",
+    "name": "REGIME",
     "slug": "regime",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -14,9 +14,12 @@
       "backgroundColor": "#08081A"
     },
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "bundleIdentifier": "com.regime.app"
     },
-    "android": {},
+    "android": {
+      "package": "com.regime.app"
+    },
     "web": {
       "favicon": "./assets/images/icon.png"
     },
