@@ -176,7 +176,12 @@ export default function WelcomeScreen() {
                 {googleLoading
                   ? <ActivityIndicator size="small" color="#F5F5F5" />
                   : <>
-                    <Ionicons name="logo-google" size={18} color="#F5F5F5" />
+                    <View style={styles.googleMark}>
+                      <Ionicons name="logo-google" size={16} color="#4285F4" />
+                      <View style={styles.googleDotRed} />
+                      <View style={styles.googleDotYellow} />
+                      <View style={styles.googleDotGreen} />
+                    </View>
                     <Text style={styles.googleText}>Continue with Google</Text>
                   </>
                 }
@@ -345,6 +350,40 @@ const styles = StyleSheet.create({
     backgroundColor: "#171717",
     paddingVertical: 15,
     marginBottom: 14,
+  },
+  googleMark: {
+    width: 18,
+    height: 18,
+    position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  googleDotRed: {
+    position: "absolute",
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#EA4335",
+    top: 2,
+    right: -1,
+  },
+  googleDotYellow: {
+    position: "absolute",
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#FBBC05",
+    bottom: 0,
+    right: 1,
+  },
+  googleDotGreen: {
+    position: "absolute",
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#34A853",
+    bottom: 1,
+    left: 0,
   },
   googleText: {
     fontSize: 14,

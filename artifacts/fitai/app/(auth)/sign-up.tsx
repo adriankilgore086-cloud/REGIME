@@ -198,7 +198,12 @@ export default function SignUpScreen() {
           {googleLoading
             ? <ActivityIndicator size="small" color="#F5F5F5" />
             : <>
-              <Ionicons name="logo-google" size={18} color="#F5F5F5" />
+              <View style={styles.googleMark}>
+                <Ionicons name="logo-google" size={16} color="#4285F4" />
+                <View style={styles.googleDotRed} />
+                <View style={styles.googleDotYellow} />
+                <View style={styles.googleDotGreen} />
+              </View>
               <Text style={[styles.googleText, { color: "#F5F5F5" }]}>Sign up with Google</Text>
             </>
           }
@@ -305,6 +310,10 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontFamily: "Inter_700Bold", letterSpacing: -0.8, marginBottom: 6 },
   subtitle: { fontSize: 15, fontFamily: "Inter_400Regular", marginBottom: 0 },
   socialBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, borderRadius: 999, borderWidth: 1, paddingVertical: 15, marginBottom: 14, backgroundColor: "#171717", borderColor: "#2A2A2A" },
+  googleMark: { width: 18, height: 18, position: "relative", alignItems: "center", justifyContent: "center" },
+  googleDotRed: { position: "absolute", width: 4, height: 4, borderRadius: 2, backgroundColor: "#EA4335", top: 2, right: -1 },
+  googleDotYellow: { position: "absolute", width: 4, height: 4, borderRadius: 2, backgroundColor: "#FBBC05", bottom: 0, right: 1 },
+  googleDotGreen: { position: "absolute", width: 4, height: 4, borderRadius: 2, backgroundColor: "#34A853", bottom: 1, left: 0 },
   googleText: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
   dividerRow: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 20 },
   divider: { flex: 1, height: 1 },
