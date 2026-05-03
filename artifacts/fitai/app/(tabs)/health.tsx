@@ -316,8 +316,9 @@ export default function HealthScreen() {
                 key={item.title}
                 onPress={() => router.push(`/health-detail?metric=${metricMap[item.title] || "sleep"}` as any)}
                 activeOpacity={0.7}
+                style={styles.widgetCard}
               >
-                <View style={[styles.widgetCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <View style={[{ backgroundColor: colors.card, borderColor: colors.border }, styles.widgetCardInner]}>
                   <View style={[styles.widgetIconWrap, { backgroundColor: item.color + "18" }]}>
                     <Ionicons name={item.icon as any} size={16} color={item.color} />
                   </View>
@@ -549,7 +550,8 @@ const styles = StyleSheet.create({
   recoveryTitle: { fontSize: 18, fontFamily: "Inter_700Bold", letterSpacing: -0.4, marginBottom: 6 },
   recoveryBody: { fontSize: 12, fontFamily: "Inter_400Regular", lineHeight: 17 },
   widgetGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 14 },
-  widgetCard: { width: "48.5%", borderRadius: 18, borderWidth: 1, padding: 14, minHeight: 130 },
+  widgetCard: { width: "48.5%" },
+  widgetCardInner: { borderRadius: 18, borderWidth: 1, padding: 14, minHeight: 130 },
   widgetIconWrap: { width: 28, height: 28, borderRadius: 9, alignItems: "center", justifyContent: "center", marginBottom: 16 },
   widgetValue: { fontSize: 28, fontFamily: "Inter_700Bold", lineHeight: 30 },
   widgetSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
