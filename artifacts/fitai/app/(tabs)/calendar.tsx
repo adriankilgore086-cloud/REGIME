@@ -1,9 +1,9 @@
 import React, { useState, useRef } from "react";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Platform, Modal, Animated,
+  Platform, Modal, Animated, TextInput,
 } from "react-native";
-import { Ionicons, Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -245,6 +245,173 @@ const rStyles = StyleSheet.create({
   streakSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
 });
 
+const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+function AddWorkoutModal({
+  visible, selectedDate, onSelectDate, weekDates, weekOffset, onWeekOffsetChange,
+  scheduledWorkouts, onAdd, onRemove, onClose,
+}: {
+  visible: boolean;
+  selectedDate: string;
+  onSelectDate: (d: string) => void;
+  weekDates: Date[];
+  weekOffset: number;
+  onWeekOffsetChange: (o: number) => void;
+  scheduledWorkouts: any[];
+  onAdd: (workoutId: string) => void;
+  onRemove: (scheduledId: string) => void;
+  onClose: () => void;
+}) {
+  const colors = useColors();
+  const today = new Date().toISOString().split("T")[0];
+  const [search, setSearch] = useState("");
+
+  const filteredWorkouts = SAMPLE_WORKOUTS.filter((w) =>
+    w.name.toLowerCase().includes(search.toLowerCase()) ||
+    w.category.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <View style={mStyles.overlay}>
+        <View style={[mStyles.sheet, { backgroundColor: colors.background }]}>
+          <LinearGradient
+            colors={["#8FB8FF10", "transparent"]}
+            style={StyleSheet.absoluteFill}
+          />
+          <View style={mStyles.handle} />
+
+          <View style={mStyles.header}>
+            <View>
+              <Text style={[mStyles.sub, { color: colors.primary }]}>SCHEDULE</Text>
+              <Text style={[mStyles.title, { color: colors.foreground }]}>Add Workout</Text>
+            </View>
+            <TouchableOpacity onPress={onClose} style={[mStyles.closeBtn, { backgroundColor: colors.muted }]}>
+              <Ionicons name="close" size={18} color={colors.mutedForeground} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Date Selector */}
+          <View style={[mStyles.calCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={mStyles.calNav}>
+              <TouchableOpacity onPress={() => onWeekOffsetChange(weekOffset - 1)} style={mStyles.navBtn}>
+                <Ionicons name="chevron-back" size={18} color={colors.mutedForeground} />
+              </TouchableOpacity>
+              <Text style={[mStyles.calLabel, { color: colors.foreground }]}>
+                {MONTHS_SHORT[weekDates[0].getMonth()]} {weekDates[0].getDate()} – {weekDates[6].getDate()}
+              </Text>
+              <TouchableOpacity onPress={() => onWeekOffsetChange(weekOffset + 1)} style={mStyles.navBtn}>
+                <Ionicons name="chevron-forward" size={18} color={colors.mutedForeground} />
+              </TouchableOpacity>
+            </View>
+            <View style={mStyles.weekRow}>
+              {weekDates.map((d) => {
+                const iso = d.toISOString().split("T")[0];
+                const isSel = iso === selectedDate;
+                const isToday = iso === today;
+                const count = scheduledWorkouts.filter((sw) => sw.date === iso).length;
+                return (
+                  <TouchableOpacity
+                    key={iso}
+                    onPress={() => onSelectDate(iso)}
+                    style={[mStyles.calDay, isSel && { backgroundColor: colors.primary, borderRadius: 10 }]}
+                  >
+                    <Text style={[mStyles.calDayName, { color: isSel ? "#0D0D0D" : colors.mutedForeground }]}>
+                      {DAYS[d.getDay()].slice(0, 1)}
+                    </Text>
+                    <Text style={[mStyles.calDayNum, { color: isSel ? "#0D0D0D" : isToday ? colors.primary : colors.foreground }]}>
+                      {d.getDate()}
+                    </Text>
+                    {count > 0 && (
+                      <View style={[mStyles.calDot, { backgroundColor: isSel ? "#0D0D0D" : colors.primary }]} />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Search */}
+          <View style={[mStyles.searchRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Ionicons name="search" size={16} color={colors.mutedForeground} />
+            <TextInput
+              style={[mStyles.searchInput, { color: colors.foreground }]}
+              placeholder="Search workouts..."
+              placeholderTextColor={colors.mutedForeground}
+              value={search}
+              onChangeText={setSearch}
+            />
+            {search.length > 0 && (
+              <TouchableOpacity onPress={() => setSearch("")}>
+                <Ionicons name="close-circle" size={16} color={colors.mutedForeground} />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Workout List */}
+          <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 320 }}>
+            {filteredWorkouts.map((w) => {
+              const catColor = CATEGORY_COLORS[w.category];
+              const scheduled = scheduledWorkouts.find((sw) => sw.workoutId === w.id && sw.date === selectedDate);
+              return (
+                <TouchableOpacity
+                  key={w.id}
+                  onPress={() => scheduled ? onRemove(scheduled.id) : onAdd(w.id)}
+                  style={[mStyles.workoutRow, { borderColor: scheduled ? catColor + "50" : colors.border, backgroundColor: scheduled ? catColor + "12" : "transparent" }]}
+                  activeOpacity={0.8}
+                >
+                  <View style={[mStyles.iconWrap, { backgroundColor: catColor + "20" }]}>
+                    <Ionicons name="barbell-outline" size={16} color={catColor} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[mStyles.wName, { color: colors.foreground }]}>{w.name}</Text>
+                    <Text style={[mStyles.wMeta, { color: colors.mutedForeground }]}>
+                      {w.durationMinutes}m · {w.category} · +{w.xpReward} XP
+                    </Text>
+                  </View>
+                  <View style={[mStyles.addChip, { backgroundColor: scheduled ? catColor + "20" : colors.primary }]}>
+                    <Ionicons name={scheduled ? "checkmark" : "add"} size={16} color={scheduled ? catColor : "#0D0D0D"} />
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+            {filteredWorkouts.length === 0 && (
+              <Text style={[mStyles.noResults, { color: colors.mutedForeground }]}>No workouts found</Text>
+            )}
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+const mStyles = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.65)", justifyContent: "flex-end" },
+  sheet: { maxHeight: "92%", borderTopLeftRadius: 32, borderTopRightRadius: 32, overflow: "hidden", paddingBottom: 30 },
+  handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: "#FFFFFF25", alignSelf: "center", marginTop: 12 },
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingTop: 20, paddingBottom: 12 },
+  sub: { fontSize: 11, fontFamily: "Inter_700Bold", letterSpacing: 1.5, marginBottom: 3 },
+  title: { fontSize: 22, fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
+  closeBtn: { width: 36, height: 36, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  calCard: { marginHorizontal: 20, borderRadius: 16, borderWidth: 1, padding: 12, marginBottom: 12 },
+  calNav: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 },
+  navBtn: { width: 30, height: 30, alignItems: "center", justifyContent: "center" },
+  calLabel: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  weekRow: { flexDirection: "row", justifyContent: "space-between" },
+  calDay: { flex: 1, alignItems: "center", gap: 3, paddingVertical: 6 },
+  calDayName: { fontSize: 10, fontFamily: "Inter_500Medium" },
+  calDayNum: { fontSize: 13, fontFamily: "Inter_700Bold" },
+  calDot: { width: 4, height: 4, borderRadius: 2 },
+  searchRow: { flexDirection: "row", alignItems: "center", gap: 10, marginHorizontal: 20, marginBottom: 10, borderRadius: 14, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 10 },
+  searchInput: { flex: 1, fontSize: 14, fontFamily: "Inter_400Regular" },
+  workoutRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1 },
+  iconWrap: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  wName: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  wMeta: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 2 },
+  addChip: { width: 30, height: 30, borderRadius: 9, alignItems: "center", justifyContent: "center" },
+  noResults: { textAlign: "center", paddingVertical: 24, fontSize: 13, fontFamily: "Inter_400Regular" },
+});
+
 export default function CalendarScreen() {
   const router = useRouter();
   const colors = useColors();
@@ -285,7 +452,7 @@ export default function CalendarScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { paddingTop: topPad + 12, backgroundColor: colors.background }]}>
-        <Text style={[styles.title, { color: colors.foreground }]}>Schedule</Text>
+        <Text style={[styles.title, { color: colors.foreground, fontSize: 29.7 }]}>Schedule</Text>
         <View style={styles.headerBtns}>
           <TouchableOpacity
             onPress={() => setShowReport(true)}
@@ -307,51 +474,69 @@ export default function CalendarScreen() {
         <TouchableOpacity onPress={() => setWeekOffset(weekOffset - 1)} style={styles.weekNavBtn}>
           <Ionicons name="chevron-back" size={18} color={colors.mutedForeground} />
         </TouchableOpacity>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }}>
+        <View style={styles.weekDaysRow}>
           {weekDates.map((date) => {
-          const iso = date.toISOString().split("T")[0];
-          const isToday = iso === today;
-          const isSelected = iso === selectedDate;
-          const hasWorkout = getWorkoutsForDate(iso).length > 0;
-          const done = scheduledWorkouts.some((sw) => sw.date === iso && sw.completed);
-
-          return (
-            <TouchableOpacity key={iso} onPress={() => setSelectedDate(iso)} style={styles.dayCell}>
-              <Text style={[styles.dayName, { color: isSelected ? colors.primary : colors.mutedForeground }]}>
-                {DAYS[date.getDay()]}
-              </Text>
-              <View style={[
-                styles.dayNum,
-                isSelected && { backgroundColor: colors.primary },
-                isToday && !isSelected && { borderWidth: 1, borderColor: colors.primary },
-                done && !isSelected && { borderWidth: 1, borderColor: colors.success + "60" },
-              ]}>
-                <Text style={[styles.dayNumText, {
-                  color: isSelected ? "#0D0D0D" : isToday ? colors.primary : done ? colors.success : colors.foreground,
-                }]}>
-                  {date.getDate()}
+            const iso = date.toISOString().split("T")[0];
+            const isToday = iso === today;
+            const isSelected = iso === selectedDate;
+            const hasWorkout = getWorkoutsForDate(iso).length > 0;
+            const done = scheduledWorkouts.some((sw) => sw.date === iso && sw.completed);
+            return (
+              <TouchableOpacity key={iso} onPress={() => setSelectedDate(iso)} style={styles.dayCell}>
+                <Text style={[styles.dayName, { color: isSelected ? colors.primary : colors.mutedForeground }]}>
+                  {DAYS[date.getDay()]}
                 </Text>
-              </View>
-              {hasWorkout && !done && (
-                <View style={[styles.dotIndicator, { backgroundColor: isSelected ? "#0D0D0D" : colors.mutedForeground }]} />
-              )}
-              {done && <Ionicons name="checkmark" size={10} color={colors.success} />}
-            </TouchableOpacity>
-          );
-        })}
-        </ScrollView>
+                <View style={[
+                  styles.dayNum,
+                  isSelected && { backgroundColor: colors.primary },
+                  isToday && !isSelected && { borderWidth: 1, borderColor: colors.primary },
+                  done && !isSelected && { borderWidth: 1, borderColor: colors.success + "60" },
+                ]}>
+                  <Text style={[styles.dayNumText, {
+                    color: isSelected ? "#0D0D0D" : isToday ? colors.primary : done ? colors.success : colors.foreground,
+                  }]}>
+                    {date.getDate()}
+                  </Text>
+                </View>
+                {hasWorkout && !done && (
+                  <View style={[styles.dotIndicator, { backgroundColor: isSelected ? "#0D0D0D" : colors.mutedForeground }]} />
+                )}
+                {done && <Ionicons name="checkmark" size={10} color={colors.success} />}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
         <TouchableOpacity onPress={() => setWeekOffset(weekOffset + 1)} style={styles.weekNavBtn}>
           <Ionicons name="chevron-forward" size={18} color={colors.mutedForeground} />
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 120 }]} showsVerticalScrollIndicator={false}>
-        <View style={styles.regimeHeader}>
-          <Text style={[styles.regimeTitle, { color: colors.foreground }]}>Today's Regime</Text>
-          <Text style={[styles.regimeDate, { color: colors.mutedForeground }]}>
-            {new Date(selectedDate + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
-          </Text>
-        </View>
+        {/* Today's Regime Banner — only when today has workouts */}
+        {selectedDate === today && selectedWorkouts.length > 0 && (
+          <View style={[styles.regimeBanner, { borderColor: colors.primary + "40" }]}>
+            <LinearGradient
+              colors={[colors.primary + "18", colors.primary + "08", "transparent"]}
+              style={StyleSheet.absoluteFill}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+            />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.regimeBannerTitle, { color: colors.primary }]}>Today's Regime!</Text>
+              <Text style={[styles.regimeBannerDate, { color: colors.foreground }]}>
+                {new Date(selectedDate + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+              </Text>
+            </View>
+            <Ionicons name="flash" size={24} color={colors.primary} />
+          </View>
+        )}
+
+        {selectedDate !== today && (
+          <View style={styles.regimeHeader}>
+            <Text style={[styles.regimeTitle, { color: colors.foreground }]}>
+              {new Date(selectedDate + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+            </Text>
+          </View>
+        )}
 
         {selectedWorkouts.length === 0 ? (
           <View style={[styles.emptyCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -363,83 +548,58 @@ export default function CalendarScreen() {
             </TouchableOpacity>
           </View>
         ) : (
-          selectedWorkouts.map((sw) => {
-            const workout = SAMPLE_WORKOUTS.find((w) => w.id === sw.workoutId);
-            if (!workout) return null;
-            const catColor = CATEGORY_COLORS[workout.category];
-            const isPressed = longPressedWorkout === sw.id;
-            return (
-              <TouchableOpacity 
-                key={sw.id}
-                onPress={() => !isPressed && openPlayer(workout, sw.id)}
-                onLongPress={() => setLongPressedWorkout(sw.id)}
-                delayLongPress={500}
-                style={[styles.workoutRow, { backgroundColor: colors.card, borderColor: isPressed ? colors.destructive : colors.border }]}
-              >
-                <View style={[styles.catBar, { backgroundColor: catColor }]} />
-                <View style={styles.workoutInfo}>
-                  <View style={styles.workoutTop}>
-                    <Text style={[styles.workoutName, { color: colors.foreground }]}>{workout.name}</Text>
-                    {sw.completed && <Ionicons name="checkmark-circle" size={18} color={colors.success} />}
-                    {sw.skipped && <Ionicons name="close-circle" size={18} color={colors.destructive} />}
+          <View style={styles.workoutGrid}>
+            {selectedWorkouts.map((sw) => {
+              const workout = SAMPLE_WORKOUTS.find((w) => w.id === sw.workoutId);
+              if (!workout) return null;
+              const catColor = CATEGORY_COLORS[workout.category];
+              const isPressed = longPressedWorkout === sw.id;
+              return (
+                <TouchableOpacity
+                  key={sw.id}
+                  onPress={() => !isPressed && router.push(`/schedule-workout-detail?workoutId=${workout.id}&scheduledId=${sw.id}&date=${selectedDate}` as any)}
+                  onLongPress={() => setLongPressedWorkout(sw.id)}
+                  delayLongPress={500}
+                  style={[styles.workoutCard, { borderColor: isPressed ? colors.destructive : catColor + "40" }]}
+                  activeOpacity={0.85}
+                >
+                  <LinearGradient
+                    colors={["#2A2A2A", "#1A1A1A"]}
+                    style={StyleSheet.absoluteFill}
+                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                  />
+                  <View style={[styles.cardIconWrap, { backgroundColor: catColor + "25" }]}>
+                    <Ionicons name="barbell-outline" size={20} color={"#FFFFFF"} />
+                    {sw.completed && (
+                      <View style={[styles.completeBadge, { backgroundColor: colors.success }]}>
+                        <Ionicons name="checkmark" size={8} color="#FFF" />
+                      </View>
+                    )}
                   </View>
-                  <Text style={[styles.workoutMeta, { color: colors.mutedForeground }]}>
-                    {workout.durationMinutes}m · {workout.calories} cal · {workout.difficulty}
-                  </Text>
-                  <View style={styles.muscleChips}>
-                    {workout.targetMuscles.slice(0, 3).map((m) => (
-                      <View key={m} style={[styles.chip, { backgroundColor: colors.muted }]}>
-                        <Text style={[styles.chipText, { color: colors.mutedForeground }]}>{m}</Text>
+                  <Text style={styles.cardName} numberOfLines={2}>{workout.name}</Text>
+                  <Text style={styles.cardMeta}>{workout.durationMinutes}m · {workout.difficulty}</Text>
+                  <View style={styles.cardMuscleRow}>
+                    {workout.targetMuscles.slice(0, 2).map((m) => (
+                      <View key={m} style={[styles.cardChip, { backgroundColor: catColor + "20" }]}>
+                        <Text style={[styles.cardChipText, { color: catColor }]}>{m}</Text>
                       </View>
                     ))}
                   </View>
-                </View>
-                {isPressed && (
-                  <View style={styles.workoutActions}>
-                    <TouchableOpacity onPress={() => { unscheduleWorkout(sw.id); setLongPressedWorkout(null); }} style={[styles.actionBtn, { backgroundColor: colors.destructive }]}>
-                      <Ionicons name="trash" size={14} color="#FFF" />
+                  {isPressed && (
+                    <TouchableOpacity
+                      onPress={() => { unscheduleWorkout(sw.id); setLongPressedWorkout(null); }}
+                      style={styles.deleteOverlay}
+                    >
+                      <Ionicons name="trash" size={20} color="#FFF" />
+                      <Text style={styles.deleteText}>Remove</Text>
                     </TouchableOpacity>
-                  </View>
-                )}
-              </TouchableOpacity>
-            );
-          })
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         )}
 
-        <View style={styles.libraryHeader}>
-          <View>
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Workout Library</Text>
-            <Text style={[styles.sectionSub, { color: colors.mutedForeground }]}>Tap to schedule on selected date</Text>
-          </View>
-          <TouchableOpacity onPress={() => router.push("/(tabs)/library")} style={[styles.libraryCircleBtn, { backgroundColor: "#1A1A1A" }]}>
-            <Ionicons name="add" size={16} color="#FFFFFF" />
-          </TouchableOpacity>
-        </View>
-
-        {SAMPLE_WORKOUTS.map((workout) => {
-          const catColor = CATEGORY_COLORS[workout.category];
-          return (
-            <TouchableOpacity
-              key={workout.id}
-              onPress={() => handleAddWorkout(workout.id)}
-              style={[styles.libraryRow, { backgroundColor: colors.card, borderColor: colors.border }]}
-              activeOpacity={0.8}
-            >
-              <View style={[styles.libraryIcon, { backgroundColor: catColor + "20" }]}>
-                <Ionicons name="barbell-outline" size={18} color={catColor} />
-              </View>
-              <View style={styles.libraryInfo}>
-                <Text style={[styles.libraryName, { color: colors.foreground }]}>{workout.name}</Text>
-                <Text style={[styles.libraryMeta, { color: colors.mutedForeground }]}>
-                  {workout.durationMinutes}m · {workout.category} · {workout.difficulty}
-                </Text>
-              </View>
-              <View style={[styles.xpChip, { backgroundColor: colors.primary + "20" }]}>
-                <Text style={[styles.xpText, { color: colors.primary }]}>+{workout.xpReward} XP</Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
       </ScrollView>
 
       {showReport && (
@@ -450,28 +610,18 @@ export default function CalendarScreen() {
         />
       )}
 
-      <Modal visible={showAddModal} transparent animationType="slide" onRequestClose={() => setShowAddModal(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
-            <Text style={[styles.modalTitle, { color: colors.foreground }]}>Add to {selectedDate}</Text>
-            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 300 }}>
-              {SAMPLE_WORKOUTS.map((w) => (
-                <TouchableOpacity
-                  key={w.id}
-                  onPress={() => handleAddWorkout(w.id)}
-                  style={[styles.modalWorkoutRow, { borderColor: colors.border }]}
-                >
-                  <Text style={[styles.modalWorkoutName, { color: colors.foreground }]}>{w.name}</Text>
-                  <Text style={[styles.modalWorkoutMeta, { color: colors.mutedForeground }]}>{w.durationMinutes}m · +{w.xpReward} XP</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            <TouchableOpacity onPress={() => setShowAddModal(false)}>
-              <Text style={[styles.cancelText, { color: colors.mutedForeground }]}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      <AddWorkoutModal
+        visible={showAddModal}
+        selectedDate={selectedDate}
+        onSelectDate={setSelectedDate}
+        weekDates={weekDates}
+        weekOffset={weekOffset}
+        onWeekOffsetChange={setWeekOffset}
+        scheduledWorkouts={scheduledWorkouts}
+        onAdd={handleAddWorkout}
+        onRemove={(id) => unscheduleWorkout(id)}
+        onClose={() => setShowAddModal(false)}
+      />
 
       {playerWorkout && (
         <WorkoutPlayerModal
@@ -494,62 +644,37 @@ const styles = StyleSheet.create({
   reportBtn: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 12, borderWidth: 1 },
   reportBtnText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
   addBtn: { width: 38, height: 38, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  weekBanner: { marginHorizontal: 20, marginBottom: 12, borderRadius: 18, borderWidth: 1, padding: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between", overflow: "hidden" },
-  weekBannerLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
-  weekRingOuter: { width: 52, height: 52, borderRadius: 16, borderWidth: 2, alignItems: "center", justifyContent: "center" },
-  weekRingInner: { width: 40, height: 40, borderRadius: 13, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 1 },
-  weekRingNum: { fontSize: 18, fontFamily: "Inter_700Bold" },
-  weekRingOf: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 4 },
-  weekBannerTitle: { fontSize: 15, fontFamily: "Inter_700Bold" },
-  weekBannerSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
-  weekBannerRight: { alignItems: "flex-end", gap: 2 },
-  weekBannerStreak: { fontSize: 17, fontFamily: "Inter_700Bold" },
-  weekBannerLabel: { fontSize: 10, fontFamily: "Inter_400Regular" },
-  viewBtn: { marginTop: 6, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
-  viewBtnText: { fontSize: 11, fontFamily: "Inter_700Bold" },
-  weekStrip: { flexDirection: "row", alignItems: "center", paddingHorizontal: 8, paddingVertical: 12, borderBottomWidth: 1, gap: 8 },
+  weekStrip: { flexDirection: "row", alignItems: "center", paddingHorizontal: 8, paddingVertical: 12, borderBottomWidth: 1 },
   weekNavBtn: { width: 32, height: 32, alignItems: "center", justifyContent: "center" },
-  dayCell: { alignItems: "center", gap: 5, paddingHorizontal: 6 },
+  weekDaysRow: { flex: 1, flexDirection: "row", justifyContent: "space-around" },
+  dayCell: { alignItems: "center", gap: 5, flex: 1 },
   dayName: { fontSize: 10, fontFamily: "Inter_500Medium" },
   dayNum: { width: 32, height: 32, borderRadius: 10, alignItems: "center", justifyContent: "center" },
   dayNumText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
   dotIndicator: { width: 4, height: 4, borderRadius: 2 },
-  content: { paddingHorizontal: 20, paddingTop: 14 },
-  selectedDateLabel: { fontSize: 13, fontFamily: "Inter_500Medium", marginBottom: 14 },
-  regimeHeader: { marginBottom: 16, gap: 2 },
-  regimeTitle: { fontSize: 22, fontFamily: "Poppins_700Bold", letterSpacing: -0.5 },
-  regimeDate: { fontSize: 13, fontFamily: "Inter_500Medium" },
+  content: { paddingHorizontal: 16, paddingTop: 14 },
+  regimeBanner: { borderRadius: 18, borderWidth: 1, padding: 16, flexDirection: "row", alignItems: "center", marginBottom: 14, overflow: "hidden" },
+  regimeBannerTitle: { fontSize: 18, fontFamily: "Poppins_700Bold", letterSpacing: -0.3 },
+  regimeBannerDate: { fontSize: 13, fontFamily: "Inter_400Regular", marginTop: 2 },
+  regimeHeader: { marginBottom: 10 },
+  regimeTitle: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
   emptyCard: { borderRadius: 20, borderWidth: 1, padding: 28, alignItems: "center", gap: 12, marginBottom: 24 },
   emptyText: { fontSize: 14, fontFamily: "Inter_400Regular" },
   addWorkoutBtn: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12, borderWidth: 1 },
   addWorkoutText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-  workoutRow: { flexDirection: "row", borderRadius: 16, borderWidth: 1, marginBottom: 10, overflow: "hidden", alignItems: "center" },
-  catBar: { width: 4 },
-  workoutInfo: { flex: 1, padding: 14 },
-  workoutTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 4 },
-  workoutName: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
-  workoutMeta: { fontSize: 12, fontFamily: "Inter_400Regular", marginBottom: 8 },
-  muscleChips: { flexDirection: "row", gap: 6 },
-  chip: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
-  chipText: { fontSize: 10, fontFamily: "Inter_500Medium" },
-  workoutActions: { flexDirection: "row", gap: 8, paddingRight: 12, alignItems: "center" },
-  actionBtn: { width: 36, height: 36, borderRadius: 8, alignItems: "center", justifyContent: "center" },
-  sectionTitle: { fontSize: 17, fontFamily: "Inter_700Bold", letterSpacing: -0.3, marginBottom: 4 },
-  sectionSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginBottom: 12 },
-  libraryHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
-  libraryCircleBtn: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
-  libraryRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderRadius: 16, borderWidth: 1, marginBottom: 8 },
-  libraryIcon: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  libraryInfo: { flex: 1 },
-  libraryName: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-  libraryMeta: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
-  xpChip: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10 },
-  xpText: { fontSize: 11, fontFamily: "Inter_700Bold" },
+  workoutGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 16 },
+  workoutCard: { width: "48%", borderRadius: 18, borderWidth: 1, padding: 14, overflow: "hidden", gap: 6, minHeight: 140 },
+  cardIconWrap: { width: 38, height: 38, borderRadius: 12, alignItems: "center", justifyContent: "center", marginBottom: 2 },
+  completeBadge: { position: "absolute", top: -3, right: -3, width: 14, height: 14, borderRadius: 7, alignItems: "center", justifyContent: "center" },
+  cardName: { fontSize: 14, fontFamily: "Inter_700Bold", color: "#FFFFFF", lineHeight: 18 },
+  cardMeta: { fontSize: 11, fontFamily: "Inter_400Regular", color: "#FFFFFF80" },
+  cardMuscleRow: { flexDirection: "row", flexWrap: "wrap", gap: 4, marginTop: 2 },
+  cardChip: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 },
+  cardChipText: { fontSize: 9, fontFamily: "Inter_600SemiBold" },
+  deleteOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(220,38,38,0.88)", borderRadius: 17, alignItems: "center", justifyContent: "center", gap: 6 } as any,
+  deleteText: { color: "#FFF", fontSize: 12, fontFamily: "Inter_700Bold" },
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "flex-end" },
   modalCard: { borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, gap: 14 },
   modalTitle: { fontSize: 18, fontFamily: "Inter_700Bold" },
-  modalWorkoutRow: { paddingVertical: 12, borderBottomWidth: 1, gap: 3 },
-  modalWorkoutName: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-  modalWorkoutMeta: { fontSize: 12, fontFamily: "Inter_400Regular" },
   cancelText: { textAlign: "center", fontSize: 14, fontFamily: "Inter_400Regular" },
 });
