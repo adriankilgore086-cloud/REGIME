@@ -304,9 +304,8 @@ export default function HealthScreen() {
         </View>
 
         <View style={styles.widgetGrid}>
-          {HEALTH_WIDGETS.map((item) => {
+          {HEALTH_WIDGETS.filter(w => w.title !== "Today's Burn").map((item) => {
             const metricMap: Record<string, string> = {
-              "Today's Burn": "calories",
               "Resting HR": "heartrate",
               "Sleep": "sleep",
               "Hydration": "hydration",
@@ -331,9 +330,24 @@ export default function HealthScreen() {
           })}
         </View>
 
+        <TouchableOpacity onPress={() => router.push("/recovery-detail" as any)} style={{ marginBottom: 14 }}>
+          <View style={[styles.bodyWidget, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+              <View style={[styles.bodyIcon, { backgroundColor: "#7BE0B820" }]}>
+                <Ionicons name="body-outline" size={20} color="#7BE0B8" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.bodyTitle, { color: colors.foreground }]}>Body Composition</Text>
+                <Text style={[styles.bodySub, { color: colors.mutedForeground }]}>Weight, Height, BMI</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.mutedForeground} />
+            </View>
+          </View>
+        </TouchableOpacity>
+
         <View style={[styles.chartCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <LinearGradient colors={["#7BE0B810", "#8FB8FF08", "transparent"]} style={StyleSheet.absoluteFill} />
-            <View style={styles.recoveryTopRow}>
+            <TouchableOpacity onPress={() => router.push("/recovery-detail" as any)} style={styles.recoveryTopRow}>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.recoveryBadge, { color: colors.success }]}>DAILY READINESS</Text>
                 <Text style={[styles.recoveryTitle, { color: colors.foreground }]}>Recovery Score</Text>
@@ -342,42 +356,8 @@ export default function HealthScreen() {
                 </Text>
               </View>
               <RecoveryRing score={recoveryScore} />
-            </View>
+            </TouchableOpacity>
 
-            <View style={[styles.metricsListCard, { backgroundColor: colors.background + "80", borderColor: colors.border }]}>
-              {READINESS_METRICS.map((m, i) => {
-                const metricMap: Record<string, string> = {
-                  "Sleep Quality": "sleep",
-                  "Hydration": "hydration",
-                  "Heart Rate": "heartrate",
-                  "Muscle Recovery": "readiness",
-                };
-                return (
-                  <TouchableOpacity
-                    key={m.label}
-                    onPress={() => router.push(`/health-detail?metric=${metricMap[m.label] || "sleep"}` as any)}
-                    style={[
-                      styles.metricRow,
-                      i < READINESS_METRICS.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border },
-                    ]}
-                  >
-                    <View style={[styles.metricIconWrap, { backgroundColor: m.color + "18" }]}>
-                      <Ionicons name={m.icon as any} size={16} color={m.color} />
-                    </View>
-                    <View style={styles.metricInfo}>
-                      <Text style={[styles.metricLabel, { color: colors.foreground }]}>{m.label}</Text>
-                      <Text style={[styles.metricTip, { color: colors.mutedForeground }]}>{m.tip}</Text>
-                    </View>
-                    <View style={styles.metricRight}>
-                      <Text style={[styles.metricVal, { color: m.color }]}>{m.value}%</Text>
-                      <View style={[styles.metricTrack, { backgroundColor: m.color + "20" }]}>
-                        <View style={[styles.metricFill, { width: `${m.value}%`, backgroundColor: m.color }]} />
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
           </View>
         </View>
 
@@ -555,6 +535,10 @@ const styles = StyleSheet.create({
   widgetValue: { fontSize: 28, fontFamily: "Inter_700Bold", lineHeight: 30 },
   widgetSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
   widgetTitle: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 10 },
+  bodyWidget: { borderRadius: 16, borderWidth: 1, padding: 14, flexDirection: "row" },
+  bodyIcon: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  bodyTitle: { fontSize: 14, fontFamily: "Inter_700Bold" },
+  bodySub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
 
   metricsListCard: { borderRadius: 14, borderWidth: 1, overflow: "hidden" },
   metricRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 14, paddingVertical: 13 },
