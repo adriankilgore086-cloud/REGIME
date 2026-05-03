@@ -104,10 +104,11 @@ const PostCard = memo(function PostCard({ post, myUserId, myName, myAvatar, myBa
     setReplyTo(null);
   };
 
+  const isImagePost = post.type === "media" && !!post.mediaUri;
+  const isTextOnly = !post.mediaUri && !post.workoutName && !post.milestoneTitle && !post.value && post.text.trim().length > 0 && post.type === "text";
+
   return (
     <View style={[pcStyles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-      <LinearGradient colors={[meta.color + "08", "transparent"]} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
-
       <View style={pcStyles.header}>
         <View style={[pcStyles.avatar, { backgroundColor: meta.color + "25", borderColor: meta.color + "45" }]}>
           <Text style={[pcStyles.avatarText, { color: meta.color }]}>{post.userAvatar}</Text>
@@ -136,11 +137,15 @@ const PostCard = memo(function PostCard({ post, myUserId, myName, myAvatar, myBa
       </View>
 
       {post.text.length > 0 && (
-        <Text style={[pcStyles.text, { color: colors.foreground }]}>{post.text}</Text>
+        <View style={[pcStyles.textBox, isTextOnly && { minHeight: 88 }, { borderColor: colors.border, backgroundColor: colors.muted }]}>
+          <Text style={[pcStyles.text, { color: colors.foreground }]}>{post.text}</Text>
+        </View>
       )}
 
       {post.mediaUri && (
-        <Image source={{ uri: post.mediaUri }} style={pcStyles.media} resizeMode="cover" />
+        <View style={[pcStyles.mediaWrap, { borderColor: colors.border }]}>
+          <Image source={{ uri: post.mediaUri }} style={pcStyles.media} resizeMode="cover" />
+        </View>
       )}
 
       {post.type === "workout" && post.workoutName && (
@@ -282,8 +287,10 @@ const pcStyles = StyleSheet.create({
   typeChip: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, borderWidth: 1 },
   typeText: { fontSize: 10, fontFamily: "Inter_600SemiBold" },
   audienceChip: { width: 22, height: 22, borderRadius: 7, alignItems: "center", justifyContent: "center" },
-  text: { fontSize: 14, fontFamily: "Inter_400Regular", lineHeight: 21, marginBottom: 10 },
-  media: { width: "100%", height: 200, borderRadius: 12, marginBottom: 10 },
+  textBox: { borderWidth: 1, borderRadius: 14, padding: 12, marginBottom: 10 },
+  text: { fontSize: 14, fontFamily: "Inter_400Regular", lineHeight: 21 },
+  mediaWrap: { width: "100%", aspectRatio: 1, borderRadius: 14, borderWidth: 1, overflow: "hidden", marginBottom: 10 },
+  media: { width: "100%", height: "100%" },
   workoutCard: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 12, borderWidth: 1, padding: 12, marginBottom: 10 },
   valueChip: { alignSelf: "flex-start", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, borderWidth: 1, marginBottom: 10 },
   valueText: { fontSize: 12, fontFamily: "Inter_700Bold" },
