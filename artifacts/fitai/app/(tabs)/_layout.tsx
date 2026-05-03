@@ -4,7 +4,7 @@ import { PanResponder, View, Dimensions } from "react-native";
 import { CustomTabBar } from "@/components/CustomTabBar";
 
 export default function TabLayout() {
-  const tabNames = useMemo(() => ["calendar", "goals", "index", "health", "profile"], []);
+  const tabNames = useMemo(() => ["calendar", "library", "goals", "index", "health", "profile"], []);
   const tabRef = useRef<any>(null);
   const activeIndexRef = useRef(2);
   const { width } = Dimensions.get("window");
@@ -44,6 +44,7 @@ export default function TabLayout() {
         screenOptions={{ headerShown: false }}
       >
         <Tabs.Screen name="calendar" options={{ title: "Schedule" }} />
+        <Tabs.Screen name="library" options={{ title: "Library" }} />
         <Tabs.Screen name="goals" options={{ title: "Goals" }} />
         <Tabs.Screen name="index" options={{ title: "Home" }} />
         <Tabs.Screen name="health" options={{ title: "Health" }} />
