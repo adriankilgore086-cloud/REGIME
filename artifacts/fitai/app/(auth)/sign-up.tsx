@@ -40,6 +40,9 @@ export default function SignUpScreen() {
     signUp.reset();
     setCode("");
     setEmail(email.trim());
+    setPassword(password);
+    setShowPass(false);
+    setEmail(email.trim());
     await signUp.create({
       emailAddress: email.trim(),
       password,
@@ -77,7 +80,7 @@ export default function SignUpScreen() {
       if (createdSessionId && setActive) {
         await setActive({
           session: createdSessionId,
-          navigate: async () => router.replace("/"),
+          navigate: async () => router.replace("/(tabs)"),
         });
       }
     } catch (e: any) {
@@ -99,7 +102,7 @@ export default function SignUpScreen() {
       if (createdSessionId && setActive) {
         await setActive({
           session: createdSessionId,
-          navigate: async () => router.replace("/"),
+          navigate: async () => router.replace("/(tabs)"),
         });
       }
     } finally {

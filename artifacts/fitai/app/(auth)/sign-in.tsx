@@ -43,6 +43,8 @@ export default function SignInScreen() {
 
   const handleSubmit = async () => {
     signIn.reset();
+    setShowMfa(false);
+    setMfaCode("");
     const { error } = await signIn.password({ emailAddress: email, password });
     if (error) return;
 
@@ -83,7 +85,7 @@ export default function SignInScreen() {
       if (createdSessionId && setActive) {
         await setActive({
           session: createdSessionId,
-          navigate: async () => router.replace("/"),
+          navigate: async () => router.replace("/(tabs)"),
         });
       }
     } catch (e: any) {
@@ -104,7 +106,7 @@ export default function SignInScreen() {
       if (createdSessionId && setActive) {
         await setActive({
           session: createdSessionId,
-          navigate: async () => router.replace("/"),
+          navigate: async () => router.replace("/(tabs)"),
         });
       }
     } catch {
