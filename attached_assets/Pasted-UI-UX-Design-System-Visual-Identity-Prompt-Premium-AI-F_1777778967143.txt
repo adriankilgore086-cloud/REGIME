@@ -1,0 +1,534 @@
+UI/UX Design System & Visual Identity Prompt — Premium AI Fitness App
+
+Design Philosophy
+
+The app should feel:
+
+* Elegant
+* Minimal
+* Futuristic
+* Motivational
+* Sleek
+* Athletic
+* Intelligent
+* Premium
+
+The design should combine:
+
+* Apple Fitness simplicity
+* Nike Run Club athletic energy
+* Duolingo engagement psychology
+* Luxury minimalist UI design
+* Futuristic AI aesthetics
+
+The interface should feel:
+
+“Warm minimalism with elite performance energy.”
+
+The app should NEVER feel:
+
+* Cold
+* Overly corporate
+* Too colorful
+* Overdesigned
+* Cluttered
+* Robotic
+* Cheap
+* Overly gamified visually
+
+Even though the app is highly advanced technically, the design should remain:
+
+* Soft
+* Human
+* Fluid
+* Comfortable
+* Motivational
+
+⸻
+
+Core Color Palette
+
+The app should primarily use:
+
+* Black
+* White
+* Soft grayscale tones
+
+The design should feel matte and premium rather than glossy and neon-heavy.
+
+⸻
+
+Primary Colors
+
+Matte Black
+
+Use for:
+
+* Main backgrounds
+* Navigation
+* Workout screens
+* Modal backgrounds
+
+Suggested Color:
+
+* #0D0D0D
+
+This black should feel:
+
+* Soft
+* Rich
+* Cinematic
+* Premium
+
+Avoid harsh pure black.
+
+⸻
+
+Soft White
+
+Use for:
+
+* Typography
+* Cards
+* Key contrast elements
+
+Suggested Color:
+
+* #F5F5F5
+
+Avoid pure white everywhere because it feels too clinical.
+
+⸻
+
+Secondary Grayscale Palette
+
+Graphite Gray
+
+* #1A1A1A
+
+Use for:
+
+* Secondary cards
+* Workout tiles
+* Elevated UI elements
+
+⸻
+
+Soft Gray
+
+* #A1A1A1
+
+Use for:
+
+* Secondary text
+* Metadata
+* Labels
+* Low-emphasis information
+
+⸻
+
+Warm Gray
+
+* #D6D6D6
+
+Use for:
+
+* Dividers
+* Soft contrast
+* UI layering
+
+This prevents the app from feeling cold.
+
+⸻
+
+Accent Colors
+
+The app should use VERY LIMITED accent colors.
+
+Accent colors should only appear:
+
+* During achievements
+* AI interactions
+* Workout completion
+* Progression moments
+* Active states
+
+This keeps the UI elegant and premium.
+
+⸻
+
+Primary Accent — Soft Electric White/Blue
+
+Suggested:
+
+* #8FB8FF
+
+Use for:
+
+* AI glow effects
+* Active tabs
+* Progress rings
+* Focus states
+
+This gives:
+
+* Futuristic energy
+* Calm intelligence
+* Premium feel
+
+⸻
+
+Secondary Accent — Soft Emerald
+
+Suggested:
+
+* #7BE0B8
+
+Use for:
+
+* Recovery mode
+* Breathing exercises
+* Health success states
+* Positive progress
+
+This adds warmth and calmness.
+
+⸻
+
+Achievement Accent — Soft Gold
+
+Suggested:
+
+* #F3D27A
+
+Use ONLY for:
+
+* XP rewards
+* Legendary badges
+* Trophy unlocks
+* Milestones
+
+Gold should feel:
+
+* Rare
+* Prestigious
+* Rewarding
+
+Never overuse it.
+
+⸻
+
+UI Lighting Style
+
+The app should NOT look flat.
+
+Use:
+
+* Soft glows
+* Matte shadows
+* Layered depth
+* Floating cards
+* Ambient lighting
+
+The lighting should feel:
+
+* Subtle
+* Elegant
+* Cinematic
+
+Almost like:
+
+* Apple VisionOS UI
+* Luxury automotive dashboards
+* Premium fitness equipment displays
+
+⸻
+
+Typography System
+
+The typography should feel:
+
+* Clean
+* Elegant
+* Confident
+* Performance-oriented
+
+⸻
+
+Primary Font
+
+Inter
+
+Use for:
+
+* Body text
+* Stats
+* Workout information
+* Navigation
+* Analytics
+
+Why:
+
+* Extremely readable
+* Modern
+* Premium UI feel
+* Excellent mobile optimization
+
+⸻
+
+Secondary Font
+
+Poppins
+
+Use for:
+
+* Headers
+* Titles
+* XP notifications
+* Achievements
+* Hero text
+
+Why:
+
+* Adds personality
+* Feels energetic
+* Stylish but still clean
+
+⸻
+
+Typography Style
+
+Use:
+
+* Bold headers
+* Spacious letter spacing
+* Large readable stats
+* Thin elegant labels
+
+Avoid:
+
+* Overly futuristic fonts
+* Hard-to-read typography
+* Gamer-style fonts everywhere
+
+The app should feel:
+
+* Luxurious
+* Athletic
+* Modern
+
+⸻
+
+Icon & Emoticon Design
+
+The icons/emoticons should feel:
+
+* Rounded
+* Smooth
+* Friendly
+* Elegant
+* Slightly playful
+
+The app should NEVER feel sterile.
+
+⸻
+
+Icon Style
+
+Use:
+
+* Thin rounded icons
+* Soft edges
+* Minimal icon strokes
+* Elegant line icons
+
+Inspiration:
+
+* Apple SF Symbols
+* Modern Nike UI
+* Minimal wellness apps
+
+⸻
+
+Interactive Button Design
+
+Buttons should feel:
+
+* Soft
+* Touchable
+* Responsive
+* Alive
+
+Use:
+
+* Rounded pill buttons
+* Floating circular buttons
+* Smooth hover/tap animations
+* Haptic feedback
+
+⸻
+
+Button Behavior
+
+Buttons should:
+
+* Slightly expand on tap
+* Glow subtly when active
+* Smoothly animate
+* Feel fluid and responsive
+
+Avoid:
+
+* Static buttons
+* Harsh rectangular shapes
+* Overly aggressive animations
+
+⸻
+
+Emotional UI Design
+
+The app should create emotional warmth through:
+
+* Motion
+* Lighting
+* Soft gradients
+* Responsive feedback
+* Human AI interactions
+
+Even in dark mode, it should feel:
+
+* Welcoming
+* Motivating
+* Comfortable
+* Immersive
+
+⸻
+
+Dynamic Visual States
+
+The app should subtly change visually depending on context.
+
+⸻
+
+Workout Mode
+
+During intense workouts:
+
+* Slightly brighter highlights
+* Dynamic progress rings
+* Energized motion
+
+⸻
+
+Recovery Mode
+
+During cooldowns/yoga:
+
+* Softer gradients
+* Slower animations
+* More breathing space
+
+⸻
+
+Achievement Mode
+
+When unlocking rewards:
+
+* Gold lighting
+* Confetti particles
+* Smooth cinematic transitions
+
+⸻
+
+Home Screen Design
+
+The home screen should feel:
+
+* Clean
+* Focused
+* Motivational
+* Calm but powerful
+
+Avoid:
+
+* Information overload
+* Too many bright widgets
+* Cluttered analytics
+
+The Home page should emphasize:
+
+* Today’s workout
+* Progress
+* AI guidance
+* Streaks
+* Recovery readiness
+
+⸻
+
+Card Design System
+
+Workout cards should feel:
+
+* Floating
+* Layered
+* Premium
+* Easy to scan
+
+Use:
+
+* Rounded corners
+* Matte textures
+* Slight transparency
+* Subtle shadows
+
+⸻
+
+Animation Philosophy
+
+Animations should feel:
+
+* Natural
+* Smooth
+* Premium
+* Purposeful
+
+Avoid:
+
+* Overly flashy transitions
+* Excessive bouncing
+* Cheap gaming aesthetics
+
+Motion should feel:
+
+* Sophisticated
+* Athletic
+* Elegant
+
+⸻
+
+Overall Visual Identity
+
+The app should visually communicate:
+
+* Performance
+* Progression
+* Consistency
+* Luxury
+* Intelligence
+* Athletic discipline
+
+It should feel like:
+
+* A premium fitness ecosystem
+* A futuristic AI coach
+* A luxury athletic platform
+* A motivating performance companion
+
+while still maintaining:
+
+* Warmth
+* Human-centered interaction
+* Emotional engagement
+* Minimalist elegance
+* Clean UI flow
+* High-end polish.

@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Platform, RefreshControl,
+  Platform, RefreshControl, Animated,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, Feather } from "@expo/vector-icons";
@@ -22,6 +22,96 @@ const AI_SUGGESTIONS = [
   "Try incline dumbbell press to target your upper chest.",
   "Consider adding a recovery day — you've trained 4 days straight.",
 ];
+
+const GHOST_STATS = {
+  sessions: 3,
+  calories: 1240,
+  minutes: 125,
+  xp: 420,
+};
+
+const SMART_RECS = [
+  { id: "rec1", name: "HIIT Inferno", tag: "High Calorie Burn", minutes: 30, xp: 200, color: "#FF2D78", icon: "flame" as const },
+  { id: "rec2", name: "Mobility Flow", tag: "Recovery Focused", minutes: 20, xp: 80, color: "#00E5A0", icon: "body" as const },
+  { id: "rec3", name: "Core Crusher", tag: "AI Recommended", minutes: 25, xp: 120, color: "#7B2FBE", icon: "sparkles" as const },
+];
+
+function GhostCard({ userStats, colors }: { userStats: any; colors: any }) {
+  const scaleAnim = useRef(new Animated.Value(0.96)).current;
+  const opacityAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(opacityAnim, { toValue: 1, duration: 600, useNativeDriver: Platform.OS !== "web" }),
+      Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: Platform.OS !== "web", friction: 8 }),
+    ]).start();
+  }, []);
+
+  const ahead = userStats.totalWorkouts > GHOST_STATS.sessions;
+  const diffCal = userStats.caloriesBurned - GHOST_STATS.calories;
+
+  return (
+    <Animated.View style={[{ opacity: opacityAnim, transform: [{ scale: scaleAnim }] }]}>
+      <TouchableOpacity
+        style={[styles.ghostCard, { backgroundColor: colors.card, borderColor: "#7B2FBE40" }]}
+        activeOpacity={0.88}
+      >
+        <LinearGradient
+          colors={["#7B2FBE12", "#00D4FF08", "transparent"]}
+          style={StyleSheet.absoluteFill}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        />
+        <View style={styles.ghostHeader}>
+          <View style={[styles.ghostBadge, { backgroundColor: "#7B2FBE20", borderColor: "#7B2FBE40" }]}>
+            <Ionicons name="person-outline" size={12} color="#7B2FBE" />
+            <Text style={[styles.ghostBadgeText, { color: "#7B2FBE" }]}>GHOST MODE</Text>
+          </View>
+          <Text style={[styles.ghostSub, { color: colors.mutedForeground }]}>vs. Last Week</Text>
+        </View>
+
+        <View style={styles.ghostCompare}>
+          <View style={styles.ghostCol}>
+            <Text style={[styles.ghostColLabel, { color: colors.mutedForeground }]}>Last Week</Text>
+            <Text style={[styles.ghostColVal, { color: colors.mutedForeground }]}>{GHOST_STATS.sessions} sessions</Text>
+            <Text style={[styles.ghostColSub, { color: colors.mutedForeground }]}>{GHOST_STATS.calories} cal</Text>
+          </View>
+
+          <View style={styles.ghostVsDivider}>
+            <View style={[styles.ghostVsLine, { backgroundColor: "#7B2FBE40" }]} />
+            <View style={[styles.ghostVsCircle, { backgroundColor: "#7B2FBE20", borderColor: "#7B2FBE60" }]}>
+              <Text style={[styles.ghostVsText, { color: "#7B2FBE" }]}>VS</Text>
+            </View>
+            <View style={[styles.ghostVsLine, { backgroundColor: "#7B2FBE40" }]} />
+          </View>
+
+          <View style={[styles.ghostCol, { alignItems: "flex-end" }]}>
+            <Text style={[styles.ghostColLabel, { color: colors.primary }]}>You Now</Text>
+            <Text style={[styles.ghostColVal, { color: colors.foreground }]}>{userStats.totalWorkouts} sessions</Text>
+            <Text style={[styles.ghostColSub, { color: colors.foreground }]}>{userStats.caloriesBurned} cal</Text>
+          </View>
+        </View>
+
+        <View style={[styles.ghostResult, {
+          backgroundColor: ahead ? colors.success + "15" : colors.accent + "15",
+          borderColor: ahead ? colors.success + "30" : colors.accent + "30",
+        }]}>
+          <Ionicons
+            name={ahead ? "trending-up" : "trending-down"}
+            size={14}
+            color={ahead ? colors.success : colors.accent}
+          />
+          <Text style={[styles.ghostResultText, { color: ahead ? colors.success : colors.accent }]}>
+            {ahead
+              ? `You're ahead! +${diffCal} cal more than last week.`
+              : "You're behind last week's pace. Push harder today."
+            }
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+}
 
 export default function HomeScreen() {
   const colors = useColors();
@@ -63,7 +153,10 @@ export default function HomeScreen() {
             <Text style={[styles.name, { color: colors.foreground }]}>{userProfile.name}</Text>
           </View>
           <View style={styles.headerRight}>
-            <TouchableOpacity onPress={() => router.push("/notifications" as any)} style={[styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <TouchableOpacity
+              onPress={() => router.push("/notifications" as any)}
+              style={[styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+            >
               <Ionicons name="notifications-outline" size={20} color={colors.foreground} />
               {unreadCount > 0 && (
                 <View style={[styles.badge, { backgroundColor: colors.accent }]}>
@@ -71,9 +164,9 @@ export default function HomeScreen() {
                 </View>
               )}
             </TouchableOpacity>
-            <View style={[styles.streakBadge, { backgroundColor: colors.warning + "20", borderColor: colors.warning + "40" }]}>
-              <Ionicons name="flame" size={14} color={colors.warning} />
-              <Text style={[styles.streakNum, { color: colors.warning }]}>{userStats.streak}</Text>
+            <View style={[styles.streakBadge, { backgroundColor: "#FFB80018", borderColor: "#FFB80035" }]}>
+              <Ionicons name="flame" size={14} color="#FFB800" />
+              <Text style={[styles.streakNum, { color: "#FFB800" }]}>{userStats.streak}</Text>
             </View>
           </View>
         </View>
@@ -87,6 +180,8 @@ export default function HomeScreen() {
           <StatCard icon="time-outline" label="Minutes" value={`${userStats.totalMinutes}`} subValue="total" color={colors.primary} />
           <StatCard icon="barbell-outline" label="Workouts" value={`${userStats.totalWorkouts}`} subValue="done" color={colors.success} />
         </View>
+
+        <GhostCard userStats={userStats} colors={colors} />
 
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Today's Workouts</Text>
@@ -134,7 +229,7 @@ export default function HomeScreen() {
           activeOpacity={0.85}
         >
           <LinearGradient
-            colors={[colors.primary + "15", "transparent"]}
+            colors={[colors.primary + "12", "transparent"]}
             style={StyleSheet.absoluteFill}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
@@ -150,6 +245,45 @@ export default function HomeScreen() {
             <Ionicons name="chevron-forward" size={18} color={colors.mutedForeground} />
           </View>
         </TouchableOpacity>
+
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Smart Recommendations</Text>
+          <View style={[styles.aiBadge, { backgroundColor: colors.primary + "15" }]}>
+            <Ionicons name="sparkles" size={10} color={colors.primary} />
+            <Text style={[styles.aiLabel2, { color: colors.primary }]}>AI Curated</Text>
+          </View>
+        </View>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.recsScroll} contentContainerStyle={styles.recsContent}>
+          {SMART_RECS.map((rec) => (
+            <TouchableOpacity
+              key={rec.id}
+              style={[styles.recCard, { backgroundColor: colors.card, borderColor: rec.color + "30" }]}
+              activeOpacity={0.85}
+            >
+              <LinearGradient
+                colors={[rec.color + "18", "transparent"]}
+                style={StyleSheet.absoluteFill}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+              />
+              <View style={[styles.recIcon, { backgroundColor: rec.color + "20" }]}>
+                <Ionicons name={rec.icon} size={20} color={rec.color} />
+              </View>
+              <Text style={[styles.recName, { color: colors.foreground }]}>{rec.name}</Text>
+              <View style={[styles.recTag, { backgroundColor: rec.color + "15" }]}>
+                <Text style={[styles.recTagText, { color: rec.color }]}>{rec.tag}</Text>
+              </View>
+              <View style={styles.recMeta}>
+                <Ionicons name="time-outline" size={11} color={colors.mutedForeground} />
+                <Text style={[styles.recMetaText, { color: colors.mutedForeground }]}>{rec.minutes}m</Text>
+                <View style={[styles.recXp, { backgroundColor: colors.primary + "20" }]}>
+                  <Text style={[styles.recXpText, { color: colors.primary }]}>+{rec.xp} XP</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
 
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Recent Activity</Text>
@@ -199,11 +333,29 @@ const styles = StyleSheet.create({
   streakBadge: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12, borderWidth: 1 },
   streakNum: { fontSize: 14, fontFamily: "Inter_700Bold" },
   xpCard: { borderRadius: 20, borderWidth: 1, padding: 16, marginBottom: 16 },
-  statsRow: { flexDirection: "row", gap: 10, marginBottom: 24 },
+  statsRow: { flexDirection: "row", gap: 10, marginBottom: 16 },
+  ghostCard: { borderRadius: 20, borderWidth: 1, padding: 16, marginBottom: 20, overflow: "hidden" },
+  ghostHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 },
+  ghostBadge: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10, borderWidth: 1 },
+  ghostBadgeText: { fontSize: 10, fontFamily: "Inter_700Bold", letterSpacing: 0.5 },
+  ghostSub: { fontSize: 11, fontFamily: "Inter_400Regular" },
+  ghostCompare: { flexDirection: "row", alignItems: "center", marginBottom: 14 },
+  ghostCol: { flex: 1, gap: 4 },
+  ghostColLabel: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
+  ghostColVal: { fontSize: 16, fontFamily: "Inter_700Bold" },
+  ghostColSub: { fontSize: 12, fontFamily: "Inter_400Regular" },
+  ghostVsDivider: { flexDirection: "column", alignItems: "center", gap: 4, paddingHorizontal: 12 },
+  ghostVsLine: { width: 1, height: 20 },
+  ghostVsCircle: { width: 32, height: 32, borderRadius: 10, alignItems: "center", justifyContent: "center", borderWidth: 1 },
+  ghostVsText: { fontSize: 10, fontFamily: "Inter_700Bold" },
+  ghostResult: { flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 12, borderWidth: 1, padding: 10 },
+  ghostResultText: { flex: 1, fontSize: 12, fontFamily: "Inter_500Medium" },
   sectionHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 },
   sectionTitle: { fontSize: 18, fontFamily: "Inter_700Bold", letterSpacing: -0.3 },
   countChip: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   countText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+  aiBadge: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10 },
+  aiLabel2: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
   swipeHint: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, marginBottom: 12 },
   hintLabel: { fontSize: 11, fontFamily: "Inter_400Regular" },
   emptyCard: { borderRadius: 20, borderWidth: 1, padding: 28, alignItems: "center", gap: 10, marginBottom: 20 },
@@ -215,6 +367,17 @@ const styles = StyleSheet.create({
   aiText: { flex: 1 },
   aiTitle: { fontSize: 11, fontFamily: "Inter_600SemiBold", letterSpacing: 0.5, marginBottom: 3 },
   aiSuggestion: { fontSize: 13, fontFamily: "Inter_500Medium", lineHeight: 18 },
+  recsScroll: { marginBottom: 24, marginHorizontal: -20 },
+  recsContent: { paddingHorizontal: 20, gap: 12 },
+  recCard: { width: 160, borderRadius: 18, borderWidth: 1, padding: 14, gap: 8, overflow: "hidden" },
+  recIcon: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  recName: { fontSize: 14, fontFamily: "Inter_700Bold" },
+  recTag: { alignSelf: "flex-start", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
+  recTagText: { fontSize: 10, fontFamily: "Inter_600SemiBold" },
+  recMeta: { flexDirection: "row", alignItems: "center", gap: 4 },
+  recMetaText: { fontSize: 11, fontFamily: "Inter_400Regular", flex: 1 },
+  recXp: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8 },
+  recXpText: { fontSize: 10, fontFamily: "Inter_700Bold" },
   activityRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderRadius: 16, borderWidth: 1, marginBottom: 8 },
   activityDot: { width: 8, height: 8, borderRadius: 4 },
   activityInfo: { flex: 1 },
