@@ -1,7 +1,7 @@
 import React, { useState, useRef, useMemo, memo } from "react";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Platform, Alert, Image, TextInput, KeyboardAvoidingView,
+  Platform, Alert, Image, TextInput, KeyboardAvoidingView, ActionSheetIOS,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
@@ -13,6 +13,7 @@ import { useColors } from "@/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
 import { useSocial, SocialPost, Audience } from "@/contexts/SocialContext";
 import { ACHIEVEMENTS, RARITY_COLORS } from "@/constants/achievements";
+import { SAMPLE_WORKOUTS } from "@/constants/workouts";
 import { XPProgressBar } from "@/components/XPProgressBar";
 import CreatePostModal from "@/components/CreatePostModal";
 
@@ -40,12 +41,13 @@ const IDENTITY_TITLES = [
 ];
 
 
-const PostCard = memo(function PostCard({ post, myUserId, myName, myAvatar, myBadge }: {
+const PostCard = memo(function PostCard({ post, myUserId, myName, myAvatar, myBadge, myProfileImage }: {
   post: SocialPost;
   myUserId: string;
   myName: string;
   myAvatar: string;
   myBadge: string;
+  myProfileImage?: string | null;
 }) {
   const colors = useColors();
   const { toggleReaction, addComment, deletePost, addReply } = useSocial();
@@ -317,27 +319,46 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { signOut } = useAuth();
-  const { userProfile, userStats, level, rank, xpProgress, earnedAchievements, updateProfile } = useFitness();
+  const { userProfile, userStats, level, rank, xpProgress, earnedAchievements, updateProfile, scheduledWorkouts } = useFitness();
   const { posts } = useSocial();
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const [activeTab, setActiveTab] = useState<Tab>("Overview");
   const [feedFilter, setFeedFilter] = useState<Audience>("global");
   const [showCreatePost, setShowCreatePost] = useState(false);
 
+  const [activeTitle, setActiveTitle] = useState(userProfile.activeTitle ?? "");
   const myUserId = "me";
   const myAvatar = userProfile.name.charAt(0).toUpperCase();
   const myBadge = rank;
   const myProfileImage = userProfile.profileImage;
+
+  const recentActivity = useMemo(() => {
+    return [...scheduledWorkouts]
+      .filter((w) => w.completed)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 3);
+  }, [scheduledWorkouts]);
   const filteredPosts = useMemo(
     () => posts.filter((p) => feedFilter === "global" ? true : p.audience === "friends" || p.userId === myUserId),
     [posts, feedFilter, myUserId]
   );
 
-  const handleSignOut = () => {
-    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Sign Out", style: "destructive", onPress: () => signOut() },
-    ]);
+  const handleSettingsPress = () => {
+    if (Platform.OS === "ios") {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options: ["Cancel", "Edit Profile", "Sign Out"], cancelButtonIndex: 0, destructiveButtonIndex: 2 },
+        (i) => {
+          if (i === 1) router.push("/edit-profile");
+          if (i === 2) signOut();
+        }
+      );
+    } else {
+      Alert.alert("Profile", "", [
+        { text: "Edit Profile", onPress: () => router.push("/edit-profile") },
+        { text: "Sign Out", style: "destructive", onPress: () => signOut() },
+        { text: "Cancel", style: "cancel" },
+      ]);
+    }
   };
 
   const handleSelectProfileImage = async () => {
@@ -382,6 +403,9 @@ export default function ProfileScreen() {
           </TouchableOpacity>
           <View style={styles.profileMeta}>
             <Text style={[styles.profileName, { color: colors.foreground }]}>{userProfile.name}</Text>
+            {activeTitle ? (
+              <Text style={[styles.activeTitleText, { color: colors.primary }]}>{activeTitle}</Text>
+            ) : null}
             <View style={styles.rankRow}>
               <View style={[styles.rankChip, { backgroundColor: colors.primary + "20", borderColor: colors.primary + "40" }]}>
                 <Ionicons name="flash" size={11} color={colors.primary} />
@@ -391,9 +415,12 @@ export default function ProfileScreen() {
                 <Text style={[styles.rankText, { color: colors.mutedForeground }]}>Level {level}</Text>
               </View>
             </View>
+            {userProfile.bio ? (
+              <Text style={[styles.bioText, { color: colors.mutedForeground }]} numberOfLines={2}>{userProfile.bio}</Text>
+            ) : null}
           </View>
-          <TouchableOpacity onPress={handleSignOut} style={[styles.settingsBtn, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Feather name="log-out" size={16} color={colors.mutedForeground} />
+          <TouchableOpacity onPress={handleSettingsPress} style={[styles.settingsBtn, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Ionicons name="settings-outline" size={17} color={colors.mutedForeground} />
           </TouchableOpacity>
         </View>
 
@@ -428,9 +455,65 @@ export default function ProfileScreen() {
 
         {activeTab === "Overview" && (
           <>
+            {(!userProfile.bio || !userProfile.profileImage) && (
+              <TouchableOpacity
+                onPress={() => router.push("/edit-profile")}
+                style={[styles.nudgeCard, { backgroundColor: colors.card, borderColor: colors.primary + "40" }]}
+                activeOpacity={0.8}
+              >
+                <LinearGradient colors={["#8FB8FF12", "#A78BFA08"]} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
+                <Ionicons name="person-circle-outline" size={20} color={colors.primary} />
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.nudgeTitle, { color: colors.foreground }]}>Complete your profile</Text>
+                  <Text style={[styles.nudgeSub, { color: colors.mutedForeground }]}>
+                    {!userProfile.profileImage && !userProfile.bio ? "Add a photo and bio" : !userProfile.profileImage ? "Add a profile photo" : "Add a bio"}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
+              </TouchableOpacity>
+            )}
+
             <View style={[styles.xpCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <XPProgressBar xp={userStats.xp} level={level} rank={rank} xpProgress={xpProgress} />
             </View>
+
+            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Personal Bests</Text>
+            <View style={styles.pbGrid}>
+              {[
+                { icon: "trophy", label: "Best Streak", value: `${userStats.streak}d`, color: "#F3D27A" },
+                { icon: "barbell", label: "Workouts", value: userStats.totalWorkouts.toString(), color: colors.primary },
+                { icon: "time", label: "Total Hours", value: `${Math.round(userStats.totalMinutes / 60)}h`, color: colors.success },
+                { icon: "flash", label: "Total XP", value: userStats.xp.toLocaleString(), color: "#A78BFA" },
+              ].map((pb) => (
+                <View key={pb.label} style={[styles.pbCell, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                  <Ionicons name={pb.icon as any} size={18} color={pb.color} />
+                  <Text style={[styles.pbValue, { color: colors.foreground }]}>{pb.value}</Text>
+                  <Text style={[styles.pbLabel, { color: colors.mutedForeground }]}>{pb.label}</Text>
+                </View>
+              ))}
+            </View>
+
+            {recentActivity.length > 0 && (
+              <>
+                <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Recent Activity</Text>
+                <View style={[styles.activityList, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                  {recentActivity.map((w, i) => (
+                    <View key={w.id} style={[styles.activityRow, i < recentActivity.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border }]}>
+                      <View style={[styles.activityDot, { backgroundColor: colors.primary + "30" }]}>
+                        <Ionicons name="checkmark" size={12} color={colors.primary} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.activityName, { color: colors.foreground }]}>{SAMPLE_WORKOUTS.find((s) => s.id === w.workoutId)?.name ?? w.workoutId}</Text>
+                        <Text style={[styles.activityDate, { color: colors.mutedForeground }]}>{new Date(w.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}</Text>
+                      </View>
+                      <View style={[styles.doneChip, { backgroundColor: colors.success + "20" }]}>
+                        <Text style={[styles.doneText, { color: colors.success }]}>Done</Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              </>
+            )}
 
             <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
               Achievements ({earnedBadges.length}/{ACHIEVEMENTS.length})
@@ -487,15 +570,27 @@ export default function ProfileScreen() {
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.titlesScroll} contentContainerStyle={styles.titlesContent}>
               {IDENTITY_TITLES.map((title, i) => {
                 const earned = i < 2;
+                const isActive = activeTitle === title;
                 return (
-                  <View key={title} style={[styles.titleChip,
-                    earned
-                      ? { backgroundColor: colors.primary + "20", borderColor: colors.primary + "50" }
-                      : { backgroundColor: colors.muted, borderColor: colors.border, opacity: 0.5 }
-                  ]}>
-                    {earned && <Ionicons name="checkmark-circle" size={12} color={colors.primary} />}
-                    <Text style={[styles.titleChipText, { color: earned ? colors.primary : colors.mutedForeground }]}>{title}</Text>
-                  </View>
+                  <TouchableOpacity
+                    key={title}
+                    disabled={!earned}
+                    onPress={() => {
+                      const next = isActive ? "" : title;
+                      setActiveTitle(next);
+                      updateProfile({ activeTitle: next });
+                    }}
+                    style={[styles.titleChip,
+                      isActive
+                        ? { backgroundColor: colors.primary, borderColor: colors.primary }
+                        : earned
+                          ? { backgroundColor: colors.primary + "20", borderColor: colors.primary + "50" }
+                          : { backgroundColor: colors.muted, borderColor: colors.border, opacity: 0.5 }
+                    ]}
+                  >
+                    {earned && <Ionicons name={isActive ? "checkmark-circle" : "checkmark-circle-outline"} size={12} color={isActive ? "#0D0D0D" : colors.primary} />}
+                    <Text style={[styles.titleChipText, { color: isActive ? "#0D0D0D" : earned ? colors.primary : colors.mutedForeground }]}>{title}</Text>
+                  </TouchableOpacity>
                 );
               })}
             </ScrollView>
@@ -583,6 +678,7 @@ export default function ProfileScreen() {
                 myName={userProfile.name}
                 myAvatar={myAvatar}
                 myBadge={rank}
+                myProfileImage={myProfileImage}
               />
             ))}
 
@@ -678,6 +774,22 @@ const styles = StyleSheet.create({
   rankChip: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, borderWidth: 1 },
   rankText: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
   settingsBtn: { width: 38, height: 38, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1 },
+  activeTitleText: { fontSize: 11, fontFamily: "Inter_600SemiBold", marginBottom: 4, letterSpacing: 0.2 },
+  bioText: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 5, lineHeight: 17 },
+  nudgeCard: { flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 16, borderWidth: 1, padding: 14, marginBottom: 14, overflow: "hidden" },
+  nudgeTitle: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  nudgeSub: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 2 },
+  pbGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 16 },
+  pbCell: { width: "47%", flexGrow: 1, borderRadius: 16, borderWidth: 1, padding: 14, alignItems: "center", gap: 6 },
+  pbValue: { fontSize: 20, fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
+  pbLabel: { fontSize: 10, fontFamily: "Inter_500Medium" },
+  activityList: { borderRadius: 18, borderWidth: 1, overflow: "hidden", marginBottom: 16 },
+  activityRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 13 },
+  activityDot: { width: 30, height: 30, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  activityName: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  activityDate: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 2 },
+  doneChip: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 8 },
+  doneText: { fontSize: 10, fontFamily: "Inter_700Bold" },
   miniStats: { flexDirection: "row", marginBottom: 16 },
   miniStat: { flex: 1, alignItems: "center", gap: 2 },
   miniVal: { fontSize: 18, fontFamily: "Inter_700Bold" },

@@ -212,7 +212,7 @@ export default function GoalsScreen() {
         {goals.length > 0 && (
           <View style={[styles.goalsBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={styles.goalsBoxHeader}>
-              <Ionicons name="target" size={18} color={colors.primary} />
+              <Ionicons name="flag" size={18} color={colors.primary} />
               <Text style={[styles.goalsBoxTitle, { color: colors.foreground }]}>Active Goals</Text>
             </View>
             {goals.slice(0, 2).map((goal) => (

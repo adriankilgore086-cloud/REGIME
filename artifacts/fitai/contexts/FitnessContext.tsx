@@ -14,6 +14,8 @@ export interface UserProfile {
   height: number;
   fitnessGoal: 'weight_loss' | 'muscle_gain' | 'strength' | 'endurance' | 'general';
   profileImage?: string | null;
+  bio?: string;
+  activeTitle?: string;
 }
 
 export interface UserStats {

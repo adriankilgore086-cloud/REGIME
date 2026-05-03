@@ -15,6 +15,7 @@ export default function EditProfileScreen() {
   const router = useRouter();
   const { userProfile, updateProfile } = useFitness();
   const [name, setName] = useState(userProfile.name);
+  const [bio, setBio] = useState(userProfile.bio ?? "");
   const [age, setAge] = useState(userProfile.age.toString());
   const [weight, setWeight] = useState(userProfile.weight.toString());
   const [height, setHeight] = useState(userProfile.height.toString());
@@ -27,6 +28,7 @@ export default function EditProfileScreen() {
     }
     await updateProfile({
       name: name.trim(),
+      bio: bio.trim(),
       age: parseInt(age) || 0,
       weight: parseFloat(weight) || 0,
       height: parseFloat(height) || 0,
@@ -57,6 +59,19 @@ export default function EditProfileScreen() {
             onChangeText={setName}
             placeholder="Your name"
             placeholderTextColor={colors.mutedForeground}
+          />
+        </View>
+
+        <View style={styles.section}>
+          <Text style={[styles.label, { color: colors.foreground }]}>Bio</Text>
+          <TextInput
+            style={[styles.input, { backgroundColor: colors.card, color: colors.foreground, borderColor: colors.border, height: 80, textAlignVertical: "top" }]}
+            value={bio}
+            onChangeText={setBio}
+            placeholder="Tell us about yourself..."
+            placeholderTextColor={colors.mutedForeground}
+            multiline
+            maxLength={160}
           />
         </View>
 
