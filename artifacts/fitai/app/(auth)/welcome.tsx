@@ -167,7 +167,7 @@ export default function WelcomeScreen() {
               {/* Divider */}
               <View style={styles.dividerRow}>
                 <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>or sign in with email</Text>
+                <Text style={styles.dividerText}>Sign in</Text>
                 <View style={styles.dividerLine} />
               </View>
 
@@ -231,9 +231,7 @@ export default function WelcomeScreen() {
                 }
               </TouchableOpacity>
 
-              {/* Sign up link */}
               <View style={styles.signupRow}>
-                <Text style={styles.signupLabel}>New here?</Text>
                 <Link href="/(auth)/sign-up" asChild>
                   <TouchableOpacity activeOpacity={0.7}>
                     <Text style={styles.signupLink}>Create account</Text>
@@ -351,15 +349,17 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     borderWidth: 1,
     backgroundColor: "#111111",
-    height: 54,
+    minHeight: 74,
     overflow: "hidden",
   },
   ovalInputField: {
     flex: 1,
-    fontSize: 15,
-    fontFamily: "Inter_400Regular",
+    fontSize: 21,
+    fontFamily: "Inter_500Medium",
     color: "#F5F5F5",
     paddingHorizontal: 12,
+    paddingTop: 0,
+    paddingBottom: 0,
     height: "100%",
   },
   fieldErr: {
@@ -413,11 +413,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     gap: 6,
-  },
-  signupLabel: {
-    fontSize: 14,
-    fontFamily: "Inter_400Regular",
-    color: "#A1A1A1",
   },
   signupLink: {
     fontSize: 14,
