@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Platform, RefreshControl, Animated,
+  Platform, RefreshControl, Animated, Image,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, Feather } from "@expo/vector-icons";
@@ -267,9 +267,18 @@ export default function HomeScreen() {
         contentContainerStyle={[styles.scrollContent, { paddingTop: topPad + 12, paddingBottom: 120 }]}
       >
         <View style={styles.header}>
-          <View>
-            <Text style={[styles.greeting, { color: colors.mutedForeground }]}>{greeting}</Text>
-            <Text style={[styles.name, { color: colors.foreground }]}>{userProfile.name}</Text>
+          <View style={styles.headerLeft}>
+            <View style={[styles.miniProfile, { backgroundColor: colors.primary + "20", borderColor: colors.primary + "50" }]}>
+              {userProfile.profileImage ? (
+                <Image source={{ uri: userProfile.profileImage }} style={styles.miniProfileImage} />
+              ) : (
+                <Text style={[styles.miniProfileText, { color: colors.primary }]}>{userProfile.name.charAt(0).toUpperCase()}</Text>
+              )}
+            </View>
+            <View>
+              <Text style={[styles.greeting, { color: colors.mutedForeground }]}>{greeting}</Text>
+              <Text style={[styles.name, { color: colors.foreground }]}>{userProfile.name}</Text>
+            </View>
           </View>
           <View style={styles.headerRight}>
             <TouchableOpacity
@@ -500,9 +509,13 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { paddingHorizontal: 20 },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 },
-  greeting: { fontSize: 13, fontFamily: "Inter_400Regular" },
-  name: { fontSize: 22, fontFamily: "Poppins_700Bold", letterSpacing: -0.5 },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20, gap: 12 },
+  headerLeft: { flexDirection: "row", alignItems: "center", gap: 10, flex: 1 },
+  miniProfile: { width: 48, height: 48, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1.5, overflow: "hidden", flexShrink: 0 },
+  miniProfileImage: { width: 48, height: 48, borderRadius: 12 },
+  miniProfileText: { fontSize: 20, fontFamily: "Inter_700Bold" },
+  greeting: { fontSize: 12, fontFamily: "Inter_400Regular" },
+  name: { fontSize: 18, fontFamily: "Poppins_700Bold", letterSpacing: -0.5, marginTop: 2 },
   headerRight: { flexDirection: "row", alignItems: "center", gap: 10 },
   iconBtn: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1, position: "relative" },
   badge: { position: "absolute", top: -4, right: -4, width: 16, height: 16, borderRadius: 8, alignItems: "center", justifyContent: "center" },
