@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Platform, Modal, TextInput,
+  Platform, Modal, TextInput, PanResponder, Animated,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -45,7 +45,7 @@ function StreakCalendar() {
 
   const today = new Date();
   const DAY_LABELS = ["M", "T", "W", "T", "F", "S", "S"];
-  const WEEKS = 8;
+  const WEEKS = 6;
   const totalDays = WEEKS * 7;
 
   const cells = useMemo(() => {
@@ -102,7 +102,9 @@ function StreakCalendar() {
                       ? colors.success
                       : cell.future
                         ? colors.muted + "40"
-                        : colors.muted,
+                        : cell.scheduled && !cell.done
+                    ? "#FF4D4D60"
+                      : colors.success + "40",
                   },
                 ]}
               />
@@ -154,7 +156,22 @@ export default function GoalsScreen() {
   const [newGoalPurpose, setNewGoalPurpose] = useState("");
   const [newGoalDescription, setNewGoalDescription] = useState("");
   const [longPressedGoal, setLongPressedGoal] = useState<string | null>(null);
-  const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const topPad = Platform.OS === "web" ? 67 : insets.top;const translateY = React.useRef(new Animated.Value(0)).current;
+  const panResponder = React.useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, g) => g.dy > 10,
+      onPanResponderMove: (_, g) => { if (g.dy > 0) translateY.setValue(g.dy); },
+      onPanResponderRelease: (_, g) => {
+        if (g.dy > 100) {
+          setGoalStep("form");
+          setShowAdd(false);
+          translateY.setValue(0);
+        } else {
+          Animated.spring(translateY, { toValue: 0, useNativeDriver: true }).start();
+        }
+      },
+    })
+  ).current;
 
   const handleAddGoal = async () => {
     if (!newGoalTitle || !newGoalTarget) return;
@@ -230,7 +247,6 @@ export default function GoalsScreen() {
 
         <StreakCalendar />
 
-        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Your Goals</Text>
 
         {goals.map((goal) => {
           const progress = Math.min(goal.currentValue / goal.targetValue, 1);
@@ -288,7 +304,7 @@ export default function GoalsScreen() {
         <Text style={[styles.sectionTitle, { color: colors.foreground, marginTop: 8 }]}>4-Week AI Program</Text>
 
         {AI_PLAN_WEEKS.map((week) => (
-          <View key={week.week} style={[styles.weekCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <<TouchableOpacity key={week.week} onPress={() => alert(`Week ${week.week}: ${week.focus}`)} style={[styles.weekCard, ...]}></TouchableOpacity> , { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={styles.weekHeader}>
               <View style={[styles.weekNum, { backgroundColor: colors.primary + "20" }]}>
                 <Text style={[styles.weekNumText, { color: colors.primary }]}>W{week.week}</Text>
@@ -305,7 +321,7 @@ export default function GoalsScreen() {
                   <Text style={[styles.weekWorkoutText, { color: colors.foreground }]}>{w}</Text>
                 </View>
               ))}
-            </View>
+              </TouchableOpacity>
           </View>
         ))}
 
@@ -321,13 +337,19 @@ export default function GoalsScreen() {
               <Text style={[styles.tipText, { color: colors.mutedForeground }]}>{tip}</Text>
             </View>
           ))}
+          <TouchableOpacity style={[styles.progressBtn, { backgroundColor: colors.accent + "20", borderColor: colors.accent + "30", marginTop: 8 }]}>
+            <Text style={[styles.progressBtnText, { color: colors.accent }]}>View Full Nutrition Plan</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
 
       <Modal visible={showAdd} transparent animationType="slide" onRequestClose={() => { setGoalStep("form"); setShowAdd(false); }}>
         <View style={styles.modalOverlay}>
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.modalScroll}>
-            <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
+            <Animated.View
+              style={[styles.modalCard, { backgroundColor: colors.card, transform: [{ translateY }] }]}
+              {...panResponder.panHandlers}
+            >
               {goalStep === "form" ? (
                 <>
                   <Text style={[styles.modalTitle, { color: colors.foreground }]}>Create New Goal</Text>
@@ -337,7 +359,7 @@ export default function GoalsScreen() {
                   <View style={styles.modalRow}>
                     <TextInput style={[styles.modalInput, { flex: 1, backgroundColor: colors.muted, color: colors.foreground, borderColor: colors.border }]} placeholder="Target" placeholderTextColor={colors.mutedForeground} value={newGoalTarget} onChangeText={setNewGoalTarget} keyboardType="numeric" />
                     <TextInput style={[styles.modalInput, { width: 70, backgroundColor: colors.muted, color: colors.foreground, borderColor: colors.border }]} placeholder="Unit" placeholderTextColor={colors.mutedForeground} value={newGoalUnit} onChangeText={setNewGoalUnit} />
-                  </View>
+                  </Animated.View>
                   <TextInput style={[styles.modalInput, { backgroundColor: colors.muted, color: colors.foreground, borderColor: colors.border }]} placeholder="Duration (days)" placeholderTextColor={colors.mutedForeground} value={newGoalDuration} onChangeText={setNewGoalDuration} keyboardType="numeric" />
                   <TouchableOpacity onPress={() => setGoalStep("preview")} style={[styles.modalBtn, { backgroundColor: colors.primary }]}>
                     <Text style={styles.modalBtnText}>Preview Goal →</Text>
