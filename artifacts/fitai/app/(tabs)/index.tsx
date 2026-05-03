@@ -421,7 +421,7 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.recsScroll} contentContainerStyle={styles.recsContent}>
+        <View style={styles.recsGrid}>
           {SMART_RECS.map((rec) => (
             <TouchableOpacity
               key={rec.id}
@@ -451,7 +451,7 @@ export default function HomeScreen() {
               </View>
             </TouchableOpacity>
           ))}
-        </ScrollView>
+        </View>
 
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Recent Activity</Text>
@@ -546,7 +546,8 @@ const styles = StyleSheet.create({
   aiSuggestion: { fontSize: 13, fontFamily: "Inter_500Medium", lineHeight: 18 },
   recsScroll: { marginBottom: 24, marginHorizontal: -20 },
   recsContent: { paddingHorizontal: 20, gap: 12 },
-  recCard: { width: 160, borderRadius: 18, borderWidth: 1, padding: 14, gap: 8, overflow: "hidden" },
+  recsGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 12, marginBottom: 24, paddingHorizontal: 20 },
+  recCard: { width: "31%", minWidth: 100, borderRadius: 18, borderWidth: 1, padding: 14, gap: 8, overflow: "hidden", alignItems: "center" },
   recIcon: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   recName: { fontSize: 14, fontFamily: "Inter_700Bold" },
   recTag: { alignSelf: "flex-start", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
