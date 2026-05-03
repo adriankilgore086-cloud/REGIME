@@ -49,7 +49,7 @@ function MuscleBar({ muscle, pct, color }: { muscle: string; pct: number; color:
   const colors = useColors();
   const anim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    Animated.timing(anim, { toValue: pct, duration: 800, delay: 100, useNativeDriver: false }).start();
+    Animated.timing(anim, { toValue: pct, duration: 800, useNativeDriver: false }).start();
   }, []);
   const width = anim.interpolate({ inputRange: [0, 100], outputRange: ["0%", "100%"] });
   return (
