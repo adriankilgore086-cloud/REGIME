@@ -31,11 +31,6 @@ const GHOST_STATS = {
   xp: 420,
 };
 
-const SMART_RECS = [
-  { id: "rec1", name: "HIIT Inferno", tag: "High Calorie Burn", minutes: 30, xp: 200, color: "#FF2D78", icon: "flame" as const },
-  { id: "rec2", name: "Mobility Flow", tag: "Recovery Focused", minutes: 20, xp: 80, color: "#7BE0B8", icon: "body" as const },
-  { id: "rec3", name: "Core Crusher", tag: "AI Recommended", minutes: 25, xp: 120, color: "#A78BFA", icon: "sparkles" as const },
-];
 
 const PR_BOARD = [
   { lift: "Bench Press", current: 100, prev: 90, unit: "kg", icon: "barbell-outline" as const, color: "#FF2D78" },
@@ -355,11 +350,6 @@ export default function HomeScreen() {
 
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Scheduled Today</Text>
-          <View style={[styles.countChip, { backgroundColor: colors.primary + "20" }]}>
-            <Text style={[styles.countText, { color: colors.primary }]}>
-              {completedToday}/{todaysWorkouts.length + completedToday} done
-            </Text>
-          </View>
         </View>
 
         {todaysWorkouts.length === 0 ? (
@@ -392,41 +382,6 @@ export default function HomeScreen() {
             />
           );
         })}
-
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>This Week</Text>
-        </View>
-
-        <TouchableOpacity onPress={() => router.push("/stats-overview" as any)}>
-          <View style={[styles.weekWidget, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <View style={styles.weekStatCol}>
-              <View style={[styles.weekStatIcon, { backgroundColor: colors.success + "20" }]}>
-                <Ionicons name="checkmark-circle-outline" size={20} color={colors.success} />
-              </View>
-              <Text style={[styles.weekStatLabel, { color: colors.mutedForeground }]}>Workouts</Text>
-              <Text style={[styles.weekStatValue, { color: colors.foreground }]}>{weekWorkouts}</Text>
-              <Text style={[styles.weekStatSub, { color: colors.mutedForeground }]}>this week</Text>
-            </View>
-            <View style={[styles.weekStatDivider, { backgroundColor: colors.border }]} />
-            <View style={styles.weekStatCol}>
-              <View style={[styles.weekStatIcon, { backgroundColor: colors.primary + "20" }]}>
-                <Ionicons name="time-outline" size={20} color={colors.primary} />
-              </View>
-              <Text style={[styles.weekStatLabel, { color: colors.mutedForeground }]}>Minutes</Text>
-              <Text style={[styles.weekStatValue, { color: colors.foreground }]}>{weekMinutes}</Text>
-              <Text style={[styles.weekStatSub, { color: colors.mutedForeground }]}>this week</Text>
-            </View>
-            <View style={[styles.weekStatDivider, { backgroundColor: colors.border }]} />
-            <View style={styles.weekStatCol}>
-              <View style={[styles.weekStatIcon, { backgroundColor: colors.accent + "20" }]}>
-                <Ionicons name="flame-outline" size={20} color={colors.accent} />
-              </View>
-              <Text style={[styles.weekStatLabel, { color: colors.mutedForeground }]}>Calories</Text>
-              <Text style={[styles.weekStatValue, { color: colors.foreground }]}>{weekCalories}</Text>
-              <Text style={[styles.weekStatSub, { color: colors.mutedForeground }]}>this week</Text>
-            </View>
-          </View>
-        </TouchableOpacity>
 
         <TouchableOpacity
           onPress={() => setShowAI(true)}
@@ -490,71 +445,6 @@ export default function HomeScreen() {
           })}
         </ScrollView>
 
-        <TouchableOpacity onPress={() => router.push("/stats-overview" as any)}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Smart Recommendations</Text>
-            <View style={[styles.aiBadge, { backgroundColor: colors.primary + "15" }]}>
-              <Ionicons name="sparkles" size={10} color={colors.primary} />
-              <Text style={[styles.aiLabel2, { color: colors.primary }]}>AI Curated</Text>
-            </View>
-          </View>
-        </TouchableOpacity>
-
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.recsScroll} contentContainerStyle={styles.recsContent}>
-          {SMART_RECS.map((rec) => (
-            <TouchableOpacity
-              key={rec.id}
-              onPress={() => router.push("/stats-overview" as any)}
-              style={[styles.recCard, { backgroundColor: colors.card, borderColor: rec.color + "30" }]}
-              activeOpacity={0.85}
-            >
-              <LinearGradient
-                colors={[rec.color + "18", "transparent"]}
-                style={StyleSheet.absoluteFill}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 0, y: 1 }}
-              />
-              <View style={[styles.recIcon, { backgroundColor: rec.color + "20" }]}>
-                <Ionicons name={rec.icon} size={20} color={rec.color} />
-              </View>
-              <Text style={[styles.recName, { color: colors.foreground }]}>{rec.name}</Text>
-              <View style={[styles.recTag, { backgroundColor: rec.color + "15" }]}>
-                <Text style={[styles.recTagText, { color: rec.color }]}>{rec.tag}</Text>
-              </View>
-              <View style={styles.recMeta}>
-                <Ionicons name="time-outline" size={11} color={colors.mutedForeground} />
-                <Text style={[styles.recMetaText, { color: colors.mutedForeground }]}>{rec.minutes}m</Text>
-                <View style={[styles.recXp, { backgroundColor: colors.primary + "20" }]}>
-                  <Text style={[styles.recXpText, { color: colors.primary }]}>+{rec.xp} XP</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Recent Activity</Text>
-        </View>
-
-        {scheduledWorkouts
-          .filter((sw) => sw.completed)
-          .slice(0, 3)
-          .map((sw) => {
-            const workout = SAMPLE_WORKOUTS.find((w) => w.id === sw.workoutId);
-            if (!workout) return null;
-            return (
-              <View key={sw.id} style={[styles.activityRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <View style={[styles.activityDot, { backgroundColor: colors.success }]} />
-                <View style={styles.activityInfo}>
-                  <Text style={[styles.activityName, { color: colors.foreground }]}>{workout.name}</Text>
-                  <Text style={[styles.activitySub, { color: colors.mutedForeground }]}>
-                    {workout.durationMinutes}m · {workout.calories} cal · +{workout.xpReward} XP
-                  </Text>
-                </View>
-                <Ionicons name="checkmark-circle" size={20} color={colors.success} />
-              </View>
-            );
-          })}
       </ScrollView>
 
       <TouchableOpacity onPress={() => setShowAI(true)} style={[styles.fab, { backgroundColor: colors.primary }]}>

@@ -297,10 +297,12 @@ export default function HealthScreen() {
             <View style={styles.recoveryTopRow}>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.recoveryBadge, { color: "#7BE0B8" }]}>RECOVERY SCORE</Text>
-                <Text style={[styles.recoveryTitle, { color: "#F5F5F5" }]}>78</Text>
-                <Text style={[styles.recoveryBody, { color: "#B4C8BE" }]}>Good to train</Text>
+                <Text style={[styles.recoveryTitle, { color: "#F5F5F5" }]}>{recoveryScore}</Text>
+                <Text style={[styles.recoveryBody, { color: "#B4C8BE" }]}>
+                  {recoveryScore >= 75 ? "Good to train" : recoveryScore >= 50 ? "Train light" : "Rest recommended"}
+                </Text>
               </View>
-              <RecoveryRing score={78} />
+              <RecoveryRing score={recoveryScore} />
             </View>
           </View>
         </TouchableOpacity>
@@ -346,17 +348,17 @@ export default function HealthScreen() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity onPress={() => router.push("/recovery-detail" as any)} style={{ marginBottom: 14 }}>
-          <View style={[styles.bodyWidget, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <TouchableOpacity onPress={() => router.push("/body-metrics" as any)} style={{ marginBottom: 14 }}>
+          <View style={[styles.bodyWidget, { backgroundColor: "#1A0F2E", borderColor: "#A78BFA40" }]}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-              <View style={[styles.bodyIcon, { backgroundColor: "#7BE0B820" }]}>
-                <Ionicons name="body-outline" size={20} color="#7BE0B8" />
+              <View style={[styles.bodyIcon, { backgroundColor: "#A78BFA20" }]}>
+                <Ionicons name="body-outline" size={20} color="#A78BFA" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.bodyTitle, { color: colors.foreground }]}>Body Composition</Text>
-                <Text style={[styles.bodySub, { color: colors.mutedForeground }]}>Weight, Height, BMI</Text>
+                <Text style={[styles.bodyTitle, { color: "#F5F5F5" }]}>Body Composition</Text>
+                <Text style={[styles.bodySub, { color: "#A78BFA99" }]}>Weight · Height · BMI · TDEE</Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.mutedForeground} />
+              <Ionicons name="chevron-forward" size={18} color="#A78BFA" />
             </View>
           </View>
         </TouchableOpacity>
@@ -413,7 +415,9 @@ export default function HealthScreen() {
           <BarChart data={minuteData} max={maxMin} color={colors.primary} />
         </View>
 
-        <ActivityHeatmap />
+        <TouchableOpacity onPress={() => router.push("/health-detail?metric=activity" as any)} activeOpacity={0.85}>
+          <ActivityHeatmap />
+        </TouchableOpacity>
 
         <View style={[styles.chartCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={styles.chartHeader}>
