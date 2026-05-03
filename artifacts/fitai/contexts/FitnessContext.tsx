@@ -209,7 +209,24 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
       skipped: false,
       completedAt: null,
     };
-    await updateState((s) => ({ ...s, scheduledWorkouts: [...s.scheduledWorkouts, newScheduled] }));
+    const workout = SAMPLE_WORKOUTS.find((w) => w.id === workoutId);
+    await updateState((s) => ({
+      ...s,
+      scheduledWorkouts: [...s.scheduledWorkouts, newScheduled],
+      notifications: workout
+        ? [
+            {
+              id: Date.now().toString() + "n",
+              title: "Workout Scheduled",
+              message: `${workout.name} is set for ${date}.`,
+              type: "workout",
+              read: false,
+              createdAt: new Date().toISOString(),
+            },
+            ...s.notifications,
+          ]
+        : s.notifications,
+    }));
   }, [updateState]);
 
   const completeWorkout = useCallback(async (scheduledId: string) => {
@@ -269,6 +286,17 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
         ),
         earnedAchievements: newEarned,
         healthMetrics: [newHealthEntry, ...healthFiltered].slice(0, 30),
+        notifications: [
+          {
+            id: Date.now().toString() + "n",
+            title: "Workout Complete",
+            message: `You earned +${xpEarned} XP and kept your streak alive.`,
+            type: "workout",
+            read: false,
+            createdAt: new Date().toISOString(),
+          },
+          ...prev.notifications,
+        ],
       };
       save(next);
       return next;
