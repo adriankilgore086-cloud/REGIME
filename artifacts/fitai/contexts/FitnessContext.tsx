@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SAMPLE_WORKOUTS, getLevel, getRank, getXpProgress } from '@/constants/workouts';
 import { ACHIEVEMENTS, Achievement, checkAchievements } from '@/constants/achievements';
 
-const STORAGE_KEY = '@fitai_data_v2';
+const STORAGE_KEY = '@regime_data_v2';
 
 export interface UserProfile {
   name: string;

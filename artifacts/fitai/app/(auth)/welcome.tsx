@@ -141,7 +141,7 @@ export default function WelcomeScreen() {
               </View>
 
               {/* App name + tagline */}
-              <Text style={styles.appName}>FitAI</Text>
+              <Text style={styles.appName}>Regime</Text>
               <Text style={styles.tagline}>Start your transformation today</Text>
             </View>
 

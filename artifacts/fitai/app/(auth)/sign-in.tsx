@@ -166,7 +166,7 @@ export default function SignInScreen() {
           <LinearGradient colors={["#8FB8FF", "#6B9EFF"]} style={styles.logoIcon}>
             <Ionicons name="flash" size={22} color="#0D0D0D" />
           </LinearGradient>
-          <Text style={[styles.appName, { color: colors.foreground }]}>FitAI</Text>
+          <Text style={[styles.appName, { color: colors.foreground }]}>Regime</Text>
         </View>
 
         <Text style={[styles.title, { color: colors.foreground }]}>Welcome back</Text>

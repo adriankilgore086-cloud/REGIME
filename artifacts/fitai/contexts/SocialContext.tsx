@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const STORAGE_KEY = "@fitai_social_v1";
+const STORAGE_KEY = "@regime_social_v1";
 
 export type PostType = "text" | "workout" | "milestone" | "pr" | "media";
 export type Audience = "global" | "friends";

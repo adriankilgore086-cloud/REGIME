@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "FitAI",
-    "slug": "fitai",
+    "name": "Regime",
+    "slug": "regime",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "fitai",
+    "scheme": "regime",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {

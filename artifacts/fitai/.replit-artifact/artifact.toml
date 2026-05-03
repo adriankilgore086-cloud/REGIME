@@ -1,6 +1,6 @@
 kind = "mobile"
 previewPath = "/"
-title = "FitAI — Premium Fitness App"
+title = "Regime — Premium Fitness App"
 version = "1.0.0"
 id = "artifacts/fitai"
 router = "expo-domain"

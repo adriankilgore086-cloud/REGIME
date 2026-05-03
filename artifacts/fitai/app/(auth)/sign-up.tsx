@@ -162,7 +162,7 @@ export default function SignUpScreen() {
           <LinearGradient colors={["#8FB8FF", "#6B9EFF"]} style={[styles.logoIcon, { marginBottom: 20 }]}>
             <Ionicons name="flash" size={22} color="#0D0D0D" />
           </LinearGradient>
-          <Text style={[styles.title, { color: colors.foreground }]}>Join FitAI</Text>
+          <Text style={[styles.title, { color: colors.foreground }]}>Join Regime</Text>
           <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Start your transformation today</Text>
         </View>
 
