@@ -50,6 +50,7 @@ export default function WelcomeScreen() {
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
@@ -95,6 +96,26 @@ export default function WelcomeScreen() {
       setGoogleLoading(false);
     }
   }, [signIn, startSSOFlow]);
+
+  const handleApple = useCallback(async () => {
+    setAppleLoading(true);
+    try {
+      signIn.reset();
+      const { createdSessionId, setActive } = await startSSOFlow({
+        strategy: "oauth_apple",
+        redirectUrl: AuthSession.makeRedirectUri(),
+      });
+      if (createdSessionId && setActive) {
+        await setActive({
+          session: createdSessionId,
+          navigate: async () => router.replace("/(tabs)"),
+        });
+      }
+    } catch {
+    } finally {
+      setAppleLoading(false);
+    }
+  }, [signIn, startSSOFlow, router]);
 
   const emailError = errors?.fields?.identifier?.message;
   const passwordError = errors?.fields?.password?.message;
@@ -162,6 +183,21 @@ export default function WelcomeScreen() {
                   : <>
                     <Ionicons name="logo-google" size={17} color="#F5F5F5" />
                     <Text style={styles.googleText}>Continue with Google</Text>
+                  </>
+                }
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleApple}
+                disabled={appleLoading}
+                style={styles.appleBtn}
+                activeOpacity={0.8}
+              >
+                {appleLoading
+                  ? <ActivityIndicator size="small" color="#F5F5F5" />
+                  : <>
+                    <Ionicons name="logo-apple" size={17} color="#F5F5F5" />
+                    <Text style={styles.googleText}>Continue with Apple</Text>
                   </>
                 }
               </TouchableOpacity>

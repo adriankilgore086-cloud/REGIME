@@ -28,6 +28,7 @@ export default function SignUpScreen() {
   const [showPass, setShowPass] = useState(false);
   const [code, setCode] = useState("");
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
 
   useEffect(() => {
     if (Platform.OS !== "android") return;
@@ -80,6 +81,25 @@ export default function SignUpScreen() {
       setGoogleLoading(false);
     }
   }, [signUp, startSSOFlow]);
+
+  const handleApple = useCallback(async () => {
+    setAppleLoading(true);
+    try {
+      signUp.reset();
+      const { createdSessionId, setActive } = await startSSOFlow({
+        strategy: "oauth_apple",
+        redirectUrl: AuthSession.makeRedirectUri(),
+      });
+      if (createdSessionId && setActive) {
+        await setActive({
+          session: createdSessionId,
+          navigate: async () => router.replace("/(tabs)"),
+        });
+      }
+    } finally {
+      setAppleLoading(false);
+    }
+  }, [signUp, startSSOFlow, router]);
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
@@ -156,7 +176,7 @@ export default function SignUpScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => router.replace("/(auth)/welcome")} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={20} color={colors.mutedForeground} />
         </TouchableOpacity>
 
@@ -178,6 +198,20 @@ export default function SignUpScreen() {
             : <>
               <Ionicons name="logo-google" size={18} color={colors.foreground} />
               <Text style={[styles.googleText, { color: colors.foreground }]}>Sign up with Google</Text>
+            </>
+          }
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={handleApple}
+          disabled={appleLoading}
+          style={[styles.googleBtn, { backgroundColor: colors.card, borderColor: colors.border, marginBottom: 12 }]}
+        >
+          {appleLoading
+            ? <ActivityIndicator size="small" color={colors.foreground} />
+            : <>
+              <Ionicons name="logo-apple" size={18} color={colors.foreground} />
+              <Text style={[styles.googleText, { color: colors.foreground }]}>Sign up with Apple</Text>
             </>
           }
         </TouchableOpacity>
