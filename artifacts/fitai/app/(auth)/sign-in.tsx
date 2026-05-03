@@ -259,6 +259,19 @@ export default function SignInScreen() {
             </TouchableOpacity>
           </Link>
         </View>
+
+        <View style={[styles.dividerRow, { marginBottom: 16 }]}>
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+        </View>
+
+        <Link href="/(auth)/forgot-password" asChild>
+          <TouchableOpacity style={[styles.manageBtn, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Ionicons name="key-outline" size={16} color={colors.mutedForeground} />
+            <Text style={[styles.manageBtnText, { color: colors.mutedForeground }]}>Manage Account</Text>
+            <Ionicons name="chevron-forward" size={14} color={colors.mutedForeground} style={{ marginLeft: "auto" }} />
+          </TouchableOpacity>
+        </Link>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -299,4 +312,6 @@ const styles = StyleSheet.create({
   linkRow: { flexDirection: "row", justifyContent: "center" },
   linkLabel: { fontSize: 14, fontFamily: "Inter_400Regular" },
   linkText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  manageBtn: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 16, borderWidth: 1, paddingVertical: 14, paddingHorizontal: 16 },
+  manageBtnText: { fontSize: 15, fontFamily: "Inter_500Medium" },
 });
