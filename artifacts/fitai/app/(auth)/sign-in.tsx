@@ -195,7 +195,7 @@ export default function SignInScreen() {
         </View>
 
         <Text style={[styles.title, { color: colors.foreground }]}>Welcome back</Text>
-        <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Sign in to continue your journey</Text>
+        <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Your next session starts here</Text>
 
         <TouchableOpacity onPress={handleGoogle} disabled={googleLoading} style={styles.socialBtn}>
           {googleLoading
@@ -224,7 +224,7 @@ export default function SignInScreen() {
 
         <View style={styles.dividerRow}>
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <Text style={[styles.dividerText, { color: colors.mutedForeground }]}>or</Text>
+          <Text style={[styles.dividerText, { color: colors.mutedForeground }]}>use email</Text>
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
         </View>
 
