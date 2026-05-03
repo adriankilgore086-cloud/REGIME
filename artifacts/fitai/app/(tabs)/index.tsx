@@ -32,8 +32,8 @@ const GHOST_STATS = {
 
 const SMART_RECS = [
   { id: "rec1", name: "HIIT Inferno", tag: "High Calorie Burn", minutes: 30, xp: 200, color: "#FF2D78", icon: "flame" as const },
-  { id: "rec2", name: "Mobility Flow", tag: "Recovery Focused", minutes: 20, xp: 80, color: "#00E5A0", icon: "body" as const },
-  { id: "rec3", name: "Core Crusher", tag: "AI Recommended", minutes: 25, xp: 120, color: "#7B2FBE", icon: "sparkles" as const },
+  { id: "rec2", name: "Mobility Flow", tag: "Recovery Focused", minutes: 20, xp: 80, color: "#7BE0B8", icon: "body" as const },
+  { id: "rec3", name: "Core Crusher", tag: "AI Recommended", minutes: 25, xp: 120, color: "#A78BFA", icon: "sparkles" as const },
 ];
 
 function GhostCard({ userStats, colors }: { userStats: any; colors: any }) {
@@ -53,19 +53,19 @@ function GhostCard({ userStats, colors }: { userStats: any; colors: any }) {
   return (
     <Animated.View style={[{ opacity: opacityAnim, transform: [{ scale: scaleAnim }] }]}>
       <TouchableOpacity
-        style={[styles.ghostCard, { backgroundColor: colors.card, borderColor: "#7B2FBE40" }]}
+        style={[styles.ghostCard, { backgroundColor: colors.card, borderColor: "#A78BFA40" }]}
         activeOpacity={0.88}
       >
         <LinearGradient
-          colors={["#7B2FBE12", "#00D4FF08", "transparent"]}
+          colors={["#A78BFA12", "#8FB8FF08", "transparent"]}
           style={StyleSheet.absoluteFill}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         />
         <View style={styles.ghostHeader}>
-          <View style={[styles.ghostBadge, { backgroundColor: "#7B2FBE20", borderColor: "#7B2FBE40" }]}>
-            <Ionicons name="person-outline" size={12} color="#7B2FBE" />
-            <Text style={[styles.ghostBadgeText, { color: "#7B2FBE" }]}>GHOST MODE</Text>
+          <View style={[styles.ghostBadge, { backgroundColor: "#A78BFA20", borderColor: "#A78BFA40" }]}>
+            <Ionicons name="person-outline" size={12} color="#A78BFA" />
+            <Text style={[styles.ghostBadgeText, { color: "#A78BFA" }]}>GHOST MODE</Text>
           </View>
           <Text style={[styles.ghostSub, { color: colors.mutedForeground }]}>vs. Last Week</Text>
         </View>
@@ -78,11 +78,11 @@ function GhostCard({ userStats, colors }: { userStats: any; colors: any }) {
           </View>
 
           <View style={styles.ghostVsDivider}>
-            <View style={[styles.ghostVsLine, { backgroundColor: "#7B2FBE40" }]} />
-            <View style={[styles.ghostVsCircle, { backgroundColor: "#7B2FBE20", borderColor: "#7B2FBE60" }]}>
-              <Text style={[styles.ghostVsText, { color: "#7B2FBE" }]}>VS</Text>
+            <View style={[styles.ghostVsLine, { backgroundColor: "#A78BFA40" }]} />
+            <View style={[styles.ghostVsCircle, { backgroundColor: "#A78BFA20", borderColor: "#A78BFA60" }]}>
+              <Text style={[styles.ghostVsText, { color: "#A78BFA" }]}>VS</Text>
             </View>
-            <View style={[styles.ghostVsLine, { backgroundColor: "#7B2FBE40" }]} />
+            <View style={[styles.ghostVsLine, { backgroundColor: "#A78BFA40" }]} />
           </View>
 
           <View style={[styles.ghostCol, { alignItems: "flex-end" }]}>
@@ -164,9 +164,9 @@ export default function HomeScreen() {
                 </View>
               )}
             </TouchableOpacity>
-            <View style={[styles.streakBadge, { backgroundColor: "#FFB80018", borderColor: "#FFB80035" }]}>
-              <Ionicons name="flame" size={14} color="#FFB800" />
-              <Text style={[styles.streakNum, { color: "#FFB800" }]}>{userStats.streak}</Text>
+            <View style={[styles.streakBadge, { backgroundColor: "#F3D27A18", borderColor: "#F3D27A35" }]}>
+              <Ionicons name="flame" size={14} color="#F3D27A" />
+              <Text style={[styles.streakNum, { color: "#F3D27A" }]}>{userStats.streak}</Text>
             </View>
           </View>
         </View>
@@ -311,7 +311,7 @@ export default function HomeScreen() {
       </ScrollView>
 
       <TouchableOpacity onPress={() => setShowAI(true)} style={[styles.fab, { backgroundColor: colors.primary }]}>
-        <Ionicons name="chatbubble-ellipses" size={22} color="#08081A" />
+        <Ionicons name="chatbubble-ellipses" size={22} color="#0D0D0D" />
       </TouchableOpacity>
 
       <AIChatModal visible={showAI} onClose={() => setShowAI(false)} />
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
   scrollContent: { paddingHorizontal: 20 },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 },
   greeting: { fontSize: 13, fontFamily: "Inter_400Regular" },
-  name: { fontSize: 22, fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
+  name: { fontSize: 22, fontFamily: "Poppins_700Bold", letterSpacing: -0.5 },
   headerRight: { flexDirection: "row", alignItems: "center", gap: 10 },
   iconBtn: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1, position: "relative" },
   badge: { position: "absolute", top: -4, right: -4, width: 16, height: 16, borderRadius: 8, alignItems: "center", justifyContent: "center" },
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
   ghostResult: { flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 12, borderWidth: 1, padding: 10 },
   ghostResultText: { flex: 1, fontSize: 12, fontFamily: "Inter_500Medium" },
   sectionHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 },
-  sectionTitle: { fontSize: 18, fontFamily: "Inter_700Bold", letterSpacing: -0.3 },
+  sectionTitle: { fontSize: 18, fontFamily: "Poppins_600SemiBold", letterSpacing: -0.3 },
   countChip: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   countText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
   aiBadge: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10 },
@@ -383,5 +383,5 @@ const styles = StyleSheet.create({
   activityInfo: { flex: 1 },
   activityName: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
   activitySub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
-  fab: { position: "absolute", right: 20, bottom: 110, width: 52, height: 52, borderRadius: 16, alignItems: "center", justifyContent: "center", shadowColor: "#00D4FF", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 10 },
+  fab: { position: "absolute", right: 20, bottom: 110, width: 52, height: 52, borderRadius: 16, alignItems: "center", justifyContent: "center", shadowColor: "#8FB8FF", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 10 },
 });

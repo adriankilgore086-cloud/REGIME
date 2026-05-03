@@ -18,17 +18,17 @@ export interface Achievement {
 export const RARITY_COLORS: Record<BadgeRarity, string> = {
   bronze: '#CD7F32',
   silver: '#C0C0C0',
-  gold: '#FFD700',
-  platinum: '#00E5FF',
+  gold: '#F3D27A',
+  platinum: '#8FB8FF',
   legendary: '#FF2D78',
 };
 
 export const RARITY_GLOW: Record<BadgeRarity, string> = {
-  bronze: '#CD7F3250',
-  silver: '#C0C0C050',
-  gold: '#FFD70050',
-  platinum: '#00E5FF50',
-  legendary: '#FF2D7850',
+  bronze: '#CD7F3240',
+  silver: '#C0C0C040',
+  gold: '#F3D27A40',
+  platinum: '#8FB8FF40',
+  legendary: '#FF2D7840',
 };
 
 export const ACHIEVEMENTS: Achievement[] = [

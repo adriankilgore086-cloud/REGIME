@@ -108,7 +108,7 @@ export default function WorkoutDetailScreen() {
             </View>
             <View style={[styles.progressTrack, { backgroundColor: colors.muted }]}>
               <LinearGradient
-                colors={["#00D4FF", "#0099CC"]}
+                colors={["#8FB8FF", "#6B9EFF"]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={[styles.progressFill, { width: `${progress * 100}%` }]}
@@ -130,8 +130,8 @@ export default function WorkoutDetailScreen() {
               onPress={() => { setIsActive(true); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); }}
               style={styles.startBtn}
             >
-              <LinearGradient colors={["#00D4FF", "#0099CC"]} style={styles.startBtnGrad}>
-                <Ionicons name="play" size={20} color="#08081A" />
+              <LinearGradient colors={["#8FB8FF", "#6B9EFF"]} style={styles.startBtnGrad}>
+                <Ionicons name="play" size={20} color="#0D0D0D" />
                 <Text style={styles.startBtnText}>Start Workout</Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -164,8 +164,8 @@ export default function WorkoutDetailScreen() {
                 <View style={styles.exerciseTop}>
                   <View style={[styles.exNum, { backgroundColor: isDone ? colors.success : isActive2 ? catColor : colors.muted }]}>
                     {isDone
-                      ? <Ionicons name="checkmark" size={14} color="#08081A" />
-                      : <Text style={[styles.exNumText, { color: isActive2 ? "#08081A" : colors.mutedForeground }]}>{idx + 1}</Text>
+                      ? <Ionicons name="checkmark" size={14} color="#0D0D0D" />
+                      : <Text style={[styles.exNumText, { color: isActive2 ? "#0D0D0D" : colors.mutedForeground }]}>{idx + 1}</Text>
                     }
                   </View>
                   <View style={styles.exInfo}>
@@ -197,7 +197,7 @@ export default function WorkoutDetailScreen() {
           {allDone && (
             <TouchableOpacity onPress={handleComplete} style={styles.completeBtn}>
               <LinearGradient colors={["#00E5A0", "#00B87A"]} style={styles.completeBtnGrad}>
-                <Ionicons name="trophy" size={20} color="#08081A" />
+                <Ionicons name="trophy" size={20} color="#0D0D0D" />
                 <Text style={styles.completeBtnText}>Complete Workout — Claim XP</Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
   progressFill: { height: "100%", borderRadius: 3 },
   startBtn: { borderRadius: 16, overflow: "hidden", marginBottom: 16 },
   startBtnGrad: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, paddingVertical: 16 },
-  startBtnText: { fontSize: 16, fontFamily: "Inter_700Bold", color: "#08081A" },
+  startBtnText: { fontSize: 16, fontFamily: "Inter_700Bold", color: "#0D0D0D" },
   exerciseTitle: { fontSize: 18, fontFamily: "Inter_700Bold", letterSpacing: -0.3, marginBottom: 14 },
   exerciseCard: { borderRadius: 16, borderWidth: 1, padding: 14, marginBottom: 10 },
   exerciseTop: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
@@ -245,5 +245,5 @@ const styles = StyleSheet.create({
   doneBtn: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center", borderWidth: 1 },
   completeBtn: { borderRadius: 18, overflow: "hidden", marginTop: 8 },
   completeBtnGrad: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, paddingVertical: 16 },
-  completeBtnText: { fontSize: 16, fontFamily: "Inter_700Bold", color: "#08081A" },
+  completeBtnText: { fontSize: 16, fontFamily: "Inter_700Bold", color: "#0D0D0D" },
 });

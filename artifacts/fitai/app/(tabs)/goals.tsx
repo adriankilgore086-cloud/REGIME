@@ -63,13 +63,13 @@ export default function GoalsScreen() {
       <View style={[styles.header, { paddingTop: topPad + 12 }]}>
         <Text style={[styles.title, { color: colors.foreground }]}>Goals & AI Plan</Text>
         <TouchableOpacity onPress={() => setShowAdd(true)} style={[styles.addBtn, { backgroundColor: colors.primary }]}>
-          <Ionicons name="add" size={20} color="#08081A" />
+          <Ionicons name="add" size={20} color="#0D0D0D" />
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 120 }]} showsVerticalScrollIndicator={false}>
         <LinearGradient
-          colors={["#00D4FF15", "#7B2FBE15", "transparent"]}
+          colors={["#8FB8FF15", "#A78BFA15", "transparent"]}
           style={styles.planBanner}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -110,7 +110,7 @@ export default function GoalsScreen() {
               </View>
               <View style={[styles.progressTrack, { backgroundColor: colors.muted }]}>
                 <LinearGradient
-                  colors={isComplete ? ["#00E5A0", "#00B87A"] : ["#00D4FF", "#0099CC"]}
+                  colors={isComplete ? ["#7BE0B8", "#5EC89A"] : ["#8FB8FF", "#6B9EFF"]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={[styles.progressFill, { width: `${progressPct}%` }]}
@@ -212,10 +212,10 @@ export default function GoalsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingBottom: 14 },
-  title: { fontSize: 24, fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
+  title: { fontSize: 26, fontFamily: "Poppins_700Bold", letterSpacing: -0.5 },
   addBtn: { width: 38, height: 38, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   content: { paddingHorizontal: 20 },
-  planBanner: { borderRadius: 20, padding: 18, marginBottom: 24, borderWidth: 1, borderColor: "#00D4FF20" },
+  planBanner: { borderRadius: 20, padding: 18, marginBottom: 24, borderWidth: 1, borderColor: "#8FB8FF20" },
   planBannerTop: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 6 },
   planBannerTitle: { fontSize: 17, fontFamily: "Inter_700Bold" },
   planBannerSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginBottom: 12 },
@@ -256,6 +256,6 @@ const styles = StyleSheet.create({
   modalInput: { borderRadius: 14, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, fontFamily: "Inter_400Regular" },
   modalRow: { flexDirection: "row", gap: 10 },
   modalBtn: { borderRadius: 14, paddingVertical: 14, alignItems: "center" },
-  modalBtnText: { color: "#08081A", fontSize: 16, fontFamily: "Inter_700Bold" },
+  modalBtnText: { color: "#0D0D0D", fontSize: 16, fontFamily: "Inter_700Bold" },
   cancelText: { textAlign: "center", fontSize: 14, fontFamily: "Inter_400Regular" },
 });

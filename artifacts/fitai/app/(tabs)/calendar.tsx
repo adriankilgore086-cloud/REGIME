@@ -79,7 +79,7 @@ function WeeklyReport({ userStats, scheduledWorkouts, onClose }: {
       <View style={rStyles.overlay}>
         <View style={[rStyles.sheet, { backgroundColor: colors.background }]}>
           <LinearGradient
-            colors={["#00D4FF12", "#7B2FBE10", "transparent"]}
+            colors={["#8FB8FF12", "#A78BFA10", "transparent"]}
             style={rStyles.gradient}
           />
 
@@ -101,7 +101,7 @@ function WeeklyReport({ userStats, scheduledWorkouts, onClose }: {
                 { label: "Workouts", value: weeklyStats.completed.toString(), icon: "barbell-outline", color: colors.primary },
                 { label: "Calories", value: weeklyStats.calories.toLocaleString(), icon: "flame-outline", color: "#FF2D78" },
                 { label: "Minutes", value: weeklyStats.minutes.toString(), icon: "time-outline", color: colors.success },
-                { label: "XP Earned", value: `+${weeklyStats.xpEarned}`, icon: "flash-outline", color: "#7B2FBE" },
+                { label: "XP Earned", value: `+${weeklyStats.xpEarned}`, icon: "flash-outline", color: "#A78BFA" },
               ].map((s) => (
                 <View key={s.label} style={[rStyles.statBox, { backgroundColor: colors.card, borderColor: s.color + "30" }]}>
                   <Ionicons name={s.icon as any} size={16} color={s.color} />
@@ -114,7 +114,7 @@ function WeeklyReport({ userStats, scheduledWorkouts, onClose }: {
             <View style={[rStyles.consistencyCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <View style={rStyles.consistencyHeader}>
                 <Text style={[rStyles.cardTitle, { color: colors.foreground }]}>Consistency Score</Text>
-                <Text style={[rStyles.consistencyPct, { color: consistencyPct >= 70 ? colors.success : consistencyPct >= 40 ? "#FFB800" : colors.accent }]}>
+                <Text style={[rStyles.consistencyPct, { color: consistencyPct >= 70 ? colors.success : consistencyPct >= 40 ? "#F3D27A" : colors.accent }]}>
                   {consistencyPct}%
                 </Text>
               </View>
@@ -167,10 +167,10 @@ function WeeklyReport({ userStats, scheduledWorkouts, onClose }: {
               </View>
             </View>
 
-            <View style={[rStyles.aiCard, { backgroundColor: "#00D4FF08", borderColor: "#00D4FF25" }]}>
+            <View style={[rStyles.aiCard, { backgroundColor: "#8FB8FF08", borderColor: "#8FB8FF25" }]}>
               <View style={rStyles.aiHeader}>
-                <LinearGradient colors={["#00D4FF", "#0099CC"]} style={rStyles.aiAvatarGrad}>
-                  <Ionicons name="sparkles" size={14} color="#08081A" />
+                <LinearGradient colors={["#8FB8FF", "#6B9EFF"]} style={rStyles.aiAvatarGrad}>
+                  <Ionicons name="sparkles" size={14} color="#0D0D0D" />
                 </LinearGradient>
                 <Text style={[rStyles.aiLabel, { color: colors.primary }]}>AI Coach Analysis</Text>
               </View>
@@ -182,11 +182,11 @@ function WeeklyReport({ userStats, scheduledWorkouts, onClose }: {
               ))}
             </View>
 
-            <View style={[rStyles.streakCard, { backgroundColor: "#FFB80012", borderColor: "#FFB80030" }]}>
+            <View style={[rStyles.streakCard, { backgroundColor: "#F3D27A12", borderColor: "#F3D27A30" }]}>
               <View style={rStyles.streakInner}>
-                <Ionicons name="flame" size={28} color="#FFB800" />
+                <Ionicons name="flame" size={28} color="#F3D27A" />
                 <View>
-                  <Text style={[rStyles.streakNum, { color: "#FFB800" }]}>{userStats.streak} day streak</Text>
+                  <Text style={[rStyles.streakNum, { color: "#F3D27A" }]}>{userStats.streak} day streak</Text>
                   <Text style={[rStyles.streakSub, { color: colors.mutedForeground }]}>
                     {userStats.streak >= 7 ? "You're on fire. Don't stop now." : "Keep it going — every day counts."}
                   </Text>
@@ -284,7 +284,7 @@ export default function CalendarScreen() {
             onPress={() => setShowAddModal(true)}
             style={[styles.addBtn, { backgroundColor: colors.primary }]}
           >
-            <Ionicons name="add" size={20} color="#08081A" />
+            <Ionicons name="add" size={20} color="#0D0D0D" />
           </TouchableOpacity>
         </View>
       </View>
@@ -294,7 +294,7 @@ export default function CalendarScreen() {
         style={[styles.weekBanner, { backgroundColor: colors.card, borderColor: colors.border }]}
         activeOpacity={0.85}
       >
-        <LinearGradient colors={["#00D4FF12", "#7B2FBE10", "transparent"]} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
+        <LinearGradient colors={["#8FB8FF12", "#A78BFA10", "transparent"]} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
         <View style={styles.weekBannerLeft}>
           <View style={[styles.weekRingOuter, { borderColor: colors.primary + "40" }]}>
             <View style={[styles.weekRingInner, { backgroundColor: colors.primary + "20" }]}>
@@ -312,7 +312,7 @@ export default function CalendarScreen() {
           </View>
         </View>
         <View style={styles.weekBannerRight}>
-          <Text style={[styles.weekBannerStreak, { color: "#FFB800" }]}>🔥 {userStats.streak}d</Text>
+          <Text style={[styles.weekBannerStreak, { color: "#F3D27A" }]}>🔥 {userStats.streak}d</Text>
           <Text style={[styles.weekBannerLabel, { color: colors.mutedForeground }]}>streak</Text>
           <View style={[styles.viewBtn, { backgroundColor: colors.primary + "20" }]}>
             <Text style={[styles.viewBtnText, { color: colors.primary }]}>View →</Text>
@@ -340,13 +340,13 @@ export default function CalendarScreen() {
                 done && !isSelected && { borderWidth: 1, borderColor: colors.success + "60" },
               ]}>
                 <Text style={[styles.dayNumText, {
-                  color: isSelected ? "#08081A" : isToday ? colors.primary : done ? colors.success : colors.foreground,
+                  color: isSelected ? "#0D0D0D" : isToday ? colors.primary : done ? colors.success : colors.foreground,
                 }]}>
                   {date.getDate()}
                 </Text>
               </View>
               {hasWorkout && !done && (
-                <View style={[styles.dotIndicator, { backgroundColor: isSelected ? "#08081A" : colors.mutedForeground }]} />
+                <View style={[styles.dotIndicator, { backgroundColor: isSelected ? "#0D0D0D" : colors.mutedForeground }]} />
               )}
               {done && <Ionicons name="checkmark" size={10} color={colors.success} />}
             </TouchableOpacity>
@@ -464,7 +464,7 @@ export default function CalendarScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingBottom: 12 },
-  title: { fontSize: 24, fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
+  title: { fontSize: 26, fontFamily: "Poppins_700Bold", letterSpacing: -0.5 },
   headerBtns: { flexDirection: "row", alignItems: "center", gap: 8 },
   reportBtn: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 12, borderWidth: 1 },
   reportBtnText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },

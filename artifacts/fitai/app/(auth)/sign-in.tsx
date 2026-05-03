@@ -87,8 +87,8 @@ export default function SignInScreen() {
         </TouchableOpacity>
 
         <View style={[styles.logoRow, { marginTop: 20 }]}>
-          <LinearGradient colors={["#00D4FF", "#0099CC"]} style={styles.logoIcon}>
-            <Ionicons name="flash" size={22} color="#08081A" />
+          <LinearGradient colors={["#8FB8FF", "#6B9EFF"]} style={styles.logoIcon}>
+            <Ionicons name="flash" size={22} color="#0D0D0D" />
           </LinearGradient>
           <Text style={[styles.appName, { color: colors.foreground }]}>FitAI</Text>
         </View>
@@ -165,9 +165,9 @@ export default function SignInScreen() {
           disabled={!email || !password || loading}
           style={[styles.primaryBtn, { opacity: (!email || !password) ? 0.6 : 1 }]}
         >
-          <LinearGradient colors={["#00D4FF", "#0099CC"]} style={styles.primaryBtnGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+          <LinearGradient colors={["#8FB8FF", "#6B9EFF"]} style={styles.primaryBtnGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
             {loading
-              ? <ActivityIndicator color="#08081A" />
+              ? <ActivityIndicator color="#0D0D0D" />
               : <Text style={styles.primaryBtnText}>Sign In</Text>
             }
           </LinearGradient>
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
   errorText: { fontSize: 13, color: "#FF4B4B", fontFamily: "Inter_400Regular", flex: 1 },
   primaryBtn: { borderRadius: 16, overflow: "hidden", marginBottom: 20 },
   primaryBtnGrad: { paddingVertical: 16, alignItems: "center", justifyContent: "center" },
-  primaryBtnText: { color: "#08081A", fontSize: 16, fontFamily: "Inter_700Bold" },
+  primaryBtnText: { color: "#0D0D0D", fontSize: 16, fontFamily: "Inter_700Bold" },
   linkRow: { flexDirection: "row", justifyContent: "center" },
   linkLabel: { fontSize: 14, fontFamily: "Inter_400Regular" },
   linkText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },

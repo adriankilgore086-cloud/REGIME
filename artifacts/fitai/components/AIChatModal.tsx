@@ -97,7 +97,7 @@ export function AIChatModal({ visible, onClose }: Props) {
             ? { backgroundColor: colors.primary, borderBottomRightRadius: 4 }
             : { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, borderBottomLeftRadius: 4 }
         ]}>
-          <Text style={[styles.msgText, { color: isUser ? '#08081A' : colors.foreground }]}>
+          <Text style={[styles.msgText, { color: isUser ? '#0D0D0D' : colors.foreground }]}>
             {item.content}
           </Text>
         </View>
@@ -110,7 +110,7 @@ export function AIChatModal({ visible, onClose }: Props) {
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={[styles.header, { paddingTop: insets.top + 12, borderBottomColor: colors.border }]}>
           <View style={styles.headerLeft}>
-            <LinearGradient colors={['#00D4FF30', '#00D4FF10']} style={styles.aiIcon}>
+            <LinearGradient colors={['#8FB8FF30', '#8FB8FF10']} style={styles.aiIcon}>
               <Ionicons name="fitness" size={22} color={colors.primary} />
             </LinearGradient>
             <View>
@@ -166,7 +166,7 @@ export function AIChatModal({ visible, onClose }: Props) {
               disabled={!input.trim() || loading}
               style={[styles.sendBtn, { backgroundColor: input.trim() ? colors.primary : colors.muted }]}
             >
-              <Ionicons name="send" size={16} color={input.trim() ? '#08081A' : colors.mutedForeground} />
+              <Ionicons name="send" size={16} color={input.trim() ? '#0D0D0D' : colors.mutedForeground} />
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>

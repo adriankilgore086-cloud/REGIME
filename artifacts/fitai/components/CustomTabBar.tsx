@@ -3,11 +3,11 @@ import {
   View, TouchableOpacity, StyleSheet, Platform, Text,
 } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons, Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
-  useSharedValue, useAnimatedStyle, withSpring, withTiming,
+  useSharedValue, useAnimatedStyle, withSpring,
 } from 'react-native-reanimated';
 import { useColors } from '@/hooks/useColors';
 
@@ -20,7 +20,7 @@ const TAB_ICONS = [
 ];
 
 function TabIcon({ routeName, isFocused, color }: { routeName: string; isFocused: boolean; color: string }) {
-  const size = 22;
+  const size = 21;
   switch (routeName) {
     case 'calendar':
       return <Feather name="calendar" size={size} color={color} />;
@@ -36,7 +36,7 @@ function TabIcon({ routeName, isFocused, color }: { routeName: string; isFocused
 }
 
 function AnimatedTab({
-  route, index, isFocused, onPress, isCenter,
+  route, isFocused, onPress, isCenter,
 }: {
   route: { name: string; key: string };
   index: number;
@@ -52,8 +52,8 @@ function AnimatedTab({
   }));
 
   const handlePress = () => {
-    scale.value = withSpring(0.85, {}, () => {
-      scale.value = withSpring(1);
+    scale.value = withSpring(0.84, {}, () => {
+      scale.value = withSpring(1, { damping: 12 });
     });
     onPress();
   };
@@ -64,18 +64,18 @@ function AnimatedTab({
         <Animated.View style={animStyle}>
           <TouchableOpacity
             onPress={handlePress}
-            activeOpacity={0.8}
+            activeOpacity={0.85}
             style={styles.centerBtn}
           >
             <LinearGradient
-              colors={['#00D4FF', '#0099CC']}
+              colors={['#8FB8FF', '#6B9EFF']}
               style={styles.centerBtnInner}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             >
-              <Feather name="home" size={26} color="#08081A" />
+              <Feather name="home" size={24} color="#0D0D0D" />
             </LinearGradient>
-            <View style={styles.centerGlow} />
+            <View style={[styles.centerGlow, { backgroundColor: '#8FB8FF18' }]} />
           </TouchableOpacity>
         </Animated.View>
         <Text style={[styles.centerLabel, { color: isFocused ? colors.primary : colors.mutedForeground }]}>
@@ -110,11 +110,11 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
   return (
     <View style={[styles.container, { paddingBottom: bottomPad }]}>
       <LinearGradient
-        colors={['rgba(8,8,26,0)', 'rgba(8,8,26,0.97)', '#08081A']}
+        colors={['rgba(13,13,13,0)', 'rgba(13,13,13,0.96)', '#0D0D0D']}
         style={StyleSheet.absoluteFill}
         pointerEvents="none"
       />
-      <View style={[styles.pill, { borderColor: colors.border + '80' }]}>
+      <View style={[styles.pill, { borderColor: colors.border, backgroundColor: 'rgba(22,22,22,0.96)' }]}>
         {state.routes.map((route, index) => {
           const isFocused = state.index === index;
           const isCenter = index === 2;
@@ -157,16 +157,15 @@ const styles = StyleSheet.create({
   pill: {
     flexDirection: 'row',
     marginHorizontal: 16,
-    backgroundColor: 'rgba(15,15,40,0.92)',
     borderRadius: 28,
     borderWidth: 1,
     paddingVertical: 8,
     paddingHorizontal: 4,
     alignItems: 'flex-end',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 20,
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 24,
     elevation: 20,
   },
   tab: {
@@ -203,15 +202,15 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   centerBtnInner: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#00D4FF',
+    shadowColor: '#8FB8FF',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.6,
-    shadowRadius: 12,
+    shadowOpacity: 0.45,
+    shadowRadius: 14,
     elevation: 12,
   },
   centerGlow: {
@@ -219,9 +218,8 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: '#00D4FF15',
-    top: -6,
-    left: -6,
+    top: -7,
+    left: -7,
   },
   centerLabel: {
     fontSize: 10,

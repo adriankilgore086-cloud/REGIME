@@ -5,6 +5,11 @@ import {
   Inter_700Bold,
   useFonts,
 } from "@expo-google-fonts/inter";
+import {
+  Poppins_600SemiBold,
+  Poppins_700Bold,
+  Poppins_800ExtraBold,
+} from "@expo-google-fonts/poppins";
 import { ClerkProvider } from "@clerk/expo";
 import { tokenCache as nativeTokenCache } from "@clerk/expo/token-cache";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -20,14 +25,13 @@ import { FitnessProvider } from "@/contexts/FitnessContext";
 
 SplashScreen.preventAutoHideAsync();
 
-const BG = "#08081A";
+const BG = "#0D0D0D";
 const domain = process.env.EXPO_PUBLIC_DOMAIN;
 if (domain) setBaseUrl(`https://${domain}`);
 
 const queryClient = new QueryClient();
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
 const proxyUrl = process.env.EXPO_PUBLIC_CLERK_PROXY_URL || undefined;
-// expo-secure-store doesn't work on web; let Clerk use its default browser storage
 const tokenCache = Platform.OS !== "web" ? nativeTokenCache : undefined;
 
 class ErrorBoundary extends Component<
@@ -44,7 +48,7 @@ class ErrorBoundary extends Component<
           <Text style={{ color: "#FF2D78", fontSize: 18, fontWeight: "700", marginBottom: 12, textAlign: "center" }}>
             Something went wrong
           </Text>
-          <Text style={{ color: "#FFFFFF", fontSize: 13, textAlign: "center" }}>
+          <Text style={{ color: "#F5F5F5", fontSize: 13, textAlign: "center" }}>
             {this.state.error.message}
           </Text>
         </View>
@@ -60,6 +64,9 @@ export default function RootLayout() {
     Inter_500Medium,
     Inter_600SemiBold,
     Inter_700Bold,
+    Poppins_600SemiBold,
+    Poppins_700Bold,
+    Poppins_800ExtraBold,
   });
 
   useEffect(() => {
@@ -68,7 +75,6 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, fontError]);
 
-  // Load vector icon fonts asynchronously without blocking render
   useEffect(() => {
     Font.loadAsync({
       ...Ionicons.font,
@@ -77,7 +83,6 @@ export default function RootLayout() {
     }).catch(() => {});
   }, []);
 
-  // On web, don't block render for fonts — they load asynchronously
   if (!fontsLoaded && !fontError && Platform.OS !== "web") {
     return <View style={{ flex: 1, backgroundColor: BG }} />;
   }

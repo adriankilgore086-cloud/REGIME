@@ -121,8 +121,8 @@ export default function SignUpScreen() {
             </View>
           )}
           <TouchableOpacity onPress={handleVerify} disabled={loading || code.length < 6} style={[styles.primaryBtn, { opacity: code.length < 6 ? 0.6 : 1, width: "100%" }]}>
-            <LinearGradient colors={["#00D4FF", "#0099CC"]} style={styles.primaryBtnGrad}>
-              {loading ? <ActivityIndicator color="#08081A" /> : <Text style={styles.primaryBtnText}>Verify & Start Training</Text>}
+            <LinearGradient colors={["#8FB8FF", "#6B9EFF"]} style={styles.primaryBtnGrad}>
+              {loading ? <ActivityIndicator color="#0D0D0D" /> : <Text style={styles.primaryBtnText}>Verify & Start Training</Text>}
             </LinearGradient>
           </TouchableOpacity>
           <TouchableOpacity onPress={handleResend} style={styles.resendBtn}>
@@ -221,8 +221,8 @@ export default function SignUpScreen() {
           disabled={!email || !password || loading}
           style={[styles.primaryBtn, { opacity: (!email || !password) ? 0.6 : 1 }]}
         >
-          <LinearGradient colors={["#00D4FF", "#0099CC"]} style={styles.primaryBtnGrad}>
-            {loading ? <ActivityIndicator color="#08081A" /> : <Text style={styles.primaryBtnText}>Create Account</Text>}
+          <LinearGradient colors={["#8FB8FF", "#6B9EFF"]} style={styles.primaryBtnGrad}>
+            {loading ? <ActivityIndicator color="#0D0D0D" /> : <Text style={styles.primaryBtnText}>Create Account</Text>}
           </LinearGradient>
         </TouchableOpacity>
 
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
   errorText: { fontSize: 13, color: "#FF4B4B", fontFamily: "Inter_400Regular", flex: 1 },
   primaryBtn: { borderRadius: 16, overflow: "hidden", marginBottom: 20 },
   primaryBtnGrad: { paddingVertical: 16, alignItems: "center", justifyContent: "center" },
-  primaryBtnText: { color: "#08081A", fontSize: 16, fontFamily: "Inter_700Bold" },
+  primaryBtnText: { color: "#0D0D0D", fontSize: 16, fontFamily: "Inter_700Bold" },
   resendBtn: { paddingVertical: 8 },
   resendText: { fontSize: 14, fontFamily: "Inter_400Regular" },
   linkRow: { flexDirection: "row", justifyContent: "center" },

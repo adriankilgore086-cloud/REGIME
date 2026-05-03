@@ -10,8 +10,7 @@ import { RewardData } from '@/contexts/FitnessContext';
 import { RARITY_COLORS } from '@/constants/achievements';
 
 const { width, height } = Dimensions.get('window');
-
-const NUM_PARTICLES = 20;
+const NUM_PARTICLES = 18;
 
 function Particle({ delay, color }: { delay: number; color: string }) {
   const x = useRef(new Animated.Value(0)).current;
@@ -24,7 +23,7 @@ function Particle({ delay, color }: { delay: number; color: string }) {
   const endY = height * 0.2;
 
   useEffect(() => {
-    const anim = Animated.sequence([
+    Animated.sequence([
       Animated.delay(delay),
       Animated.parallel([
         Animated.timing(opacity, { toValue: 1, duration: 200, useNativeDriver: true }),
@@ -33,20 +32,15 @@ function Particle({ delay, color }: { delay: number; color: string }) {
         Animated.timing(y, { toValue: endY, duration: 1200, useNativeDriver: true }),
       ]),
       Animated.timing(opacity, { toValue: 0, duration: 400, useNativeDriver: true }),
-    ]);
-    anim.start();
+    ]).start();
   }, []);
 
-  const size = 6 + Math.random() * 10;
+  const size = 5 + Math.random() * 9;
 
   return (
     <Animated.View style={{
-      position: 'absolute',
-      top: '40%',
-      left: '50%',
-      width: size,
-      height: size,
-      borderRadius: size / 2,
+      position: 'absolute', top: '40%', left: '50%',
+      width: size, height: size, borderRadius: size / 2,
       backgroundColor: color,
       transform: [{ translateX: x }, { translateY: y }, { scale }],
       opacity,
@@ -84,25 +78,18 @@ export function RewardOverlay({ visible, data, onDismiss }: Props) {
 
   if (!data) return null;
 
-  const particleColors = ['#00D4FF', '#FF2D78', '#FFD700', '#00E5A0', '#7B2FBE'];
+  const particleColors = ['#8FB8FF', '#7BE0B8', '#F3D27A', '#FF2D78', '#A78BFA'];
   const achievementColor = data.achievement ? RARITY_COLORS[data.achievement.rarity] : colors.primary;
 
   return (
     <Modal transparent visible={visible} animationType="none" onRequestClose={onDismiss}>
       <View style={styles.backdrop}>
         {Array.from({ length: NUM_PARTICLES }).map((_, i) => (
-          <Particle
-            key={i}
-            delay={i * 40}
-            color={particleColors[i % particleColors.length]}
-          />
+          <Particle key={i} delay={i * 40} color={particleColors[i % particleColors.length]} />
         ))}
-        <Animated.View style={[styles.card, { transform: [{ scale }], opacity }]}>
-          <LinearGradient
-            colors={['#131330', '#0A0A22']}
-            style={styles.cardInner}
-          >
-            <View style={[styles.iconCircle, { backgroundColor: achievementColor + '20', borderColor: achievementColor }]}>
+        <Animated.View style={[styles.card, { borderColor: colors.border, shadowColor: achievementColor, transform: [{ scale }], opacity }]}>
+          <LinearGradient colors={['#1E1E1E', '#161616']} style={styles.cardInner}>
+            <View style={[styles.iconCircle, { backgroundColor: achievementColor + '18', borderColor: achievementColor + '60' }]}>
               <Ionicons
                 name={data.achievement ? 'trophy' : 'checkmark-circle'}
                 size={44}
@@ -110,18 +97,18 @@ export function RewardOverlay({ visible, data, onDismiss }: Props) {
               />
             </View>
 
-            <Text style={styles.title}>
+            <Text style={[styles.title, { color: colors.foreground }]}>
               {data.achievement ? 'Achievement!' : 'Workout Complete!'}
             </Text>
             <Text style={[styles.message, { color: colors.mutedForeground }]}>{data.message}</Text>
 
-            <View style={[styles.xpContainer, { backgroundColor: colors.primary + '20' }]}>
+            <View style={[styles.xpContainer, { backgroundColor: colors.primary + '18' }]}>
               <Ionicons name="flash" size={18} color={colors.primary} />
               <Text style={[styles.xpText, { color: colors.primary }]}>+{data.xp} XP</Text>
             </View>
 
             <TouchableOpacity onPress={onDismiss} style={[styles.doneBtn, { backgroundColor: achievementColor }]}>
-              <Text style={styles.doneBtnText}>Claim Reward</Text>
+              <Text style={[styles.doneBtnText, { color: '#0D0D0D' }]}>Claim Reward</Text>
             </TouchableOpacity>
           </LinearGradient>
         </Animated.View>
@@ -131,71 +118,14 @@ export function RewardOverlay({ visible, data, onDismiss }: Props) {
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  card: {
-    width: width * 0.82,
-    borderRadius: 28,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#252550',
-    shadowColor: '#00D4FF',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 24,
-    elevation: 20,
-  },
-  cardInner: {
-    padding: 28,
-    alignItems: 'center',
-    gap: 12,
-  },
-  iconCircle: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    marginBottom: 4,
-  },
-  title: {
-    fontSize: 24,
-    fontFamily: 'Inter_700Bold',
-    color: '#FFFFFF',
-    letterSpacing: -0.5,
-  },
-  message: {
-    fontSize: 14,
-    fontFamily: 'Inter_400Regular',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  xpContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
-  },
-  xpText: {
-    fontSize: 20,
-    fontFamily: 'Inter_700Bold',
-  },
-  doneBtn: {
-    paddingHorizontal: 32,
-    paddingVertical: 14,
-    borderRadius: 16,
-    marginTop: 4,
-  },
-  doneBtnText: {
-    color: '#08081A',
-    fontSize: 16,
-    fontFamily: 'Inter_700Bold',
-  },
+  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.72)', alignItems: 'center', justifyContent: 'center' },
+  card: { width: width * 0.82, borderRadius: 28, overflow: 'hidden', borderWidth: 1, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.35, shadowRadius: 24, elevation: 20 },
+  cardInner: { padding: 28, alignItems: 'center', gap: 12 },
+  iconCircle: { width: 90, height: 90, borderRadius: 45, alignItems: 'center', justifyContent: 'center', borderWidth: 2, marginBottom: 4 },
+  title: { fontSize: 24, fontFamily: 'Poppins_700Bold', letterSpacing: -0.3 },
+  message: { fontSize: 14, fontFamily: 'Inter_400Regular', textAlign: 'center', lineHeight: 20 },
+  xpContainer: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20 },
+  xpText: { fontSize: 20, fontFamily: 'Poppins_700Bold' },
+  doneBtn: { paddingHorizontal: 32, paddingVertical: 14, borderRadius: 16, marginTop: 4 },
+  doneBtnText: { fontSize: 16, fontFamily: 'Poppins_700Bold' },
 });

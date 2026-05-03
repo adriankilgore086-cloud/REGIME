@@ -75,8 +75,8 @@ export default function WelcomeScreen() {
 
       <Animated.View style={[styles.content, { paddingTop: topPad + 20, opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
         <View style={styles.logoRow}>
-          <LinearGradient colors={["#00D4FF", "#0099CC"]} style={styles.logoIcon}>
-            <Ionicons name="flash" size={28} color="#08081A" />
+          <LinearGradient colors={["#8FB8FF", "#6B9EFF"]} style={styles.logoIcon}>
+            <Ionicons name="flash" size={28} color="#0D0D0D" />
           </LinearGradient>
           <Text style={[styles.appName, { color: colors.foreground }]}>FitAI</Text>
         </View>
@@ -109,9 +109,9 @@ export default function WelcomeScreen() {
             activeOpacity={0.85}
             style={styles.primaryBtn}
           >
-            <LinearGradient colors={["#00D4FF", "#0099CC"]} style={styles.primaryBtnGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+            <LinearGradient colors={["#8FB8FF", "#6B9EFF"]} style={styles.primaryBtnGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
               <Text style={styles.primaryBtnText}>Get Started Free</Text>
-              <Ionicons name="arrow-forward" size={18} color="#08081A" />
+              <Ionicons name="arrow-forward" size={18} color="#0D0D0D" />
             </LinearGradient>
           </TouchableOpacity>
 
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
   cta: { gap: 12, marginTop: "auto" },
   primaryBtn: { borderRadius: 18, overflow: "hidden" },
   primaryBtnGrad: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 16 },
-  primaryBtnText: { color: "#08081A", fontSize: 16, fontFamily: "Inter_700Bold" },
+  primaryBtnText: { color: "#0D0D0D", fontSize: 16, fontFamily: "Inter_700Bold" },
   secondaryBtn: { borderRadius: 18, borderWidth: 1, paddingVertical: 15, alignItems: "center" },
   secondaryBtnText: { fontSize: 15, fontFamily: "Inter_500Medium" },
 });

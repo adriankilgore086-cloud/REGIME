@@ -61,7 +61,7 @@ const IDENTITY_TITLES = [
 ];
 
 function RankMedal({ rank }: { rank: number }) {
-  const colors = ["#FFD700", "#C0C0C0", "#CD7F32"];
+  const colors = ["#F3D27A", "#C0C0C0", "#CD7F32"];
   if (rank <= 3) {
     return (
       <View style={[medallStyles.circle, { backgroundColor: colors[rank - 1] + "25", borderColor: colors[rank - 1] + "60" }]}>
@@ -139,7 +139,7 @@ export default function ProfileScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.topSection, { paddingTop: topPad + 12 }]}>
-        <LinearGradient colors={["#00D4FF15", "#7B2FBE10", "transparent"]} style={StyleSheet.absoluteFill} />
+        <LinearGradient colors={["#8FB8FF15", "#A78BFA10", "transparent"]} style={StyleSheet.absoluteFill} />
 
         <View style={styles.profileRow}>
           <View style={[styles.avatarCircle, { backgroundColor: colors.primary + "20", borderColor: colors.primary + "50" }]}>
@@ -165,9 +165,9 @@ export default function ProfileScreen() {
         <View style={styles.miniStats}>
           {[
             { v: userStats.totalWorkouts.toString(), l: "Workouts", c: colors.primary },
-            { v: `${userStats.streak}d`, l: "Streak", c: "#FFB800" },
+            { v: `${userStats.streak}d`, l: "Streak", c: "#F3D27A" },
             { v: `${Math.round(userStats.totalMinutes / 60)}h`, l: "Hours", c: colors.success },
-            { v: userStats.xp.toString(), l: "XP", c: "#7B2FBE" },
+            { v: userStats.xp.toString(), l: "XP", c: "#A78BFA" },
           ].map((s) => (
             <View key={s.l} style={styles.miniStat}>
               <Text style={[styles.miniVal, { color: s.c }]}>{s.v}</Text>
@@ -207,15 +207,18 @@ export default function ProfileScreen() {
                 <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>Complete workouts to earn badges</Text>
               </View>
             ) : (
-              <View style={styles.badgeGrid}>
-                {earnedBadges.map((badge) => {
+              <View style={[styles.badgeList, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                {earnedBadges.map((badge, i) => {
                   const rc = RARITY_COLORS[badge.rarity];
                   return (
-                    <View key={badge.id} style={[styles.badgeCard, { backgroundColor: colors.card, borderColor: rc + "40" }]}>
+                    <View key={badge.id} style={[styles.badgeRow, i < earnedBadges.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border }]}>
                       <View style={[styles.badgeIcon, { backgroundColor: rc + "20", shadowColor: rc }]}>
-                        <Ionicons name={badge.icon as any} size={22} color={rc} />
+                        <Ionicons name={badge.icon as any} size={20} color={rc} />
                       </View>
-                      <Text style={[styles.badgeName, { color: colors.foreground }]} numberOfLines={1}>{badge.name}</Text>
+                      <View style={styles.badgeInfo}>
+                        <Text style={[styles.badgeName, { color: colors.foreground }]}>{badge.name}</Text>
+                        <Text style={[styles.badgeDesc, { color: colors.mutedForeground }]}>{badge.description}</Text>
+                      </View>
                       <View style={[styles.rarityChip, { backgroundColor: rc + "20" }]}>
                         <Text style={[styles.rarityText, { color: rc }]}>{badge.rarity}</Text>
                       </View>
@@ -228,14 +231,17 @@ export default function ProfileScreen() {
             {lockedBadges.length > 0 && (
               <>
                 <Text style={[styles.sectionTitle, { color: colors.foreground, marginTop: 4 }]}>Locked</Text>
-                <View style={styles.badgeGrid}>
-                  {lockedBadges.map((badge) => (
-                    <View key={badge.id} style={[styles.badgeCard, { backgroundColor: colors.muted, borderColor: colors.border, opacity: 0.55 }]}>
-                      <View style={[styles.badgeIcon, { backgroundColor: colors.border }]}>
-                        <Ionicons name="lock-closed" size={18} color={colors.mutedForeground} />
+                <View style={[styles.badgeList, { backgroundColor: colors.card, borderColor: colors.border, opacity: 0.6 }]}>
+                  {lockedBadges.map((badge, i) => (
+                    <View key={badge.id} style={[styles.badgeRow, i < lockedBadges.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border }]}>
+                      <View style={[styles.badgeIcon, { backgroundColor: colors.muted }]}>
+                        <Ionicons name="lock-closed" size={16} color={colors.mutedForeground} />
                       </View>
-                      <Text style={[styles.badgeName, { color: colors.mutedForeground }]} numberOfLines={1}>{badge.name}</Text>
-                      <Text style={[styles.rarityText, { color: colors.mutedForeground }]}>{badge.criteria.value} {badge.criteria.type}</Text>
+                      <View style={styles.badgeInfo}>
+                        <Text style={[styles.badgeName, { color: colors.mutedForeground }]}>{badge.name}</Text>
+                        <Text style={[styles.badgeDesc, { color: colors.mutedForeground }]}>{badge.criteria.value} {badge.criteria.type}</Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={14} color={colors.border} />
                     </View>
                   ))}
                 </View>
@@ -280,7 +286,7 @@ export default function ProfileScreen() {
         {activeTab === "Social" && (
           <>
             <View style={[styles.feedHeader, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <LinearGradient colors={["#00D4FF10", "#7B2FBE10"]} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
+              <LinearGradient colors={["#8FB8FF10", "#A78BFA10"]} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
               <Ionicons name="people" size={16} color={colors.primary} />
               <Text style={[styles.feedHeaderText, { color: colors.foreground }]}>Community Feed</Text>
               <View style={[styles.liveBadge, { backgroundColor: "#FF2D7820", borderColor: "#FF2D7840" }]}>
@@ -308,16 +314,16 @@ export default function ProfileScreen() {
 
                 <View style={[styles.postValueChip, {
                   backgroundColor: post.type === "pr" ? "#FF2D7815" :
-                    post.type === "streak" ? "#FFB80015" :
-                      post.type === "run" ? "#00D4FF15" : "#7B2FBE15",
+                    post.type === "streak" ? "#F3D27A15" :
+                      post.type === "run" ? "#8FB8FF15" : "#A78BFA15",
                   borderColor: post.type === "pr" ? "#FF2D7830" :
-                    post.type === "streak" ? "#FFB80030" :
-                      post.type === "run" ? "#00D4FF30" : "#7B2FBE30",
+                    post.type === "streak" ? "#F3D27A30" :
+                      post.type === "run" ? "#8FB8FF30" : "#A78BFA30",
                 }]}>
                   <Text style={[styles.postValueText, {
                     color: post.type === "pr" ? "#FF2D78" :
-                      post.type === "streak" ? "#FFB800" :
-                        post.type === "run" ? "#00D4FF" : "#7B2FBE",
+                      post.type === "streak" ? "#F3D27A" :
+                        post.type === "run" ? "#8FB8FF" : "#A78BFA",
                   }]}>{post.value}</Text>
                 </View>
 
@@ -340,7 +346,7 @@ export default function ProfileScreen() {
                       : { backgroundColor: colors.muted, borderColor: colors.border }
                   ]}
                 >
-                  <Text style={[styles.lbFilterText, { color: lbFilter === f ? "#08081A" : colors.mutedForeground }]}>
+                  <Text style={[styles.lbFilterText, { color: lbFilter === f ? "#0D0D0D" : colors.mutedForeground }]}>
                     {f === "global" ? "Global" : "Friends"}
                   </Text>
                 </TouchableOpacity>
@@ -348,17 +354,17 @@ export default function ProfileScreen() {
             </View>
 
             <View style={[styles.lbPodium, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <LinearGradient colors={["#FFD70010", "#7B2FBE10", "transparent"]} style={StyleSheet.absoluteFill} />
+              <LinearGradient colors={["#F3D27A10", "#A78BFA10", "transparent"]} style={StyleSheet.absoluteFill} />
               <Text style={[styles.lbPodiumTitle, { color: colors.foreground }]}>This Week's Champions</Text>
               <View style={styles.podiumRow}>
                 {leaderData.slice(0, 3).map((row, i) => (
                   <View key={row.rank} style={[styles.podiumItem, i === 0 && styles.podiumCenter]}>
                     <View style={[styles.podiumAvatar, {
-                      backgroundColor: i === 0 ? "#FFD70020" : i === 1 ? "#C0C0C020" : "#CD7F3220",
-                      borderColor: i === 0 ? "#FFD70060" : i === 1 ? "#C0C0C060" : "#CD7F3260",
+                      backgroundColor: i === 0 ? "#F3D27A20" : i === 1 ? "#C0C0C020" : "#CD7F3220",
+                      borderColor: i === 0 ? "#F3D27A60" : i === 1 ? "#C0C0C060" : "#CD7F3260",
                     }]}>
                       <Text style={[styles.podiumAvatarText, {
-                        color: i === 0 ? "#FFD700" : i === 1 ? "#C0C0C0" : "#CD7F32",
+                        color: i === 0 ? "#F3D27A" : i === 1 ? "#C0C0C0" : "#CD7F32",
                       }]}>{row.name.charAt(0)}</Text>
                     </View>
                     {i === 0 && <Text style={styles.crownEmoji}>👑</Text>}
@@ -391,9 +397,9 @@ export default function ProfileScreen() {
                     <Text style={[styles.lbStatVal, { color: colors.foreground }]}>{row.xp.toLocaleString()}</Text>
                     <Text style={[styles.lbStatLabel, { color: colors.mutedForeground }]}>XP</Text>
                   </View>
-                  <View style={[styles.lbStreak, { backgroundColor: "#FFB80015" }]}>
-                    <Ionicons name="flame" size={11} color="#FFB800" />
-                    <Text style={[styles.lbStreakText, { color: "#FFB800" }]}>{row.streak}</Text>
+                  <View style={[styles.lbStreak, { backgroundColor: "#F3D27A15" }]}>
+                    <Ionicons name="flame" size={11} color="#F3D27A" />
+                    <Text style={[styles.lbStreakText, { color: "#F3D27A" }]}>{row.streak}</Text>
                   </View>
                 </View>
               </View>
@@ -431,14 +437,16 @@ const styles = StyleSheet.create({
   segText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
   content: { paddingHorizontal: 20, paddingTop: 4 },
   xpCard: { borderRadius: 18, borderWidth: 1, padding: 16, marginBottom: 16 },
-  sectionTitle: { fontSize: 17, fontFamily: "Inter_700Bold", letterSpacing: -0.3, marginBottom: 12 },
+  sectionTitle: { fontSize: 17, fontFamily: "Poppins_600SemiBold", letterSpacing: -0.3, marginBottom: 12 },
   emptyCard: { borderRadius: 16, borderWidth: 1, padding: 24, alignItems: "center", gap: 10, marginBottom: 16 },
   emptyText: { fontSize: 13, fontFamily: "Inter_400Regular" },
-  badgeGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 16 },
-  badgeCard: { width: "47%", borderRadius: 16, borderWidth: 1, padding: 14, alignItems: "center", gap: 8 },
-  badgeIcon: { width: 48, height: 48, borderRadius: 14, alignItems: "center", justifyContent: "center", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 8, elevation: 4 },
-  badgeName: { fontSize: 12, fontFamily: "Inter_600SemiBold", textAlign: "center" },
-  rarityChip: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
+  badgeList: { borderRadius: 18, borderWidth: 1, overflow: "hidden", marginBottom: 16 },
+  badgeRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
+  badgeIcon: { width: 42, height: 42, borderRadius: 13, alignItems: "center", justifyContent: "center", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.35, shadowRadius: 6, elevation: 4 },
+  badgeInfo: { flex: 1 },
+  badgeName: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  badgeDesc: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 2 },
+  rarityChip: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
   rarityText: { fontSize: 10, fontFamily: "Inter_600SemiBold", textTransform: "capitalize" },
   titlesScroll: { marginBottom: 20 },
   titlesContent: { gap: 8, paddingBottom: 4 },
@@ -468,7 +476,7 @@ const styles = StyleSheet.create({
   lbFilterBtn: { flex: 1, paddingVertical: 9, borderRadius: 12, borderWidth: 1, alignItems: "center" },
   lbFilterText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
   lbPodium: { borderRadius: 20, borderWidth: 1, padding: 20, marginBottom: 14, overflow: "hidden" },
-  lbPodiumTitle: { fontSize: 15, fontFamily: "Inter_700Bold", textAlign: "center", marginBottom: 16 },
+  lbPodiumTitle: { fontSize: 15, fontFamily: "Poppins_600SemiBold", textAlign: "center", marginBottom: 16 },
   podiumRow: { flexDirection: "row", alignItems: "flex-end", justifyContent: "center", gap: 12 },
   podiumItem: { alignItems: "center", gap: 6, flex: 1 },
   podiumCenter: { marginBottom: 8 },

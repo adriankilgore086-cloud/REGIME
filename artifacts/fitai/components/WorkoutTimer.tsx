@@ -75,7 +75,7 @@ export function WorkoutTimer({ initialSeconds, onComplete, label = 'Timer', auto
   const secs = seconds % 60;
 
   const typeColor = type === 'rest' ? colors.success : type === 'workout' ? colors.primary : colors.accent;
-  const gradColors: [string, string] = type === 'rest' ? ['#00E5A0', '#00B87A'] : type === 'workout' ? ['#00D4FF', '#0099CC'] : ['#FF2D78', '#CC1155'];
+  const gradColors: [string, string] = type === 'rest' ? ['#00E5A0', '#00B87A'] : type === 'workout' ? ['#8FB8FF', '#6B9EFF'] : ['#FF2D78', '#CC1155'];
 
   return (
     <Animated.View style={[styles.container, { transform: [{ scale: pulseAnim }] }]}>
@@ -97,7 +97,7 @@ export function WorkoutTimer({ initialSeconds, onComplete, label = 'Timer', auto
             <Ionicons name="refresh" size={18} color={colors.mutedForeground} />
           </TouchableOpacity>
           <TouchableOpacity onPress={toggle} style={[styles.mainBtn, { backgroundColor: typeColor }]}>
-            <Ionicons name={running ? 'pause' : 'play'} size={22} color="#08081A" />
+            <Ionicons name={running ? 'pause' : 'play'} size={22} color="#0D0D0D" />
           </TouchableOpacity>
           <View style={[styles.btn, { backgroundColor: colors.muted }]}>
             <Text style={[styles.elapsedText, { color: colors.mutedForeground }]}>+{elapsed}s</Text>
