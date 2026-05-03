@@ -35,10 +35,6 @@ export default function SignUpScreen() {
     return () => { void WebBrowser.coolDownAsync(); };
   }, []);
 
-  useEffect(() => {
-    signUp.reset();
-  }, [signUp]);
-
   const handleSignUp = async () => {
     signUp.reset();
     const { error } = await signUp.password({ emailAddress: email, password });
