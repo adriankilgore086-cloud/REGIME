@@ -16,6 +16,9 @@ export default function LibraryScreen() {
   const [showCustomizeModal, setShowCustomizeModal] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [pickedDate, setPickedDate] = useState(new Date().toISOString().split("T")[0]);
+  const [longPressedWorkout, setLongPressedWorkout] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editIntensity, setEditIntensity] = useState("");
   
   const [customDuration, setCustomDuration] = useState("");
   const [exerciseOverrides, setExerciseOverrides] = useState<Record<string, { sets?: number; reps?: string }>>({});
@@ -59,11 +62,15 @@ export default function LibraryScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
         <View style={styles.content}>
-          {SAMPLE_WORKOUTS.map((workout) => (
+          {SAMPLE_WORKOUTS.map((workout) => {
+            const isPressed = longPressedWorkout === workout.id;
+            return (
             <View key={workout.id}>
               <TouchableOpacity
-                onPress={() => setExpandedWorkout(expandedWorkout === workout.id ? null : workout.id)}
-                style={[styles.workoutCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+                onPress={() => { if (!isPressed) setExpandedWorkout(expandedWorkout === workout.id ? null : workout.id); }}
+                onLongPress={() => { setLongPressedWorkout(workout.id); setEditName(workout.name); setEditIntensity(workout.difficulty); }}
+                delayLongPress={500}
+                style={[styles.workoutCard, { backgroundColor: colors.card, borderColor: isPressed ? colors.primary : colors.border }]}
               >
                 <View style={styles.cardHeader}>
                   <View style={styles.cardLeft}>
@@ -147,8 +154,39 @@ export default function LibraryScreen() {
                   </TouchableOpacity>
                 </View>
               )}
+              {isPressed && (
+                <View style={[styles.editPanel, { backgroundColor: colors.primary + "10", borderColor: colors.primary }]}>
+                  <View style={styles.editField}>
+                    <Text style={[styles.editLabel, { color: colors.foreground }]}>Name</Text>
+                    <TextInput
+                      style={[styles.editInput, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.card }]}
+                      value={editName}
+                      onChangeText={setEditName}
+                      placeholderTextColor={colors.mutedForeground}
+                    />
+                  </View>
+                  <View style={styles.editField}>
+                    <Text style={[styles.editLabel, { color: colors.foreground }]}>Intensity</Text>
+                    <View style={styles.intensityButtons}>
+                      {["Easy", "Medium", "Hard"].map((level) => (
+                        <TouchableOpacity
+                          key={level}
+                          onPress={() => setEditIntensity(level)}
+                          style={[styles.intensityBtn, { backgroundColor: editIntensity === level ? colors.primary : colors.muted }]}
+                        >
+                          <Text style={[styles.intensityText, { color: editIntensity === level ? "#0D0D0D" : colors.mutedForeground }]}>{level}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+                  <TouchableOpacity onPress={() => setLongPressedWorkout(null)} style={[styles.saveBtnEdit, { backgroundColor: colors.primary }]}>
+                    <Text style={{ color: "#0D0D0D", fontFamily: "Inter_600SemiBold" }}>Done</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
-          ))}
+          );
+          })}
         </View>
       </ScrollView>
 
@@ -299,4 +337,12 @@ const styles = StyleSheet.create({
   dateText: { fontSize: 14, fontFamily: "Inter_500Medium" },
   todayLabel: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
   cancelText: { textAlign: "center", fontSize: 14, fontFamily: "Inter_400Regular", paddingTop: 8 },
+  editPanel: { borderTopWidth: 1, padding: 14, gap: 12 },
+  editField: { gap: 6 },
+  editLabel: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+  editInput: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8, fontSize: 13, fontFamily: "Inter_400Regular" },
+  intensityButtons: { flexDirection: "row", gap: 8 },
+  intensityBtn: { flex: 1, paddingVertical: 8, borderRadius: 8, alignItems: "center" },
+  intensityText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+  saveBtnEdit: { paddingVertical: 10, borderRadius: 8, alignItems: "center", marginTop: 4 },
 });

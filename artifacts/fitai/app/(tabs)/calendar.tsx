@@ -246,11 +246,12 @@ const rStyles = StyleSheet.create({
 export default function CalendarScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { scheduledWorkouts, scheduleWorkout, userStats } = useFitness();
+  const { scheduledWorkouts, scheduleWorkout, userStats, unscheduleWorkout } = useFitness();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [weekOffset, setWeekOffset] = useState(0);
+  const [longPressedWorkout, setLongPressedWorkout] = useState<string | null>(null);
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
   const weekDates = getWeekDates(weekOffset);
@@ -351,8 +352,14 @@ export default function CalendarScreen() {
             const workout = SAMPLE_WORKOUTS.find((w) => w.id === sw.workoutId);
             if (!workout) return null;
             const catColor = CATEGORY_COLORS[workout.category];
+            const isPressed = longPressedWorkout === sw.id;
             return (
-              <View key={sw.id} style={[styles.workoutRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <TouchableOpacity 
+                key={sw.id}
+                onLongPress={() => setLongPressedWorkout(sw.id)}
+                delayLongPress={500}
+                style={[styles.workoutRow, { backgroundColor: colors.card, borderColor: isPressed ? colors.destructive : colors.border }]}
+              >
                 <View style={[styles.catBar, { backgroundColor: catColor }]} />
                 <View style={styles.workoutInfo}>
                   <View style={styles.workoutTop}>
@@ -371,7 +378,14 @@ export default function CalendarScreen() {
                     ))}
                   </View>
                 </View>
-              </View>
+                {isPressed && (
+                  <View style={styles.workoutActions}>
+                    <TouchableOpacity onPress={() => { unscheduleWorkout(sw.id); setLongPressedWorkout(null); }} style={[styles.actionBtn, { backgroundColor: colors.destructive }]}>
+                      <Ionicons name="trash" size={14} color="#FFF" />
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </TouchableOpacity>
             );
           })
         )}
@@ -480,7 +494,7 @@ const styles = StyleSheet.create({
   emptyText: { fontSize: 14, fontFamily: "Inter_400Regular" },
   addWorkoutBtn: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12, borderWidth: 1 },
   addWorkoutText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-  workoutRow: { flexDirection: "row", borderRadius: 16, borderWidth: 1, marginBottom: 10, overflow: "hidden" },
+  workoutRow: { flexDirection: "row", borderRadius: 16, borderWidth: 1, marginBottom: 10, overflow: "hidden", alignItems: "center" },
   catBar: { width: 4 },
   workoutInfo: { flex: 1, padding: 14 },
   workoutTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 4 },
@@ -489,6 +503,8 @@ const styles = StyleSheet.create({
   muscleChips: { flexDirection: "row", gap: 6 },
   chip: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
   chipText: { fontSize: 10, fontFamily: "Inter_500Medium" },
+  workoutActions: { flexDirection: "row", gap: 8, paddingRight: 12, alignItems: "center" },
+  actionBtn: { width: 36, height: 36, borderRadius: 8, alignItems: "center", justifyContent: "center" },
   sectionTitle: { fontSize: 17, fontFamily: "Inter_700Bold", letterSpacing: -0.3, marginBottom: 4 },
   sectionSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginBottom: 12 },
   libraryHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
