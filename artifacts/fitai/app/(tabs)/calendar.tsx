@@ -90,11 +90,6 @@ function WeeklyReport({ userStats, scheduledWorkouts, onClose }: {
     <Modal visible transparent animationType="slide" onRequestClose={onClose}>
       <View style={rStyles.overlay}>
         <View style={[rStyles.sheet, { backgroundColor: colors.background }]}>
-          <LinearGradient
-            colors={["#8FB8FF12", "#A78BFA10", "transparent"]}
-            style={rStyles.gradient}
-          />
-
           <View style={rStyles.handle} />
 
           <View style={rStyles.header}>
@@ -179,12 +174,12 @@ function WeeklyReport({ userStats, scheduledWorkouts, onClose }: {
               </View>
             </View>
 
-            <View style={[rStyles.aiCard, { backgroundColor: "#8FB8FF08", borderColor: "#8FB8FF25" }]}>
+            <View style={[rStyles.aiCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <View style={rStyles.aiHeader}>
-                <LinearGradient colors={["#8FB8FF", "#6B9EFF"]} style={rStyles.aiAvatarGrad}>
-                  <Ionicons name="sparkles" size={14} color="#0D0D0D" />
-                </LinearGradient>
-                <Text style={[rStyles.aiLabel, { color: colors.primary }]}>AI Coach Analysis</Text>
+                <View style={[rStyles.aiAvatarGrad, { backgroundColor: colors.muted }]}>
+                  <Ionicons name="sparkles" size={14} color={colors.mutedForeground} />
+                </View>
+                <Text style={[rStyles.aiLabel, { color: colors.foreground }]}>AI Coach Analysis</Text>
               </View>
               {AI_INSIGHTS.map((insight, i) => (
                 <View key={i} style={rStyles.insightRow}>
@@ -194,13 +189,13 @@ function WeeklyReport({ userStats, scheduledWorkouts, onClose }: {
               ))}
             </View>
 
-            <View style={[rStyles.streakCard, { backgroundColor: "#F3D27A12", borderColor: "#F3D27A30" }]}>
+            <View style={[rStyles.streakCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <View style={rStyles.streakInner}>
-                <Ionicons name="flame" size={28} color="#F3D27A" />
+                <Ionicons name="flame" size={22} color={colors.mutedForeground} />
                 <View>
-                  <Text style={[rStyles.streakNum, { color: "#F3D27A" }]}>{userStats.streak} day streak</Text>
+                  <Text style={[rStyles.streakNum, { color: colors.foreground }]}>{userStats.streak} day streak</Text>
                   <Text style={[rStyles.streakSub, { color: colors.mutedForeground }]}>
-                    {userStats.streak >= 7 ? "You're on fire. Don't stop now." : "Keep it going — every day counts."}
+                    {userStats.streak >= 7 ? "Consistency remains strong." : "Keep it steady."}
                   </Text>
                 </View>
               </View>
@@ -215,12 +210,11 @@ function WeeklyReport({ userStats, scheduledWorkouts, onClose }: {
 const rStyles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.65)", justifyContent: "flex-end" },
   sheet: { maxHeight: "90%", borderTopLeftRadius: 32, borderTopRightRadius: 32, overflow: "hidden" },
-  gradient: { position: "absolute", top: 0, left: 0, right: 0, height: 180 },
-  handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: "#FFFFFF25", alignSelf: "center", marginTop: 12 },
+  handle: { width: 28, height: 3, borderRadius: 2, backgroundColor: "#FFFFFF20", alignSelf: "center", marginTop: 12 },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingTop: 20, paddingBottom: 16 },
-  headerSub: { fontSize: 11, fontFamily: "Inter_700Bold", letterSpacing: 1.5, marginBottom: 3 },
-  headerTitle: { fontSize: 24, fontFamily: "Inter_700Bold", letterSpacing: -0.8 },
-  closeBtn: { width: 36, height: 36, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  headerSub: { fontSize: 10, fontFamily: "Inter_600SemiBold", letterSpacing: 1.8, marginBottom: 3 },
+  headerTitle: { fontSize: 22, fontFamily: "Inter_700Bold", letterSpacing: -0.6 },
+  closeBtn: { width: 34, height: 34, borderRadius: 11, alignItems: "center", justifyContent: "center" },
   content: { paddingHorizontal: 20, paddingBottom: 40 },
   statsRow: { flexDirection: "row", gap: 8, marginBottom: 14 },
   statBox: { flex: 1, borderRadius: 14, borderWidth: 1, padding: 10, alignItems: "center", gap: 4 },
@@ -245,12 +239,12 @@ const rStyles = StyleSheet.create({
   aiCard: { borderRadius: 18, borderWidth: 1, padding: 16, marginBottom: 12 },
   aiHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 14 },
   aiAvatarGrad: { width: 28, height: 28, borderRadius: 9, alignItems: "center", justifyContent: "center" },
-  aiLabel: { fontSize: 13, fontFamily: "Inter_700Bold" },
+  aiLabel: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
   insightRow: { flexDirection: "row", alignItems: "flex-start", gap: 10, marginBottom: 10 },
   insightDot: { width: 5, height: 5, borderRadius: 3, marginTop: 7 },
   insightText: { flex: 1, fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 20 },
   streakCard: { borderRadius: 18, borderWidth: 1, padding: 16 },
-  streakInner: { flexDirection: "row", alignItems: "center", gap: 14 },
+  streakInner: { flexDirection: "row", alignItems: "center", gap: 12 },
   streakNum: { fontSize: 18, fontFamily: "Inter_700Bold" },
   streakSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
 });

@@ -67,15 +67,9 @@ const AnimatedTab = memo(function AnimatedTab({
             activeOpacity={0.85}
             style={styles.centerBtn}
           >
-            <LinearGradient
-              colors={['#FFFFFF', '#E0E0E0']}
-              style={styles.centerBtnInner}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              <Feather name="home" size={24} color="#0D0D0D" />
-            </LinearGradient>
-            <View style={[styles.centerGlow, { backgroundColor: '#FFFFFF12' }]} />
+            <View style={[styles.centerBtnInner, { backgroundColor: colors.primary }]}>
+              <Feather name="home" size={22} color="#0D0D0D" />
+            </View>
           </TouchableOpacity>
         </Animated.View>
         <Text style={[styles.centerLabel, { color: isFocused ? colors.primary : colors.mutedForeground }]}>
@@ -109,11 +103,7 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
 
   return (
     <View style={[styles.container, { paddingBottom: bottomPad }]}>
-      <LinearGradient
-        colors={['rgba(13,13,13,0)', 'rgba(13,13,13,0.96)', '#0D0D0D']}
-        style={StyleSheet.absoluteFill}
-        pointerEvents="none"
-      />
+        <LinearGradient colors={['rgba(13,13,13,0)', 'rgba(13,13,13,0.92)', '#0D0D0D']} style={StyleSheet.absoluteFill} pointerEvents="none" />
       <View style={[styles.pill, { borderColor: colors.border, backgroundColor: 'rgba(22,22,22,0.96)' }]}>
         {state.routes.map((route, index) => {
           const isFocused = state.index === index;
@@ -157,16 +147,16 @@ const styles = StyleSheet.create({
   pill: {
     flexDirection: 'row',
     marginHorizontal: 16,
-    borderRadius: 28,
+    borderRadius: 24,
     borderWidth: 1,
-    paddingVertical: 8,
+    paddingVertical: 6,
     paddingHorizontal: 4,
     alignItems: 'flex-end',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.5,
-    shadowRadius: 24,
-    elevation: 20,
+    shadowOpacity: 0.28,
+    shadowRadius: 18,
+    elevation: 14,
   },
   tab: {
     flex: 1,
@@ -174,7 +164,7 @@ const styles = StyleSheet.create({
   },
   tabInner: {
     alignItems: 'center',
-    paddingVertical: 4,
+    paddingVertical: 3,
     paddingHorizontal: 8,
     position: 'relative',
   },
@@ -194,7 +184,7 @@ const styles = StyleSheet.create({
   centerWrapper: {
     flex: 1,
     alignItems: 'center',
-    marginTop: -16,
+    marginTop: -14,
   },
   centerBtn: {
     alignItems: 'center',
@@ -202,24 +192,16 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   centerBtnInner: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#FFFFFF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.45,
-    shadowRadius: 14,
-    elevation: 12,
-  },
-  centerGlow: {
-    position: 'absolute',
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    top: -7,
-    left: -7,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 10,
   },
   centerLabel: {
     fontSize: 10,
