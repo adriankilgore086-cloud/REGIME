@@ -6,6 +6,7 @@ import {
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import { useColors } from "@/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
 import { SAMPLE_WORKOUTS, CATEGORY_COLORS } from "@/constants/workouts";
@@ -244,6 +245,7 @@ const rStyles = StyleSheet.create({
 });
 
 export default function CalendarScreen() {
+  const router = useRouter();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { scheduledWorkouts, scheduleWorkout, userStats, unscheduleWorkout } = useFitness();
@@ -398,7 +400,7 @@ export default function CalendarScreen() {
             <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Workout Library</Text>
             <Text style={[styles.sectionSub, { color: colors.mutedForeground }]}>Tap to schedule on selected date</Text>
           </View>
-          <TouchableOpacity onPress={() => setShowAddModal(true)} style={[styles.libraryCircleBtn, { backgroundColor: "#1A1A1A" }]}>
+          <TouchableOpacity onPress={() => router.push("/(tabs)/library")} style={[styles.libraryCircleBtn, { backgroundColor: "#1A1A1A" }]}>
             <Ionicons name="add" size={16} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
