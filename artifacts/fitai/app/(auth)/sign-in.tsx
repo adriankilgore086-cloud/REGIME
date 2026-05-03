@@ -191,7 +191,7 @@ export default function SignInScreen() {
           <LinearGradient colors={["#FFFFFF", "#E0E0E0"]} style={styles.logoIcon}>
             <Ionicons name="flash" size={34} color="#0D0D0D" />
           </LinearGradient>
-          <Text style={[styles.appName, { color: colors.foreground }]}>Regime</Text>
+          <Text style={[styles.appName, { color: colors.foreground }]}>REGIME</Text>
         </View>
 
         <Text style={[styles.title, { color: colors.foreground }]}>Welcome back</Text>
