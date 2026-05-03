@@ -65,7 +65,7 @@ export default function UsernameScreen() {
 
         <TouchableOpacity onPress={handleContinue} disabled={saving} style={styles.primaryBtn}>
           <LinearGradient colors={["#FFFFFF", "#E8E8E8"]} style={styles.primaryBtnGrad}>
-            {saving ? <ActivityIndicator color="#0D0D0D" /> : <Text style={styles.primaryBtnText}>Join</Text>}
+            {saving ? <ActivityIndicator color="#0D0D0D" /> : <Text style={styles.primaryBtnText}>JOIN</Text>}
           </LinearGradient>
         </TouchableOpacity>
       </ScrollView>
