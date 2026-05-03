@@ -290,37 +290,6 @@ export default function CalendarScreen() {
         </View>
       </View>
 
-      <TouchableOpacity
-        onPress={() => setShowReport(true)}
-        style={[styles.weekBanner, { backgroundColor: colors.card, borderColor: colors.border }]}
-        activeOpacity={0.85}
-      >
-        <LinearGradient colors={["#8FB8FF12", "#A78BFA10", "transparent"]} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
-        <View style={styles.weekBannerLeft}>
-          <View style={[styles.weekRingOuter, { borderColor: colors.primary + "40" }]}>
-            <View style={[styles.weekRingInner, { backgroundColor: colors.primary + "20" }]}>
-              <Text style={[styles.weekRingNum, { color: colors.primary }]}>{weekCompleted}</Text>
-              <Text style={[styles.weekRingOf, { color: colors.mutedForeground }]}>/ 5</Text>
-            </View>
-          </View>
-          <View>
-            <Text style={[styles.weekBannerTitle, { color: colors.foreground }]}>This Week</Text>
-            <Text style={[styles.weekBannerSub, { color: colors.mutedForeground }]}>
-              {weekCompleted === 0 ? "Let's get started" :
-                weekCompleted < 3 ? "Keep pushing" :
-                  weekCompleted < 5 ? "Great momentum" : "Perfect week!"}
-            </Text>
-          </View>
-        </View>
-        <View style={styles.weekBannerRight}>
-          <Text style={[styles.weekBannerStreak, { color: "#F3D27A" }]}>🔥 {userStats.streak}d</Text>
-          <Text style={[styles.weekBannerLabel, { color: colors.mutedForeground }]}>streak</Text>
-          <View style={[styles.viewBtn, { backgroundColor: colors.primary + "20" }]}>
-            <Text style={[styles.viewBtnText, { color: colors.primary }]}>View →</Text>
-          </View>
-        </View>
-      </TouchableOpacity>
-
       <View style={[styles.weekStrip, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
         <TouchableOpacity onPress={() => setWeekOffset(weekOffset - 1)} style={styles.weekNavBtn}>
           <Ionicons name="chevron-back" size={18} color={colors.mutedForeground} />
@@ -412,8 +381,8 @@ export default function CalendarScreen() {
             <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Workout Library</Text>
             <Text style={[styles.sectionSub, { color: colors.mutedForeground }]}>Tap to schedule on selected date</Text>
           </View>
-          <TouchableOpacity style={[styles.libraryCircleBtn, { backgroundColor: colors.primary }]}>
-            <Ionicons name="add" size={16} color="#0D0D0D" />
+          <TouchableOpacity onPress={() => setShowAddModal(true)} style={[styles.libraryCircleBtn, { backgroundColor: "#1A1A1A" }]}>
+            <Ionicons name="add" size={16} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
 
