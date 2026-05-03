@@ -331,8 +331,7 @@ export default function HealthScreen() {
           })}
         </View>
 
-        <TouchableOpacity onPress={() => router.push("/health-detail?metric=readiness" as any)}>
-          <View style={[styles.chartCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View style={[styles.chartCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <LinearGradient colors={["#7BE0B810", "#8FB8FF08", "transparent"]} style={StyleSheet.absoluteFill} />
             <View style={styles.recoveryTopRow}>
               <View style={{ flex: 1 }}>
@@ -380,7 +379,7 @@ export default function HealthScreen() {
               })}
             </View>
           </View>
-        </TouchableOpacity>
+        </View>
 
         <View style={[styles.tipsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={styles.tipsHeader}>
