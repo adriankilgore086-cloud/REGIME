@@ -482,12 +482,17 @@ export default function ProfileScreen() {
 
             <Text style={[styles.sectionTitle, { color: colors.foreground, marginTop: 4 }]}>Settings</Text>
             {[
-              { icon: "person-outline", label: "Edit Profile" },
-              { icon: "notifications-outline", label: "Notifications" },
-              { icon: "shield-checkmark-outline", label: "Privacy & Security" },
-              { icon: "help-circle-outline", label: "Help & Support" },
+              { icon: "person-outline", label: "Edit Profile", route: "/edit-profile" },
+              { icon: "notifications-outline", label: "Notifications", route: "/notifications" },
+              { icon: "shield-checkmark-outline", label: "Privacy & Security", route: "/privacy-security" },
+              { icon: "help-circle-outline", label: "Help & Support", route: "/help-support" },
             ].map((item) => (
-              <TouchableOpacity key={item.label} style={[styles.settingsRow, { backgroundColor: colors.card, borderColor: colors.border }]} activeOpacity={0.7}>
+              <TouchableOpacity 
+                key={item.label} 
+                onPress={() => router.push(item.route as any)}
+                style={[styles.settingsRow, { backgroundColor: colors.card, borderColor: colors.border }]} 
+                activeOpacity={0.7}
+              >
                 <View style={[styles.settingsIcon, { backgroundColor: colors.primary + "15" }]}>
                   <Ionicons name={item.icon as any} size={18} color={colors.primary} />
                 </View>
