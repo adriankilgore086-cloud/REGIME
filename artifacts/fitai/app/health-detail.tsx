@@ -139,8 +139,17 @@ export default function HealthDetailScreen() {
   const { metric } = useLocalSearchParams<{ metric: string }>();
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
-  const data = metric && METRIC_DETAILS[metric] ? METRIC_DETAILS[metric] : METRIC_DETAILS.sleep;
+  const currentMetric = metric || "sleep";
+  const data = currentMetric && METRIC_DETAILS[currentMetric] ? METRIC_DETAILS[currentMetric] : METRIC_DETAILS.sleep;
   const maxChartVal = Math.max(...data.chartData);
+
+  const metrics = [
+    { key: "sleep", title: "Sleep", icon: "moon-outline", color: "#A78BFA" },
+    { key: "hydration", title: "Hydration", icon: "water-outline", color: "#8FB8FF" },
+    { key: "heartrate", title: "Heart Rate", icon: "heart-outline", color: "#FF2D78" },
+    { key: "readiness", title: "Readiness", icon: "pulse-outline", color: "#7BE0B8" },
+    { key: "calories", title: "Calories", icon: "flame-outline", color: "#FF6B6B" },
+  ];
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -155,6 +164,31 @@ export default function HealthDetailScreen() {
           <Text style={[styles.title, { color: colors.foreground }]}>Health Details</Text>
           <View style={{ width: 28 }} />
         </View>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.metricsScroll} contentContainerStyle={styles.metricsContent}>
+          {metrics.map((m) => {
+            const isActive = currentMetric === m.key;
+            return (
+              <TouchableOpacity
+                key={m.key}
+                onPress={() => router.push(`/health-detail?metric=${m.key}` as any)}
+                style={[
+                  styles.metricBtn,
+                  isActive && { borderColor: m.color, borderWidth: 2, backgroundColor: m.color + "15" },
+                  !isActive && { borderColor: colors.border, borderWidth: 1 },
+                ]}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.metricBtnIcon, { backgroundColor: m.color + "20" }]}>
+                  <Ionicons name={m.icon as any} size={16} color={m.color} />
+                </View>
+                <Text style={[styles.metricBtnText, { color: isActive ? m.color : colors.mutedForeground }]}>
+                  {m.title}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
 
         <View style={styles.content}>
           <View style={[styles.metricCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -205,8 +239,13 @@ export default function HealthDetailScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: {},
-  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingBottom: 16 },
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingBottom: 12 },
   title: { fontSize: 24, fontFamily: "Poppins_700Bold", letterSpacing: -0.5 },
+  metricsScroll: { paddingHorizontal: 20, paddingBottom: 12 },
+  metricsContent: { gap: 8, paddingRight: 20 },
+  metricBtn: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12, flexDirection: "row", alignItems: "center", gap: 8, minWidth: 100 },
+  metricBtnIcon: { width: 32, height: 32, borderRadius: 8, alignItems: "center", justifyContent: "center" },
+  metricBtnText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
   content: { paddingHorizontal: 20 },
   metricCard: { borderRadius: 20, borderWidth: 1, padding: 24, alignItems: "center", marginBottom: 20 },
   metricIconWrap: { width: 60, height: 60, borderRadius: 16, alignItems: "center", justifyContent: "center", marginBottom: 12 },
