@@ -254,6 +254,28 @@ export default function HomeScreen() {
   const completedToday = scheduledWorkouts.filter((sw) => sw.date === today && sw.completed).length;
   const todayCalories = healthMetrics.find((h) => h.date === today)?.calories ?? 0;
 
+  const getWeekDates = () => {
+    const start = new Date();
+    start.setDate(start.getDate() - start.getDay());
+    const dates: string[] = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      dates.push(d.toISOString().split("T")[0]);
+    }
+    return dates;
+  };
+
+  const weekDates = getWeekDates();
+  const weekWorkouts = weekDates.filter((date) => scheduledWorkouts.some((sw) => sw.date === date && sw.completed)).length;
+  const weekCalories = weekDates.reduce((sum, date) => sum + (healthMetrics.find((h) => h.date === date)?.calories ?? 0), 0);
+  const weekMinutes = weekDates.reduce((sum, date) => {
+    return sum + scheduledWorkouts.filter((sw) => sw.date === date && sw.completed).reduce((minSum, sw) => {
+      const w = SAMPLE_WORKOUTS.find((x) => x.id === sw.workoutId);
+      return minSum + (w?.durationMinutes ?? 0);
+    }, 0);
+  }, 0);
+
   const onRefresh = async () => {
     setRefreshing(true);
     setTimeout(() => setRefreshing(false), 800);
@@ -366,6 +388,39 @@ export default function HomeScreen() {
             />
           );
         })}
+
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>This Week</Text>
+        </View>
+
+        <View style={[styles.weekWidget, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={styles.weekStatCol}>
+            <View style={[styles.weekStatIcon, { backgroundColor: colors.success + "20" }]}>
+              <Ionicons name="checkmark-circle-outline" size={20} color={colors.success} />
+            </View>
+            <Text style={[styles.weekStatLabel, { color: colors.mutedForeground }]}>Workouts</Text>
+            <Text style={[styles.weekStatValue, { color: colors.foreground }]}>{weekWorkouts}</Text>
+            <Text style={[styles.weekStatSub, { color: colors.mutedForeground }]}>this week</Text>
+          </View>
+          <View style={[styles.weekStatDivider, { backgroundColor: colors.border }]} />
+          <View style={styles.weekStatCol}>
+            <View style={[styles.weekStatIcon, { backgroundColor: colors.primary + "20" }]}>
+              <Ionicons name="time-outline" size={20} color={colors.primary} />
+            </View>
+            <Text style={[styles.weekStatLabel, { color: colors.mutedForeground }]}>Minutes</Text>
+            <Text style={[styles.weekStatValue, { color: colors.foreground }]}>{weekMinutes}</Text>
+            <Text style={[styles.weekStatSub, { color: colors.mutedForeground }]}>this week</Text>
+          </View>
+          <View style={[styles.weekStatDivider, { backgroundColor: colors.border }]} />
+          <View style={styles.weekStatCol}>
+            <View style={[styles.weekStatIcon, { backgroundColor: colors.accent + "20" }]}>
+              <Ionicons name="flame-outline" size={20} color={colors.accent} />
+            </View>
+            <Text style={[styles.weekStatLabel, { color: colors.mutedForeground }]}>Calories</Text>
+            <Text style={[styles.weekStatValue, { color: colors.foreground }]}>{weekCalories}</Text>
+            <Text style={[styles.weekStatSub, { color: colors.mutedForeground }]}>this week</Text>
+          </View>
+        </View>
 
         <TouchableOpacity
           onPress={() => setShowAI(true)}
@@ -574,6 +629,13 @@ const styles = StyleSheet.create({
   activityName: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
   activitySub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
   fab: { position: "absolute", right: 20, bottom: 110, width: 52, height: 52, borderRadius: 16, alignItems: "center", justifyContent: "center", shadowColor: "#8FB8FF", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 10 },
+  weekWidget: { borderRadius: 20, borderWidth: 1, padding: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 20 },
+  weekStatCol: { flex: 1, alignItems: "center", gap: 6 },
+  weekStatIcon: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  weekStatLabel: { fontSize: 11, fontFamily: "Inter_500Medium" },
+  weekStatValue: { fontSize: 18, fontFamily: "Inter_700Bold" },
+  weekStatSub: { fontSize: 10, fontFamily: "Inter_400Regular" },
+  weekStatDivider: { width: 1, height: 60 },
 });
 
 const prStyles = StyleSheet.create({
