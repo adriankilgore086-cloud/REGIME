@@ -18,14 +18,17 @@ export default function SignInScreen() {
   const colors = useColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { signIn, setActive, isLoaded } = useSignIn();
+
+  // v3 API: useSignIn returns { signIn, errors, fetchStatus } — no isLoaded/setActive
+  const { signIn, errors, fetchStatus } = useSignIn();
   const { startSSOFlow } = useSSO();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [mfaCode, setMfaCode] = useState("");
+  const [showMfa, setShowMfa] = useState(false);
 
   useEffect(() => {
     if (Platform.OS !== "android") return;
@@ -34,36 +37,52 @@ export default function SignInScreen() {
   }, []);
 
   const handleSubmit = async () => {
-    if (!isLoaded || !signIn) return;
-    setLoading(true);
-    setError("");
-    try {
-      const result = await signIn.create({ identifier: email, password });
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
-        router.replace("/(tabs)");
-      }
-    } catch (err: any) {
-      setError(err?.errors?.[0]?.longMessage ?? err?.errors?.[0]?.message ?? "Sign in failed. Please try again.");
-    } finally {
-      setLoading(false);
+    const { error } = await signIn.password({ emailAddress: email, password });
+    if (error) return;
+
+    if (signIn.status === "complete") {
+      await signIn.finalize({
+        navigate: ({ decorateUrl }) => {
+          const url = decorateUrl("/");
+          if (url.startsWith("http")) {
+            // web fallback
+          } else {
+            router.replace("/(tabs)");
+          }
+        },
+      });
+    } else if (signIn.status === "needs_client_trust") {
+      await signIn.mfa.sendEmailCode();
+      setShowMfa(true);
+    }
+  };
+
+  const handleVerifyMfa = async () => {
+    await signIn.mfa.verifyEmailCode({ code: mfaCode });
+    if (signIn.status === "complete") {
+      await signIn.finalize({
+        navigate: () => router.replace("/(tabs)"),
+      });
     }
   };
 
   const handleGoogle = useCallback(async () => {
     setGoogleLoading(true);
-    setError("");
     try {
-      const { createdSessionId, setActive: ssoSetActive } = await startSSOFlow({
+      const { createdSessionId, setActive } = await startSSOFlow({
         strategy: "oauth_google",
         redirectUrl: AuthSession.makeRedirectUri(),
       });
-      if (createdSessionId && ssoSetActive) {
-        await ssoSetActive({ session: createdSessionId });
-        router.replace("/(tabs)");
+      if (createdSessionId && setActive) {
+        await setActive({
+          session: createdSessionId,
+          navigate: async ({ decorateUrl }) => {
+            router.replace("/(tabs)");
+          },
+        });
       }
     } catch (e: any) {
-      setError(e?.errors?.[0]?.message ?? "Google sign in failed.");
+      // error shown via errors object from hook
     } finally {
       setGoogleLoading(false);
     }
@@ -71,6 +90,63 @@ export default function SignInScreen() {
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
+
+  const emailError = errors?.fields?.identifier?.message ?? errors?.fields?.emailAddress?.message;
+  const passwordError = errors?.fields?.password?.message;
+  const globalError = errors?.global?.message;
+
+  if (showMfa) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.verifyContainer, { paddingTop: topPad + 40 }]}>
+          <View style={[styles.verifyIcon, { backgroundColor: colors.primary + "20" }]}>
+            <Ionicons name="shield-checkmark-outline" size={36} color={colors.primary} />
+          </View>
+          <Text style={[styles.title, { color: colors.foreground }]}>Verify your device</Text>
+          <Text style={[styles.verifySubtitle, { color: colors.mutedForeground }]}>
+            We sent a code to {"\n"}{email}
+          </Text>
+          <View style={[styles.inputWrap, { backgroundColor: colors.input, borderColor: colors.border, width: "100%" }]}>
+            <Ionicons name="key-outline" size={16} color={colors.mutedForeground} style={styles.inputIcon} />
+            <TextInput
+              style={[styles.inputField, { color: colors.foreground }]}
+              placeholder="6-digit code"
+              placeholderTextColor={colors.mutedForeground}
+              value={mfaCode}
+              onChangeText={setMfaCode}
+              keyboardType="numeric"
+              maxLength={6}
+              autoFocus
+            />
+          </View>
+          {!!globalError && (
+            <View style={styles.errorBox}>
+              <Ionicons name="alert-circle-outline" size={15} color="#FF4B4B" />
+              <Text style={styles.errorText}>{globalError}</Text>
+            </View>
+          )}
+          <TouchableOpacity
+            onPress={handleVerifyMfa}
+            disabled={fetchStatus === "fetching" || mfaCode.length < 6}
+            style={[styles.primaryBtn, { opacity: mfaCode.length < 6 ? 0.6 : 1, width: "100%" }]}
+          >
+            <LinearGradient colors={["#8FB8FF", "#6B9EFF"]} style={styles.primaryBtnGrad}>
+              {fetchStatus === "fetching"
+                ? <ActivityIndicator color="#0D0D0D" />
+                : <Text style={styles.primaryBtnText}>Verify</Text>
+              }
+            </LinearGradient>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => signIn.mfa.sendEmailCode()} style={styles.resendBtn}>
+            <Text style={[styles.resendText, { color: colors.mutedForeground }]}>Resend code</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => { signIn.reset(); setShowMfa(false); }} style={styles.resendBtn}>
+            <Text style={[styles.resendText, { color: colors.mutedForeground }]}>Start over</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -119,7 +195,7 @@ export default function SignInScreen() {
         <View style={styles.form}>
           <View style={styles.field}>
             <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Email</Text>
-            <View style={[styles.inputWrap, { backgroundColor: colors.input, borderColor: colors.border }]}>
+            <View style={[styles.inputWrap, { backgroundColor: colors.input, borderColor: emailError ? "#FF4B4B" : colors.border }]}>
               <Ionicons name="mail-outline" size={16} color={colors.mutedForeground} style={styles.inputIcon} />
               <TextInput
                 style={[styles.inputField, { color: colors.foreground }]}
@@ -132,11 +208,12 @@ export default function SignInScreen() {
                 autoComplete="email"
               />
             </View>
+            {!!emailError && <Text style={styles.fieldError}>{emailError}</Text>}
           </View>
 
           <View style={styles.field}>
             <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Password</Text>
-            <View style={[styles.inputWrap, { backgroundColor: colors.input, borderColor: colors.border }]}>
+            <View style={[styles.inputWrap, { backgroundColor: colors.input, borderColor: passwordError ? "#FF4B4B" : colors.border }]}>
               <Ionicons name="lock-closed-outline" size={16} color={colors.mutedForeground} style={styles.inputIcon} />
               <TextInput
                 style={[styles.inputField, { color: colors.foreground }]}
@@ -150,23 +227,24 @@ export default function SignInScreen() {
                 <Ionicons name={showPass ? "eye-off-outline" : "eye-outline"} size={16} color={colors.mutedForeground} />
               </TouchableOpacity>
             </View>
+            {!!passwordError && <Text style={styles.fieldError}>{passwordError}</Text>}
           </View>
         </View>
 
-        {!!error && (
+        {!!globalError && (
           <View style={styles.errorBox}>
             <Ionicons name="alert-circle-outline" size={15} color="#FF4B4B" />
-            <Text style={styles.errorText}>{error}</Text>
+            <Text style={styles.errorText}>{globalError}</Text>
           </View>
         )}
 
         <TouchableOpacity
           onPress={handleSubmit}
-          disabled={!email || !password || loading}
+          disabled={!email || !password || fetchStatus === "fetching"}
           style={[styles.primaryBtn, { opacity: (!email || !password) ? 0.6 : 1 }]}
         >
           <LinearGradient colors={["#8FB8FF", "#6B9EFF"]} style={styles.primaryBtnGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-            {loading
+            {fetchStatus === "fetching"
               ? <ActivityIndicator color="#0D0D0D" />
               : <Text style={styles.primaryBtnText}>Sign In</Text>
             }
@@ -189,6 +267,11 @@ export default function SignInScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scroll: { paddingHorizontal: 24 },
+  verifyContainer: { flex: 1, paddingHorizontal: 24, alignItems: "center", gap: 16 },
+  verifyIcon: { width: 80, height: 80, borderRadius: 24, alignItems: "center", justifyContent: "center", marginBottom: 8 },
+  verifySubtitle: { fontSize: 15, fontFamily: "Inter_400Regular", textAlign: "center" },
+  resendBtn: { paddingVertical: 8 },
+  resendText: { fontSize: 14, fontFamily: "Inter_400Regular" },
   backBtn: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
   logoRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 32 },
   logoIcon: { width: 36, height: 36, borderRadius: 11, alignItems: "center", justifyContent: "center" },
@@ -203,6 +286,7 @@ const styles = StyleSheet.create({
   form: { gap: 16, marginBottom: 16 },
   field: { gap: 6 },
   fieldLabel: { fontSize: 13, fontFamily: "Inter_500Medium" },
+  fieldError: { fontSize: 12, color: "#FF4B4B", fontFamily: "Inter_400Regular", marginTop: 2 },
   inputWrap: { flexDirection: "row", alignItems: "center", borderRadius: 14, borderWidth: 1, paddingHorizontal: 14, height: 50 },
   inputIcon: { marginRight: 8 },
   inputField: { flex: 1, fontSize: 15, fontFamily: "Inter_400Regular" },

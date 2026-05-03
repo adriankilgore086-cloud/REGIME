@@ -10,7 +10,7 @@ import {
   Poppins_700Bold,
   Poppins_800ExtraBold,
 } from "@expo-google-fonts/poppins";
-import { ClerkProvider } from "@clerk/expo";
+import { ClerkProvider, ClerkLoaded } from "@clerk/expo";
 import { tokenCache as nativeTokenCache } from "@clerk/expo/token-cache";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
@@ -91,6 +91,7 @@ export default function RootLayout() {
     <View style={{ flex: 1, backgroundColor: BG }}>
       <ErrorBoundary>
         <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache} proxyUrl={proxyUrl}>
+          <ClerkLoaded>
           <SafeAreaProvider>
             <QueryClientProvider client={queryClient}>
               <ErrorBoundary>
@@ -114,6 +115,7 @@ export default function RootLayout() {
               </ErrorBoundary>
             </QueryClientProvider>
           </SafeAreaProvider>
+          </ClerkLoaded>
         </ClerkProvider>
       </ErrorBoundary>
     </View>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput,
   KeyboardAvoidingView, ScrollView, Platform, ActivityIndicator,
@@ -18,79 +18,81 @@ export default function SignUpScreen() {
   const colors = useColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { signUp, setActive, isLoaded } = useSignUp();
+
+  // v3 API: useSignUp returns { signUp, errors, fetchStatus } — no isLoaded/setActive
+  const { signUp, errors, fetchStatus } = useSignUp();
   const { startSSOFlow } = useSSO();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [code, setCode] = useState("");
-  const [verifying, setVerifying] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (Platform.OS !== "android") return;
+    void WebBrowser.warmUpAsync();
+    return () => { void WebBrowser.coolDownAsync(); };
+  }, []);
 
   const handleSignUp = async () => {
-    if (!isLoaded || !signUp) return;
-    setLoading(true);
-    setError("");
-    try {
-      await signUp.create({ emailAddress: email, password });
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-      setVerifying(true);
-    } catch (err: any) {
-      setError(err?.errors?.[0]?.longMessage ?? err?.errors?.[0]?.message ?? "Sign up failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    const { error } = await signUp.password({ emailAddress: email, password });
+    if (error) return;
+    await signUp.verifications.sendEmailCode();
   };
 
   const handleVerify = async () => {
-    if (!isLoaded || !signUp) return;
-    setLoading(true);
-    setError("");
-    try {
-      const result = await signUp.attemptEmailAddressVerification({ code });
-      if (result.status === "complete" && setActive) {
-        await setActive({ session: result.createdSessionId });
-        router.replace("/(tabs)");
-      }
-    } catch (err: any) {
-      setError(err?.errors?.[0]?.longMessage ?? err?.errors?.[0]?.message ?? "Verification failed. Check your code.");
-    } finally {
-      setLoading(false);
+    await signUp.verifications.verifyEmailCode({ code });
+    if (signUp.status === "complete") {
+      await signUp.finalize({
+        navigate: ({ decorateUrl }) => {
+          const url = decorateUrl("/");
+          if (url.startsWith("http")) {
+            // web fallback
+          } else {
+            router.replace("/(tabs)");
+          }
+        },
+      });
     }
   };
 
-  const handleResend = async () => {
-    if (!isLoaded || !signUp) return;
-    try {
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-    } catch { /* ignore */ }
-  };
-
-  const handleGoogle = async () => {
+  const handleGoogle = useCallback(async () => {
     setGoogleLoading(true);
-    setError("");
     try {
-      const { createdSessionId, setActive: ssoSetActive } = await startSSOFlow({
+      const { createdSessionId, setActive } = await startSSOFlow({
         strategy: "oauth_google",
         redirectUrl: AuthSession.makeRedirectUri(),
       });
-      if (createdSessionId && ssoSetActive) {
-        await ssoSetActive({ session: createdSessionId });
-        router.replace("/(tabs)");
+      if (createdSessionId && setActive) {
+        await setActive({
+          session: createdSessionId,
+          navigate: async ({ decorateUrl }) => {
+            router.replace("/(tabs)");
+          },
+        });
       }
     } catch (e: any) {
-      setError(e?.errors?.[0]?.message ?? "Google sign up failed.");
+      // error handled via errors object from hook
     } finally {
       setGoogleLoading(false);
     }
-  };
+  }, [startSSOFlow]);
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
 
-  if (verifying) {
+  const emailError = errors?.fields?.emailAddress?.message;
+  const passwordError = errors?.fields?.password?.message;
+  const codeError = errors?.fields?.code?.message;
+  const globalError = errors?.global?.message;
+
+  const isVerifying =
+    signUp.status === "missing_requirements" &&
+    signUp.unverifiedFields?.includes("email_address") &&
+    signUp.missingFields?.length === 0;
+
+  if (isVerifying) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={[styles.verifyContainer, { paddingTop: topPad + 40 }]}>
@@ -98,10 +100,10 @@ export default function SignUpScreen() {
             <Ionicons name="mail-open-outline" size={36} color={colors.primary} />
           </View>
           <Text style={[styles.title, { color: colors.foreground }]}>Check your email</Text>
-          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-            We sent a 6-digit code to {"\n"}{email}
+          <Text style={[styles.verifySubtitle, { color: colors.mutedForeground }]}>
+            We sent a 6-digit code to{"\n"}{email}
           </Text>
-          <View style={[styles.inputWrap, { backgroundColor: colors.input, borderColor: colors.border, width: "100%" }]}>
+          <View style={[styles.inputWrap, { backgroundColor: colors.input, borderColor: codeError ? "#FF4B4B" : colors.border, width: "100%" }]}>
             <Ionicons name="key-outline" size={16} color={colors.mutedForeground} style={styles.inputIcon} />
             <TextInput
               style={[styles.inputField, { color: colors.foreground }]}
@@ -114,18 +116,26 @@ export default function SignUpScreen() {
               autoFocus
             />
           </View>
-          {!!error && (
+          {!!codeError && <Text style={styles.fieldError}>{codeError}</Text>}
+          {!!globalError && (
             <View style={styles.errorBox}>
               <Ionicons name="alert-circle-outline" size={15} color="#FF4B4B" />
-              <Text style={styles.errorText}>{error}</Text>
+              <Text style={styles.errorText}>{globalError}</Text>
             </View>
           )}
-          <TouchableOpacity onPress={handleVerify} disabled={loading || code.length < 6} style={[styles.primaryBtn, { opacity: code.length < 6 ? 0.6 : 1, width: "100%" }]}>
+          <TouchableOpacity
+            onPress={handleVerify}
+            disabled={fetchStatus === "fetching" || code.length < 6}
+            style={[styles.primaryBtn, { opacity: code.length < 6 ? 0.6 : 1, width: "100%" }]}
+          >
             <LinearGradient colors={["#8FB8FF", "#6B9EFF"]} style={styles.primaryBtnGrad}>
-              {loading ? <ActivityIndicator color="#0D0D0D" /> : <Text style={styles.primaryBtnText}>Verify & Start Training</Text>}
+              {fetchStatus === "fetching"
+                ? <ActivityIndicator color="#0D0D0D" />
+                : <Text style={styles.primaryBtnText}>Verify & Start Training</Text>
+              }
             </LinearGradient>
           </TouchableOpacity>
-          <TouchableOpacity onPress={handleResend} style={styles.resendBtn}>
+          <TouchableOpacity onPress={() => signUp.verifications.sendEmailCode()} style={styles.resendBtn}>
             <Text style={[styles.resendText, { color: colors.mutedForeground }]}>Resend code</Text>
           </TouchableOpacity>
         </View>
@@ -149,8 +159,11 @@ export default function SignUpScreen() {
         </TouchableOpacity>
 
         <View style={{ marginTop: 20, marginBottom: 32 }}>
+          <LinearGradient colors={["#8FB8FF", "#6B9EFF"]} style={[styles.logoIcon, { marginBottom: 20 }]}>
+            <Ionicons name="flash" size={22} color="#0D0D0D" />
+          </LinearGradient>
           <Text style={[styles.title, { color: colors.foreground }]}>Join FitAI</Text>
-          <Text style={[styles.subtitle2, { color: colors.mutedForeground }]}>Start your transformation today</Text>
+          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Start your transformation today</Text>
         </View>
 
         <TouchableOpacity
@@ -176,7 +189,7 @@ export default function SignUpScreen() {
         <View style={styles.form}>
           <View style={styles.field}>
             <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Email</Text>
-            <View style={[styles.inputWrap, { backgroundColor: colors.input, borderColor: colors.border }]}>
+            <View style={[styles.inputWrap, { backgroundColor: colors.input, borderColor: emailError ? "#FF4B4B" : colors.border }]}>
               <Ionicons name="mail-outline" size={16} color={colors.mutedForeground} style={styles.inputIcon} />
               <TextInput
                 style={[styles.inputField, { color: colors.foreground }]}
@@ -188,11 +201,12 @@ export default function SignUpScreen() {
                 autoCapitalize="none"
               />
             </View>
+            {!!emailError && <Text style={styles.fieldError}>{emailError}</Text>}
           </View>
 
           <View style={styles.field}>
             <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Password</Text>
-            <View style={[styles.inputWrap, { backgroundColor: colors.input, borderColor: colors.border }]}>
+            <View style={[styles.inputWrap, { backgroundColor: colors.input, borderColor: passwordError ? "#FF4B4B" : colors.border }]}>
               <Ionicons name="lock-closed-outline" size={16} color={colors.mutedForeground} style={styles.inputIcon} />
               <TextInput
                 style={[styles.inputField, { color: colors.foreground }]}
@@ -206,23 +220,27 @@ export default function SignUpScreen() {
                 <Ionicons name={showPass ? "eye-off-outline" : "eye-outline"} size={16} color={colors.mutedForeground} />
               </TouchableOpacity>
             </View>
+            {!!passwordError && <Text style={styles.fieldError}>{passwordError}</Text>}
           </View>
         </View>
 
-        {!!error && (
+        {!!globalError && (
           <View style={styles.errorBox}>
             <Ionicons name="alert-circle-outline" size={15} color="#FF4B4B" />
-            <Text style={styles.errorText}>{error}</Text>
+            <Text style={styles.errorText}>{globalError}</Text>
           </View>
         )}
 
         <TouchableOpacity
           onPress={handleSignUp}
-          disabled={!email || !password || loading}
+          disabled={!email || !password || fetchStatus === "fetching"}
           style={[styles.primaryBtn, { opacity: (!email || !password) ? 0.6 : 1 }]}
         >
           <LinearGradient colors={["#8FB8FF", "#6B9EFF"]} style={styles.primaryBtnGrad}>
-            {loading ? <ActivityIndicator color="#0D0D0D" /> : <Text style={styles.primaryBtnText}>Create Account</Text>}
+            {fetchStatus === "fetching"
+              ? <ActivityIndicator color="#0D0D0D" />
+              : <Text style={styles.primaryBtnText}>Create Account</Text>
+            }
           </LinearGradient>
         </TouchableOpacity>
 
@@ -245,10 +263,13 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: 24 },
   verifyContainer: { flex: 1, paddingHorizontal: 24, alignItems: "center", gap: 16 },
   verifyIcon: { width: 80, height: 80, borderRadius: 24, alignItems: "center", justifyContent: "center", marginBottom: 8 },
+  verifySubtitle: { fontSize: 15, fontFamily: "Inter_400Regular", textAlign: "center" },
+  resendBtn: { paddingVertical: 8 },
+  resendText: { fontSize: 14, fontFamily: "Inter_400Regular" },
   backBtn: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
+  logoIcon: { width: 36, height: 36, borderRadius: 11, alignItems: "center", justifyContent: "center" },
   title: { fontSize: 28, fontFamily: "Inter_700Bold", letterSpacing: -0.8, marginBottom: 6 },
-  subtitle: { fontSize: 15, fontFamily: "Inter_400Regular", textAlign: "center" },
-  subtitle2: { fontSize: 15, fontFamily: "Inter_400Regular" },
+  subtitle: { fontSize: 15, fontFamily: "Inter_400Regular", marginBottom: 0 },
   googleBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, borderRadius: 16, borderWidth: 1, paddingVertical: 14, marginBottom: 20 },
   googleText: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
   dividerRow: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 20 },
@@ -257,6 +278,7 @@ const styles = StyleSheet.create({
   form: { gap: 16, marginBottom: 16 },
   field: { gap: 6 },
   fieldLabel: { fontSize: 13, fontFamily: "Inter_500Medium" },
+  fieldError: { fontSize: 12, color: "#FF4B4B", fontFamily: "Inter_400Regular", marginTop: 2 },
   inputWrap: { flexDirection: "row", alignItems: "center", borderRadius: 14, borderWidth: 1, paddingHorizontal: 14, height: 50 },
   inputIcon: { marginRight: 8 },
   inputField: { flex: 1, fontSize: 15, fontFamily: "Inter_400Regular" },
@@ -266,8 +288,6 @@ const styles = StyleSheet.create({
   primaryBtn: { borderRadius: 16, overflow: "hidden", marginBottom: 20 },
   primaryBtnGrad: { paddingVertical: 16, alignItems: "center", justifyContent: "center" },
   primaryBtnText: { color: "#0D0D0D", fontSize: 16, fontFamily: "Inter_700Bold" },
-  resendBtn: { paddingVertical: 8 },
-  resendText: { fontSize: 14, fontFamily: "Inter_400Regular" },
   linkRow: { flexDirection: "row", justifyContent: "center" },
   linkLabel: { fontSize: 14, fontFamily: "Inter_400Regular" },
   linkText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
