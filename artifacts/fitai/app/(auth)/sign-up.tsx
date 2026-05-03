@@ -38,6 +38,11 @@ export default function SignUpScreen() {
 
   const handleSignUp = async () => {
     signUp.reset();
+    setCode("");
+    await signUp.create({
+      emailAddress: email,
+      password,
+    });
     const { error } = await signUp.password({ emailAddress: email, password });
     if (error) return;
     await signUp.verifications.sendEmailCode();
@@ -70,7 +75,7 @@ export default function SignUpScreen() {
       if (createdSessionId && setActive) {
         await setActive({
           session: createdSessionId,
-          navigate: async () => router.replace("/(tabs)"),
+          navigate: async () => router.replace("/"),
         });
       }
     } catch (e: any) {
@@ -91,7 +96,7 @@ export default function SignUpScreen() {
       if (createdSessionId && setActive) {
         await setActive({
           session: createdSessionId,
-          navigate: async () => router.replace("/(tabs)"),
+          navigate: async () => router.replace("/"),
         });
       }
     } finally {
@@ -186,11 +191,7 @@ export default function SignUpScreen() {
           <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Start your transformation today</Text>
         </View>
 
-        <TouchableOpacity
-          onPress={handleGoogle}
-          disabled={googleLoading}
-          style={styles.googleBtn}
-        >
+        <TouchableOpacity onPress={handleGoogle} disabled={googleLoading} style={styles.googleBtn}>
           {googleLoading
             ? <ActivityIndicator size="small" color="#F5F5F5" />
             : <>
@@ -200,11 +201,7 @@ export default function SignUpScreen() {
           }
         </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={handleApple}
-          disabled={appleLoading}
-          style={[styles.appleBtn, { marginBottom: 12 }]}
-        >
+        <TouchableOpacity onPress={handleApple} disabled={appleLoading} style={styles.appleBtn}>
           {appleLoading
             ? <ActivityIndicator size="small" color="#F5F5F5" />
             : <>

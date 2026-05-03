@@ -81,7 +81,6 @@ export default function WelcomeScreen() {
   const handleGoogle = useCallback(async () => {
     setGoogleLoading(true);
     try {
-      signIn.reset();
       const { createdSessionId, setActive } = await startSSOFlow({
         strategy: "oauth_google",
         redirectUrl: AuthSession.makeRedirectUri(),
@@ -100,7 +99,6 @@ export default function WelcomeScreen() {
   const handleApple = useCallback(async () => {
     setAppleLoading(true);
     try {
-      signIn.reset();
       const { createdSessionId, setActive } = await startSSOFlow({
         strategy: "oauth_apple",
         redirectUrl: AuthSession.makeRedirectUri(),
@@ -172,12 +170,7 @@ export default function WelcomeScreen() {
             <View style={styles.formSection}>
 
               {/* Google */}
-              <TouchableOpacity
-                onPress={handleGoogle}
-                disabled={googleLoading}
-                style={styles.googleBtn}
-                activeOpacity={0.8}
-              >
+              <TouchableOpacity onPress={handleGoogle} disabled={googleLoading} style={styles.googleBtn} activeOpacity={0.8}>
                 {googleLoading
                   ? <ActivityIndicator size="small" color="#F5F5F5" />
                   : <>
@@ -187,12 +180,7 @@ export default function WelcomeScreen() {
                 }
               </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={handleApple}
-                disabled={appleLoading}
-                style={styles.appleBtn}
-                activeOpacity={0.8}
-              >
+              <TouchableOpacity onPress={handleApple} disabled={appleLoading} style={styles.appleBtn} activeOpacity={0.8}>
                 {appleLoading
                   ? <ActivityIndicator size="small" color="#F5F5F5" />
                   : <>

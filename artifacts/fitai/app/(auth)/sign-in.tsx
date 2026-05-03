@@ -75,7 +75,6 @@ export default function SignInScreen() {
   const handleGoogle = useCallback(async () => {
     setGoogleLoading(true);
     try {
-      signIn.reset();
       const { createdSessionId, setActive } = await startSSOFlow({
         strategy: "oauth_google",
         redirectUrl: AuthSession.makeRedirectUri(),
@@ -83,7 +82,7 @@ export default function SignInScreen() {
       if (createdSessionId && setActive) {
         await setActive({
           session: createdSessionId,
-          navigate: async () => router.replace("/(tabs)"),
+          navigate: async () => router.replace("/"),
         });
       }
     } catch (e: any) {
@@ -96,7 +95,6 @@ export default function SignInScreen() {
   const handleApple = useCallback(async () => {
     setAppleLoading(true);
     try {
-      signIn.reset();
       const { createdSessionId, setActive } = await startSSOFlow({
         strategy: "oauth_apple",
         redirectUrl: AuthSession.makeRedirectUri(),
@@ -104,7 +102,7 @@ export default function SignInScreen() {
       if (createdSessionId && setActive) {
         await setActive({
           session: createdSessionId,
-          navigate: async () => router.replace("/(tabs)"),
+          navigate: async () => router.replace("/"),
         });
       }
     } catch {
@@ -197,25 +195,17 @@ export default function SignInScreen() {
         <Text style={[styles.title, { color: colors.foreground }]}>Welcome back</Text>
         <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Sign in to continue your journey</Text>
 
-        <TouchableOpacity
-          onPress={handleGoogle}
-          disabled={googleLoading}
-          style={[styles.googleBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
-        >
+        <TouchableOpacity onPress={handleGoogle} disabled={googleLoading} style={styles.googleBtn}>
           {googleLoading
-            ? <ActivityIndicator size="small" color={colors.foreground} />
+            ? <ActivityIndicator size="small" color="#F5F5F5" />
             : <>
-              <Ionicons name="logo-google" size={18} color={colors.foreground} />
-              <Text style={[styles.googleText, { color: colors.foreground }]}>Continue with Google</Text>
+              <Ionicons name="logo-google" size={18} color="#F5F5F5" />
+              <Text style={[styles.googleText, { color: "#F5F5F5" }]}>Continue with Google</Text>
             </>
           }
         </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={handleApple}
-          disabled={appleLoading}
-          style={[styles.appleBtn, { marginBottom: 12 }]}
-        >
+        <TouchableOpacity onPress={handleApple} disabled={appleLoading} style={styles.appleBtn}>
           {appleLoading
             ? <ActivityIndicator size="small" color="#F5F5F5" />
             : <>
@@ -330,7 +320,7 @@ const styles = StyleSheet.create({
   appName: { fontSize: 34, fontFamily: "Inter_700Bold" },
   title: { fontSize: 30, fontFamily: "Inter_700Bold", letterSpacing: -0.8, marginBottom: 6 },
   subtitle: { fontSize: 16, fontFamily: "Inter_400Regular", marginBottom: 28 },
-  googleBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, borderRadius: 16, borderWidth: 1, paddingVertical: 14, marginBottom: 20 },
+  googleBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, borderRadius: 16, borderWidth: 1, paddingVertical: 14, marginBottom: 12, backgroundColor: "#111111", borderColor: "#2E2E2E" },
   appleBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, borderRadius: 16, borderWidth: 1, paddingVertical: 14, marginBottom: 20, backgroundColor: "#000000", borderColor: "#000000" },
   googleText: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
   dividerRow: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 20 },
