@@ -75,6 +75,7 @@ export default function SignInScreen() {
   const handleGoogle = useCallback(async () => {
     setGoogleLoading(true);
     try {
+      signIn.reset();
       const { createdSessionId, setActive } = await startSSOFlow({
         strategy: "oauth_google",
         redirectUrl: AuthSession.makeRedirectUri(),
@@ -95,6 +96,7 @@ export default function SignInScreen() {
   const handleApple = useCallback(async () => {
     setAppleLoading(true);
     try {
+      signIn.reset();
       const { createdSessionId, setActive } = await startSSOFlow({
         strategy: "oauth_apple",
         redirectUrl: AuthSession.makeRedirectUri(),

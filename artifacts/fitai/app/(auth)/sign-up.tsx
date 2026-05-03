@@ -39,11 +39,12 @@ export default function SignUpScreen() {
   const handleSignUp = async () => {
     signUp.reset();
     setCode("");
+    setEmail(email.trim());
     await signUp.create({
-      emailAddress: email,
+      emailAddress: email.trim(),
       password,
     });
-    const { error } = await signUp.password({ emailAddress: email, password });
+    const { error } = await signUp.password({ emailAddress: email.trim(), password });
     if (error) return;
     await signUp.verifications.sendEmailCode();
   };
@@ -68,6 +69,7 @@ export default function SignUpScreen() {
     setGoogleLoading(true);
     try {
       signUp.reset();
+      setCode("");
       const { createdSessionId, setActive } = await startSSOFlow({
         strategy: "oauth_google",
         redirectUrl: AuthSession.makeRedirectUri(),
@@ -89,6 +91,7 @@ export default function SignUpScreen() {
     setAppleLoading(true);
     try {
       signUp.reset();
+      setCode("");
       const { createdSessionId, setActive } = await startSSOFlow({
         strategy: "oauth_apple",
         redirectUrl: AuthSession.makeRedirectUri(),
