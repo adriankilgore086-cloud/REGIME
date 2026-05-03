@@ -1,0 +1,827 @@
+Project Overview
+
+Build a premium, cross-platform AI-powered fitness application with an immersive modern UI/UX focused on workout planning, workout tracking, health analytics, social engagement, AI coaching, gamification, and long-term fitness progression.
+
+The app should feel like a combination of:
+
+* Apple Fitness
+* Nike Training Club
+* Strava
+* Duolingo-style gamification
+* AI-driven personalization apps
+
+The experience should be:
+
+* Smooth
+* Interactive
+* Motivating
+* Visually stunning
+* Highly personalized
+* Addictive in a healthy way
+
+Use polished animations, rounded cards, gradients, interactive gestures, swipe mechanics, floating UI components, and premium transitions throughout the app.
+
+⸻
+
+Core App Features
+
+The app should include:
+
+* Secure user authentication
+* Personalized workout schedules
+* Swipe-based workout completion
+* Workout timers
+* AI workout recommendations
+* Smart health analytics
+* Goal progression tracking
+* Smart notifications
+* Apple Health / Google Fit integration
+* Social sharing
+* Friend challenges
+* XP & leveling systems
+* Achievement badges
+* Streak mechanics
+* Unlockable cosmetics
+* Personalized AI coaching
+
+⸻
+
+Authentication System
+
+Create a secure authentication system with:
+
+Features
+
+* Sign up
+* Login
+* Forgot password
+* Persistent sessions
+* Logout functionality
+
+Login Options
+
+Support:
+
+* Email/password
+* Google login
+* Apple login
+
+User Data Stored
+
+Each account should store:
+
+* Name
+* Email
+* Encrypted password
+* Age
+* Height
+* Weight
+* Fitness goals
+* Workout history
+* Health analytics
+* Achievement progress
+* XP level
+* Rank
+* Profile picture
+* Cosmetic unlocks
+* Social/friend data
+
+⸻
+
+Navigation Layout
+
+Create a custom curved bottom navigation bar.
+
+The navigation bar should form a subtle downward arc.
+
+⸻
+
+Navigation Tabs (Left → Right)
+
+1. Calendar Tab (Far Left)
+
+Icon: Calendar
+
+Purpose:
+
+* Schedule workouts
+* Add/edit workouts
+* Set workout times
+* Assign sets/reps
+* Create recurring workouts
+* Weekly/monthly calendar views
+* Drag-and-drop scheduling
+
+Workout categories:
+
+* Strength training
+* Cardio
+* Running
+* Recovery/stretching
+* HIIT
+
+The calendar should NOT display body-part analytics.
+
+⸻
+
+2. Future / Goals Tab
+
+Icon: Trophy or Progress Bar
+
+Purpose:
+This tab acts as an AI-powered fitness roadmap and long-term progression center.
+
+Include:
+
+* Goal tracking
+* Progress bars
+* Achievement milestones
+* AI-generated fitness plans
+* Weight trends
+* BMI analytics
+* Recovery/readiness scores
+* Personalized coaching insights
+* Estimated timelines for goals
+
+⸻
+
+3. Home Tab (Center Main Button)
+
+Icon: Large floating circular plus button
+
+This is the primary focus of the app.
+
+The center button should:
+
+* Be larger than all other buttons
+* Float above navigation
+* Have glow/shadow effects
+* Open the main dashboard
+
+⸻
+
+4. Health Tab
+
+Icon: Heart
+
+Purpose:
+Health analytics and body insights.
+
+Include:
+
+* Calories burned
+* Heart rate
+* Workout intensity
+* Recovery metrics
+* Muscle groups trained
+* Sleep insights (if available)
+* Activity tracking
+* Weekly analytics
+* Body-part distribution charts
+
+Integrate:
+
+* Apple HealthKit
+* Google Fit
+
+Request user permissions properly.
+
+⸻
+
+5. Profile Tab (Far Right)
+
+Icon: Person silhouette
+
+Purpose:
+
+* User profile
+* Account settings
+* Profile customization
+* Trophy showcase
+* Badge collection
+* Statistics dashboard
+* Achievement history
+* Cosmetic customization
+* Logout/settings
+
+⸻
+
+Home Dashboard
+
+The Home page is the centerpiece of the app.
+
+Design Requirements
+
+Use:
+
+* Animated workout bubbles/cards
+* Glassmorphism or neumorphism
+* Smooth transitions
+* Dynamic gradients
+* Floating UI elements
+* Modern fitness-inspired aesthetic
+
+⸻
+
+Workout Completion System
+
+Workouts appear as swipeable cards.
+
+Swipe Mechanics
+
+* Swipe RIGHT → Complete workout
+* Swipe LEFT → Skip workout
+* Tap → Expand details
+
+The interaction should feel similar to Tinder swipe mechanics.
+
+⸻
+
+Workout Card Information
+
+Each workout card should display:
+
+* Workout name
+* Sets
+* Reps
+* Duration
+* Calories estimate
+* Difficulty level
+* Targeted muscle groups
+* Estimated recovery
+
+⸻
+
+Workout Completion Rewards
+
+Users ONLY receive rewards after fully completing workouts.
+
+Completion requires:
+
+* All exercises completed
+* Required sets/reps finished
+* Workout officially swiped complete
+* Workout timer ended
+
+When completed:
+
+* Award XP
+* Update streaks
+* Trigger confetti/sound animations
+* Update achievements
+* Add health data
+* Sync analytics
+
+⸻
+
+Workout Timers
+
+Implement:
+
+* Workout duration timers
+* Rest timers
+* HIIT interval timers
+* Circuit timers
+
+Features:
+
+* Pause/resume
+* Auto-start next set
+* Haptic/sound alerts
+* Smart rest recommendations
+* Total workout duration tracking
+
+⸻
+
+Smart Notifications System
+
+Include:
+
+* Push notifications
+* In-app notifications
+
+Notifications should remind users about:
+
+* Upcoming workouts
+* Missed workouts
+* Goal milestones
+* Friend challenges
+* Streak risks
+* Recovery reminders
+* Weekly summaries
+
+Examples:
+
+* “Leg day starts in 30 minutes.”
+* “You’re on a 10-day streak.”
+* “You missed yesterday’s session — reschedule?”
+
+⸻
+
+In-App Notification Center
+
+Create a notification inbox with:
+
+* Unread indicators
+* Swipe-to-dismiss
+* Categorized notifications
+* Date grouping
+* Animated cards
+
+⸻
+
+AI Workout Recommendation Engine
+
+The AI should analyze:
+
+* User goals
+* Workout history
+* Missed workouts
+* Recovery status
+* Muscle fatigue
+* Calories burned
+* Performance progression
+* Consistency trends
+
+⸻
+
+Smart Workout Suggestions
+
+As users add workouts, the AI should recommend:
+
+* Better exercises
+* Missing muscle groups
+* Improved splits
+* Recovery days
+* Progressive overload adjustments
+
+Examples:
+
+* “You trained chest yesterday — try legs today.”
+* “Add incline dumbbell press for upper chest growth.”
+* “You haven’t trained core in 5 days.”
+
+Suggestions should appear:
+
+* During workout creation
+* On Home dashboard
+* In Future tab
+* During scheduling
+
+⸻
+
+Dynamic AI Fitness Plans
+
+The Future tab should automatically generate personalized plans for:
+
+* Weight loss
+* Muscle gain
+* Strength training
+* Athletic conditioning
+* Fat reduction
+* General health
+* Endurance
+
+Plans should include:
+
+* Weekly workout schedules
+* Recovery days
+* Cardio suggestions
+* Progressive overload systems
+* Basic nutrition suggestions
+* Milestone tracking
+
+The AI should dynamically adapt plans based on:
+
+* Consistency
+* Workout performance
+* Recovery data
+* Missed sessions
+* Progress speed
+
+⸻
+
+Automatic Body-Part Detection
+
+The app should intelligently determine muscle groups trained based on exercises logged.
+
+Examples:
+
+* Squats → Legs/Glutes
+* Bench Press → Chest/Triceps
+* Pull-ups → Back/Biceps
+
+This data should appear ONLY in the Health section.
+
+⸻
+
+Health Analytics Dashboard
+
+Include:
+
+* Calories burned
+* Workout intensity
+* Recovery metrics
+* Heart rate trends
+* Body-part training distribution
+* Weight trends
+* Weekly/monthly summaries
+* Hydration reminders
+* Sleep analytics (if available)
+
+Use animated charts and visual analytics cards.
+
+⸻
+
+Social Features
+
+Implement a full social ecosystem.
+
+⸻
+
+Friend System
+
+Users should be able to:
+
+* Add friends
+* Search usernames
+* View profiles
+* Compare streaks
+* React to achievements
+* View workout completions
+
+⸻
+
+Social Sharing
+
+Allow users to share:
+
+* Workout completions
+* Badges
+* Milestones
+* Progress charts
+* Achievement unlocks
+
+Platforms:
+
+* Instagram Stories
+* TikTok
+* Snapchat
+* X/Twitter
+* Facebook
+
+Generate visually attractive share cards automatically.
+
+⸻
+
+Friend Challenges
+
+Users can create/join challenges such as:
+
+* 30-day streaks
+* Calories burned goals
+* Distance goals
+* Workout completion races
+* Strength competitions
+
+Include:
+
+* Leaderboards
+* Progress bars
+* Timers/countdowns
+* Rewards
+* Reactions/comments
+
+⸻
+
+Advanced Gamification System
+
+Implement a deep progression and reward ecosystem.
+
+The app should motivate:
+
+* Consistency
+* Discipline
+* Progressive overload
+* Long-term engagement
+
+⸻
+
+XP System
+
+Users earn XP for:
+
+* Completing workouts
+* Completing all daily workouts
+* Heavy/intense workouts
+* Long workouts
+* Personal records
+* Consistency streaks
+* Weekly completion goals
+
+⸻
+
+XP Scaling
+
+Workout difficulty tiers:
+
+* Beginner
+* Intermediate
+* Advanced
+* Elite
+
+Harder workouts award more XP.
+
+⸻
+
+Streak System
+
+Users build streaks through:
+
+* Daily workout completion
+* Completing all sets/reps
+* Weekly consistency
+
+Missing workouts causes:
+
+* Streak loss
+* XP penalties
+* Risk of badge decay
+* Rank regression warnings
+
+The system should motivate users without feeling overly punishing.
+
+⸻
+
+Achievement Badge System
+
+Create collectible badges with rarity levels:
+
+* Bronze
+* Silver
+* Gold
+* Platinum
+* Legendary
+
+⸻
+
+Badge Categories
+
+Consistency
+
+* Never Missed a Workout
+* 30-Day Streak
+* Iron Discipline
+
+Strength
+
+* 500 lb Deadlift
+* 400 lb Squat
+* 1000 lb Club
+
+Beginner Progression
+
+* Beginner Gym Rat
+* Fitness Rookie
+
+Elite Status
+
+* Legendary Consistency
+* Elite Performer
+
+⸻
+
+Milestone Tracking
+
+Track:
+
+* Total weight lifted
+* Calories burned
+* Hours trained
+* Distance ran
+* Workouts completed
+* Personal records
+
+⸻
+
+Trophy Showcase
+
+Profiles should include:
+
+* Trophy displays
+* Badge collections
+* Achievement walls
+* Rare collectibles
+* Seasonal rewards
+
+⸻
+
+Unlockable Cosmetics
+
+XP and achievements unlock:
+
+* Profile banners
+* Animated profile frames
+* App themes
+* Badge borders
+* Exclusive backgrounds
+
+Cosmetics should feel prestigious and collectible.
+
+⸻
+
+Ranking System
+
+Ranks:
+
+* Beginner
+* Amateur
+* Dedicated
+* Advanced
+* Elite
+* Champion
+* Legendary
+
+Ranking should consider:
+
+* XP
+* Consistency
+* Challenges
+* Workout intensity
+* Achievements
+
+⸻
+
+Animated Reward System
+
+Milestone completions should trigger:
+
+* Confetti
+* XP popups
+* Sound effects
+* Badge animations
+* Trophy unlock screens
+
+The reward system should feel satisfying and motivating.
+
+⸻
+
+Seasonal Events
+
+Include limited-time events such as:
+
+* Summer Shred
+* Winter Bulk
+* New Year Challenge
+
+Rewards:
+
+* Exclusive cosmetics
+* Rare badges
+* Seasonal themes
+* Event trophies
+
+⸻
+
+AI Fitness Assistant
+
+Add an optional AI assistant/chat system.
+
+The AI assistant should:
+
+* Recommend workouts
+* Answer fitness questions
+* Suggest recovery strategies
+* Explain muscle groups
+* Modify plans dynamically
+* Motivate users
+
+Examples:
+
+* “What should I train today?”
+* “Create a 45-minute leg workout.”
+* “How do I improve endurance?”
+
+⸻
+
+Profile Statistics Dashboard
+
+Each profile should display:
+
+* XP level
+* Rank
+* Current streak
+* Longest streak
+* Total workouts
+* Calories burned
+* Weight lifted
+* Training hours
+* Achievements earned
+* Badges unlocked
+
+⸻
+
+UI/UX Design Requirements
+
+Use:
+
+* Dark mode
+* Smooth animations
+* Haptic feedback
+* Floating UI
+* Rounded cards
+* Soft gradients
+* Modern typography
+* Premium transitions
+
+The app should feel:
+
+* Clean
+* Futuristic
+* Premium
+* Responsive
+* Motivating
+
+⸻
+
+Technical Stack
+
+Frontend
+
+Use:
+
+* React Native OR Flutter
+
+Backend
+
+Use:
+
+* Firebase OR Supabase
+
+Features needed:
+
+* Authentication
+* Real-time sync
+* Cloud storage
+* Push notifications
+* Social systems
+* Analytics storage
+
+⸻
+
+Database Collections/Tables
+
+Create structures for:
+
+* Users
+* Workouts
+* Workout schedules
+* Goals
+* Health metrics
+* XP/progression
+* Badges
+* Friends
+* Challenges
+* Notifications
+* Achievements
+* Cosmetics
+* Seasonal rewards
+
+⸻
+
+Accessibility Requirements
+
+Support:
+
+* Screen readers
+* Adjustable text sizing
+* High contrast mode
+* Haptic interactions
+* Responsive layouts
+
+⸻
+
+Final Vision
+
+Create a production-quality AI-powered fitness ecosystem that combines:
+
+* Workout tracking
+* Smart coaching
+* Social engagement
+* Health analytics
+* RPG-style progression
+* Habit-building psychology
+* Competitive motivation
+* Personalized AI guidance
+
+The app should not feel like a simple fitness tracker.
+
+It should feel like:
+
+* A personal trainer
+* A social fitness platform
+* A competitive progression game
+* A premium health ecosystem
+* A long-term lifestyle companion
+
+The experience should keep users motivated, disciplined, engaged, and consistently progressing toward their fitness goals through intelligent personalization, rewarding systems, and immersive design.
