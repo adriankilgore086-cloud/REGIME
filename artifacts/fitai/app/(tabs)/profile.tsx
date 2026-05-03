@@ -64,14 +64,14 @@ const PostCard = memo(function PostCard({ post, myUserId, myName, myAvatar, myBa
   const submitComment = () => {
     const t = commentText.trim();
     if (!t) return;
-    addComment(post.id, { userId: myUserId, userName: myName, userAvatar: myAvatar, userBadge: myBadge, text: t });
+    addComment(post.id, { userId: myUserId, userName: myName, userAvatar: myAvatar, userProfileImage: post.userProfileImage, userBadge: myBadge, text: t });
     setCommentText("");
   };
 
   const submitReply = () => {
     const t = replyText.trim();
     if (!t || !replyTo) return;
-    addReply(post.id, replyTo, { userId: myUserId, userName: myName, userAvatar: myAvatar, userBadge: myBadge, text: t });
+    addReply(post.id, replyTo, { userId: myUserId, userName: myName, userAvatar: myAvatar, userProfileImage: post.userProfileImage, userBadge: myBadge, text: t });
     setReplyText("");
     setReplyTo(null);
   };
@@ -83,7 +83,11 @@ const PostCard = memo(function PostCard({ post, myUserId, myName, myAvatar, myBa
     <View style={[pcStyles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
       <View style={pcStyles.header}>
         <View style={[pcStyles.avatar, { backgroundColor: meta.color + "25", borderColor: meta.color + "45" }]}>
-          <Text style={[pcStyles.avatarText, { color: meta.color }]}>{post.userAvatar}</Text>
+          {post.userProfileImage ? (
+            <Image source={{ uri: post.userProfileImage }} style={pcStyles.avatarImage} />
+          ) : (
+            <Text style={[pcStyles.avatarText, { color: meta.color }]}>{post.userAvatar}</Text>
+          )}
         </View>
         <View style={pcStyles.meta}>
           <Text style={[pcStyles.userName, { color: colors.foreground }]}>{post.userName}</Text>
@@ -175,8 +179,12 @@ const PostCard = memo(function PostCard({ post, myUserId, myName, myAvatar, myBa
             return (
               <View key={c.id}>
                 <View style={pcStyles.commentRow}>
-                  <View style={[pcStyles.commentAvatar, { backgroundColor: colors.muted }]}>
-                    <Text style={[pcStyles.commentAvatarText, { color: colors.mutedForeground }]}>{c.userAvatar}</Text>
+                  <View style={[pcStyles.commentAvatar, { backgroundColor: colors.muted, overflow: "hidden" }]}>
+                    {c.userProfileImage ? (
+                      <Image source={{ uri: c.userProfileImage }} style={pcStyles.commentAvatarImage} />
+                    ) : (
+                      <Text style={[pcStyles.commentAvatarText, { color: colors.mutedForeground }]}>{c.userAvatar}</Text>
+                    )}
                   </View>
                   <View style={[pcStyles.commentBubble, { backgroundColor: colors.muted }]}>
                     <Text style={[pcStyles.commentUser, { color: colors.foreground }]}>{c.userName}</Text>
@@ -210,8 +218,12 @@ const PostCard = memo(function PostCard({ post, myUserId, myName, myAvatar, myBa
                 )}
                 {repliesByParent.filter((r) => r.parentId === c.id).map((r) => (
                   <View key={r.id} style={pcStyles.replyRow}>
-                    <View style={[pcStyles.commentAvatar, { backgroundColor: colors.card }]}>
-                      <Text style={[pcStyles.commentAvatarText, { color: colors.mutedForeground }]}>{r.userAvatar}</Text>
+                    <View style={[pcStyles.commentAvatar, { backgroundColor: colors.card, overflow: "hidden" }]}>
+                      {r.userProfileImage ? (
+                        <Image source={{ uri: r.userProfileImage }} style={pcStyles.commentAvatarImage} />
+                      ) : (
+                        <Text style={[pcStyles.commentAvatarText, { color: colors.mutedForeground }]}>{r.userAvatar}</Text>
+                      )}
                     </View>
                     <View style={[pcStyles.replyBubble, { backgroundColor: colors.card, borderColor: colors.border }]}>
                       <Text style={[pcStyles.commentUser, { color: colors.foreground }]}>{r.userName}</Text>
@@ -224,8 +236,12 @@ const PostCard = memo(function PostCard({ post, myUserId, myName, myAvatar, myBa
             );
           })}
           <View style={[pcStyles.commentInputRow, { borderTopColor: colors.border }]}>
-            <View style={[pcStyles.commentInputAvatar, { backgroundColor: colors.primary + "25" }]}>
-              <Text style={[pcStyles.commentAvatarText, { color: colors.primary }]}>{myAvatar}</Text>
+            <View style={[pcStyles.commentInputAvatar, { backgroundColor: colors.primary + "25", overflow: "hidden" }]}>
+              {myProfileImage ? (
+                <Image source={{ uri: myProfileImage }} style={pcStyles.commentAvatarImage} />
+              ) : (
+                <Text style={[pcStyles.commentAvatarText, { color: colors.primary }]}>{myAvatar}</Text>
+              )}
             </View>
             <TextInput
               style={[pcStyles.commentInput, { backgroundColor: colors.muted, color: colors.foreground }]}
@@ -250,8 +266,9 @@ const PostCard = memo(function PostCard({ post, myUserId, myName, myAvatar, myBa
 const pcStyles = StyleSheet.create({
   card: { borderRadius: 20, borderWidth: 1, padding: 16, marginBottom: 12, overflow: "hidden" },
   header: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 12 },
-  avatar: { width: 42, height: 42, borderRadius: 14, alignItems: "center", justifyContent: "center", borderWidth: 1 },
+  avatar: { width: 42, height: 42, borderRadius: 14, alignItems: "center", justifyContent: "center", borderWidth: 1, overflow: "hidden" },
   avatarText: { fontSize: 17, fontFamily: "Inter_700Bold" },
+  avatarImage: { width: 42, height: 42, borderRadius: 14 },
   meta: { flex: 1 },
   userName: { fontSize: 14, fontFamily: "Inter_700Bold" },
   userBadge: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 1 },
@@ -279,6 +296,7 @@ const pcStyles = StyleSheet.create({
   commentAvatar: { width: 28, height: 28, borderRadius: 9, alignItems: "center", justifyContent: "center" },
   commentInputAvatar: { width: 28, height: 28, borderRadius: 9, alignItems: "center", justifyContent: "center" },
   commentAvatarText: { fontSize: 11, fontFamily: "Inter_700Bold" },
+  commentAvatarImage: { width: 28, height: 28, borderRadius: 9 },
   commentBubble: { flex: 1, borderRadius: 12, padding: 10, gap: 2 },
   replyRow: { flexDirection: "row", gap: 8, alignItems: "flex-start", marginLeft: 36 },
   replyBubble: { flex: 1, borderRadius: 12, padding: 10, gap: 2, borderWidth: 1 },
@@ -308,6 +326,8 @@ export default function ProfileScreen() {
 
   const myUserId = "me";
   const myAvatar = userProfile.name.charAt(0).toUpperCase();
+  const myBadge = rank;
+  const myProfileImage = userProfile.profileImage;
   const filteredPosts = useMemo(
     () => posts.filter((p) => feedFilter === "global" ? true : p.audience === "friends" || p.userId === myUserId),
     [posts, feedFilter, myUserId]

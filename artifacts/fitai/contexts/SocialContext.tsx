@@ -13,6 +13,7 @@ export interface SocialComment {
   userId: string;
   userName: string;
   userAvatar: string;
+  userProfileImage?: string;
   userBadge: string;
   text: string;
   parentId?: string | null;
@@ -24,6 +25,7 @@ export interface SocialPost {
   userId: string;
   userName: string;
   userAvatar: string;
+  userProfileImage?: string;
   userBadge: string;
   type: PostType;
   text: string;
