@@ -126,7 +126,7 @@ export default function SignUpScreen() {
           <Text style={[styles.verifySubtitle, { color: colors.mutedForeground }]}>
             We sent a 6-digit code to{"\n"}{email}
           </Text>
-          <View style={[styles.inputWrap, { backgroundColor: colors.input, borderColor: codeError ? "#FF4B4B" : colors.border, width: "100%" }]}>
+          <View style={[styles.inputWrap, { backgroundColor: "transparent", borderColor: codeError ? "#FF4B4B" : colors.border, width: "100%" }]}>
             <Ionicons name="key-outline" size={16} color={colors.mutedForeground} style={styles.inputIcon} />
             <TextInput
               style={[styles.inputField, { color: colors.foreground }]}
@@ -222,7 +222,7 @@ export default function SignUpScreen() {
 
         <View style={styles.form}>
           <View style={styles.field}>
-            <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Username</Text>
+            <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>username</Text>
             <View style={[styles.inputWrap, { backgroundColor: "transparent", borderColor: usernameError ? "#FF4B4B" : colors.border }]}>
               <Ionicons name="person-outline" size={16} color={colors.mutedForeground} style={styles.inputIcon} />
               <TextInput
@@ -238,7 +238,7 @@ export default function SignUpScreen() {
           </View>
 
           <View style={styles.field}>
-            <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Email</Text>
+            <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>mail</Text>
             <View style={[styles.inputWrap, { backgroundColor: "transparent", borderColor: emailError ? "#FF4B4B" : colors.border }]}>
               <Ionicons name="mail-outline" size={16} color={colors.mutedForeground} style={styles.inputIcon} />
               <TextInput
@@ -255,7 +255,7 @@ export default function SignUpScreen() {
           </View>
 
           <View style={styles.field}>
-            <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Password</Text>
+            <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>password</Text>
             <View style={[styles.inputWrap, { backgroundColor: "transparent", borderColor: passwordError ? "#FF4B4B" : colors.border }]}>
               <Ionicons name="lock-closed-outline" size={16} color={colors.mutedForeground} style={styles.inputIcon} />
               <TextInput

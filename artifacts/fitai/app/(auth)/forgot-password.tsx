@@ -114,7 +114,7 @@ export default function ForgotPasswordScreen() {
 
             <View style={styles.field}>
               <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Email Address</Text>
-              <View style={[styles.inputWrap, { backgroundColor: colors.input, borderColor: emailError ? "#FF4B4B" : colors.border }]}>
+              <View style={[styles.inputWrap, { backgroundColor: "transparent", borderColor: emailError ? "#FF4B4B" : colors.border }]}>
                 <Ionicons name="mail-outline" size={16} color={colors.mutedForeground} style={styles.inputIcon} />
                 <TextInput
                   style={[styles.inputField, { color: colors.foreground }]}
@@ -179,7 +179,7 @@ export default function ForgotPasswordScreen() {
 
             <View style={[styles.field, { marginBottom: 12 }]}>
               <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Reset Code</Text>
-              <View style={[styles.inputWrap, { backgroundColor: colors.input, borderColor: codeError ? "#FF4B4B" : colors.border }]}>
+              <View style={[styles.inputWrap, { backgroundColor: "transparent", borderColor: codeError ? "#FF4B4B" : colors.border }]}>
                 <Ionicons name="key-outline" size={16} color={colors.mutedForeground} style={styles.inputIcon} />
                 <TextInput
                   style={[styles.inputField, { color: colors.foreground, letterSpacing: 4, fontSize: 18 }]}
@@ -202,7 +202,7 @@ export default function ForgotPasswordScreen() {
 
             <View style={styles.field}>
               <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>New Password</Text>
-              <View style={[styles.inputWrap, { backgroundColor: colors.input, borderColor: passError ? "#FF4B4B" : colors.border }]}>
+              <View style={[styles.inputWrap, { backgroundColor: "transparent", borderColor: passError ? "#FF4B4B" : colors.border }]}>
                 <Ionicons name="lock-closed-outline" size={16} color={colors.mutedForeground} style={styles.inputIcon} />
                 <TextInput
                   style={[styles.inputField, { color: colors.foreground }]}

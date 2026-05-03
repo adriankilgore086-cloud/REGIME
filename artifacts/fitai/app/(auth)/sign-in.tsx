@@ -45,21 +45,29 @@ export default function SignInScreen() {
     signIn.reset();
     setShowMfa(false);
     setMfaCode("");
-    const { error } = await signIn.password({ emailAddress: email, password });
-    if (error) return;
+    try {
+      const result = await signIn.password({ emailAddress: email, password });
+      if (result.error) return;
 
-    if (signIn.status === "complete") {
-      router.replace("/(tabs)");
-    } else if (signIn.status === "needs_client_trust") {
-      await signIn.mfa.sendEmailCode();
-      setShowMfa(true);
+      if (signIn.status === "complete") {
+        router.replace("/(tabs)");
+      } else if (signIn.status === "needs_client_trust") {
+        await (signIn as any).mfa.sendEmailCode();
+        setShowMfa(true);
+      }
+    } catch (e: any) {
+      // error handled via errors object from hook
     }
   };
 
   const handleVerifyMfa = async () => {
-    await signIn.mfa.verifyEmailCode({ code: mfaCode });
-    if (signIn.status === "complete") {
-      router.replace("/(tabs)");
+    try {
+      await (signIn as any).mfa.verifyEmailCode({ code: mfaCode });
+      if (signIn.status === "complete") {
+        router.replace("/(tabs)");
+      }
+    } catch (e: any) {
+      // error handled via errors object
     }
   };
 
@@ -122,7 +130,7 @@ export default function SignInScreen() {
           <Text style={[styles.verifySubtitle, { color: colors.mutedForeground }]}>
             We sent a code to {"\n"}{email}
           </Text>
-          <View style={[styles.inputWrap, { backgroundColor: colors.input, borderColor: colors.border, width: "100%" }]}>
+          <View style={[styles.inputWrap, { backgroundColor: "transparent", borderColor: colors.border, width: "100%" }]}>
             <Ionicons name="key-outline" size={16} color={colors.mutedForeground} style={styles.inputIcon} />
             <TextInput
               style={[styles.inputField, { color: colors.foreground }]}

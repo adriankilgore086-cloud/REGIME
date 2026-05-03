@@ -48,7 +48,7 @@ export default function UsernameScreen() {
         <Text style={[styles.title, { color: colors.foreground, textTransform: "uppercase" }]}>A NEW ROUTINE FOR THE BETTER.</Text>
         <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Set your entry point to Regime.</Text>
 
-        <View style={[styles.inputWrap, { backgroundColor: colors.input, borderColor: error ? "#FF4B4B" : colors.border }]}>
+        <View style={[styles.inputWrap, { backgroundColor: "transparent", borderColor: error ? "#FF4B4B" : colors.border }]}>
           <Ionicons name="person-outline" size={16} color={colors.mutedForeground} style={styles.inputIcon} />
           <TextInput
             style={[styles.inputField, { color: colors.foreground }]}
