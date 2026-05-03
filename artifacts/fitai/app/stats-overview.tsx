@@ -10,6 +10,7 @@ import { useRouter } from "expo-router";
 import { useColors } from "@/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
 import { SAMPLE_WORKOUTS } from "@/constants/workouts";
+import { XPProgressBar } from "@/components/XPProgressBar";
 
 const SMART_RECS = [
   { id: "rec1", name: "HIIT Inferno", tag: "High Calorie Burn", minutes: 30, xp: 200, color: "#FF2D78", icon: "flame" as const },
@@ -29,7 +30,7 @@ export default function StatsOverviewScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { userStats, scheduledWorkouts, healthMetrics } = useFitness();
+  const { userStats, scheduledWorkouts, healthMetrics, level, rank, xpProgress } = useFitness();
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
   const getWeekDates = () => {
@@ -71,6 +72,10 @@ export default function StatsOverviewScreen() {
         </View>
 
         <View style={styles.content}>
+          <View style={[styles.xpCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <XPProgressBar xp={userStats.xp} level={level} rank={rank} xpProgress={xpProgress} />
+          </View>
+
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: colors.foreground }]}>This Week</Text>
           </View>
@@ -190,6 +195,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingBottom: 16 },
   title: { fontSize: 24, fontFamily: "Poppins_700Bold", letterSpacing: -0.5 },
   content: { paddingHorizontal: 20 },
+  xpCard: { borderRadius: 20, borderWidth: 1, padding: 16, marginBottom: 20 },
   sectionHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14, marginTop: 20 },
   sectionTitle: { fontSize: 18, fontFamily: "Poppins_600SemiBold", letterSpacing: -0.3 },
   aiBadge: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10 },

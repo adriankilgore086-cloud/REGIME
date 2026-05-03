@@ -327,9 +327,11 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        <View style={[styles.xpCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <XPProgressBar xp={userStats.xp} level={level} rank={rank} xpProgress={xpProgress} />
-        </View>
+        <TouchableOpacity onPress={() => router.push("/stats-overview" as any)}>
+          <View style={[styles.xpCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <XPProgressBar xp={userStats.xp} level={level} rank={rank} xpProgress={xpProgress} />
+          </View>
+        </TouchableOpacity>
 
         <TouchableOpacity onPress={() => router.push("/stats-overview" as any)}>
           <View style={styles.statsRow}>
