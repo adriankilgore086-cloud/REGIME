@@ -468,7 +468,7 @@ export default function CalendarScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingBottom: 12 },
-  title: { fontSize: 26, fontFamily: "Poppins_700Bold", letterSpacing: -0.5 },
+  title: { fontSize: 27, fontFamily: "Poppins_700Bold", letterSpacing: -0.5 },
   headerBtns: { flexDirection: "row", alignItems: "center", gap: 8 },
   reportBtn: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 12, borderWidth: 1 },
   reportBtnText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
