@@ -118,12 +118,36 @@ function DailyCuratedWorkoutCard({ onStartPlayer }: { onStartPlayer: (workout: i
         <Text style={dcStyles.startBtnText}>Start Session</Text>
       </TouchableOpacity>
     </View>
+    {/* Spacer and Section Header to reduce overcrowding */}
+    <View style={{ height: 35 }} /> 
+    <View style={{ paddingHorizontal: 16, marginBottom: 16 }}>
+      <Text style={{ 
+        color: '#FFFFFF', 
+        fontSize: 20, 
+        fontWeight: '700',
+        letterSpacing: -0.5 
+      }}>
+        Weekly Progress
+      </Text>
+      <Text style={{ color: '#A1A1A1', fontSize: 14 }}>
+        Your performance at a glance
+      </Text>
+    </View>
+
   );
 }
 
 const dcStyles = StyleSheet.create({
-  card: { borderRadius: 22, borderWidth: 1, padding: 18, marginBottom: 20, overflow: "hidden" },
-  topRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
+  card: { 
+    borderRadius: 24, 
+    borderWidth: 1, 
+    padding: 22, // Increased padding for 10% size boost
+    marginBottom: 24, 
+    overflow: "hidden",
+    minHeight: 180 // Giving it more vertical presence
+  },
+
+  topRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 },
   badge: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 9, paddingVertical: 4, borderRadius: 10, borderWidth: 1 },
   badgeText: { fontSize: 9, fontFamily: "Inter_700Bold", letterSpacing: 0.8 },
   xpPill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
