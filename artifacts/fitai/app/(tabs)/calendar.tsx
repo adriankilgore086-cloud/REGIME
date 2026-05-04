@@ -451,6 +451,11 @@ export default function CalendarScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <LinearGradient
+        colors={["#FFFFFF18", "#FFFFFF08", "transparent"]}
+        style={{ position: "absolute", top: 0, left: 0, right: 0, height: topPad + 90 }}
+        pointerEvents="none"
+      />
       <View style={[styles.header, { paddingTop: topPad + 12, backgroundColor: colors.background }]}>
         <Text style={[styles.title, { color: colors.foreground, fontSize: 29.7 }]}>Schedule</Text>
         <View style={styles.headerBtns}>
@@ -641,11 +646,6 @@ export default function CalendarScreen() {
         <Ionicons name="library-outline" size={16} color={colors.primary} />
         <Text style={[styles.libraryBtnText, { color: colors.foreground }]}>Workout Library</Text>
       </TouchableOpacity>
-      <LinearGradient
-        colors={[colors.background, colors.background + "00"]}
-        style={{ position: "absolute", top: 0, left: 0, right: 0, height: topPad + 80 }}
-        pointerEvents="none"
-      />
     </View>
   );
 }

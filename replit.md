@@ -68,16 +68,23 @@ See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and pa
 - **Consistency Tracker** (`app/(tabs)/goals.tsx`) — 8-week calendar grid showing completed vs missed sessions, today highlight, streak pill
 - **Personal Records Board** (`app/(tabs)/index.tsx`) — Horizontal scroll of key lifts (Bench, Squat, Deadlift, OHP, Pull-ups) with gain badges
 - **Profile Leaderboard Tab** (`app/(tabs)/profile.tsx`) — Premium redirect card to `/leaderboard` + top 3 preview, replaces old inline data
-- **Social Feed** (`app/(tabs)/profile.tsx`) — Community feed with post types, reactions (fire/flex/clap), comments, replies, create post modal
+- **Social Feed** (`app/(tabs)/profile.tsx`) — Community feed with post types, reactions (fire/flex/clap), comments, replies, half-screen bottom sheet create post modal, tappable avatars (UserProfileSheet), isPremium gate
 - **Ghost Mode Card** (`app/(tabs)/index.tsx`) — vs last week comparison
 - **AI Coach Chat** (`components/AIChatModal.tsx`) — Streaming chat powered by `/api/ai/coach` proxy
 - **Gamification** — XP system, levels, ranks, achievements/badges, rewards overlay (`FitnessContext.tsx`)
 - **Calendar Scheduling** — Schedule/skip workouts, weekly report modal
+- **Notification Pill Banner** (`components/NotificationBanner.tsx`) — iOS Live Activity-style animated pill; slides in from top; auto-dismisses after 4s; swipe-up or tap to dismiss; queued delivery; wired to workout completions, achievements, and social posts
 
 ### Context / State
-- `FitnessContext.tsx` — All fitness state (profile, stats, workouts, goals, health metrics, achievements, notifications)
-- `SocialContext.tsx` — Social posts, reactions, comments
+- `FitnessContext.tsx` — All fitness state (profile, stats, workouts, goals, health metrics, achievements, notifications); `UserProfile` now includes `username`, `isPremium`, `unlockedTitles`; `AppNotification` now includes `route` and `'social'` type; `updateProfile` auto-derives `@username` from name
+- `SocialContext.tsx` — Social posts, reactions, comments; `SocialPost` includes `mediaWidth`/`mediaHeight`; calls `addNotification` on new post
 - `AsyncStorage` key: `@regime_data_v2`
+
+### Premium / Identity
+- `isPremium` flag on `UserProfile` — gates the Social Feed tab in `profile.tsx`
+- Dev toggle available in Settings action sheet (iOS) and Alert (Android)
+- `unlockedTitles` array replaces old static `IDENTITY_TITLES` constant — user picks active title from their earned set
+- `username` auto-derived as `@handle` from display name on every profile update
 
 ### Important Notes
 - `welcome.tsx` IS the login screen (not `sign-in.tsx`)

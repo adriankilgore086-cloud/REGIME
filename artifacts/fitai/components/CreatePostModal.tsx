@@ -1,16 +1,18 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import {
   View, Text, StyleSheet, Modal, TouchableOpacity, TextInput,
   ScrollView, Platform, KeyboardAvoidingView, Image, Alert,
-  ActivityIndicator,
+  ActivityIndicator, Dimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons, Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useColors } from "@/hooks/useColors";
 import { useSocial, PostType, Audience } from "@/contexts/SocialContext";
 import { useFitness } from "@/contexts/FitnessContext";
 import { SAMPLE_WORKOUTS } from "@/constants/workouts";
+
+const SHEET_HEIGHT = Dimensions.get("window").height * 0.62;
 
 interface Props {
   visible: boolean;
@@ -26,25 +28,22 @@ const POST_TYPES: { type: PostType; icon: string; label: string; color: string }
 ];
 
 const MILESTONE_PRESETS = [
-  "First 5K completed",
-  "30-day streak",
-  "50 workouts logged",
-  "Bodyweight bench achieved",
-  "Lost 5kg",
-  "First pull-up",
-  "100 workouts milestone",
-  "Ran a half marathon",
+  "First 5K completed", "30-day streak", "50 workouts logged",
+  "Bodyweight bench achieved", "Lost 5kg", "First pull-up",
+  "100 workouts milestone", "Ran a half marathon",
 ];
 
 export default function CreatePostModal({ visible, onClose }: Props) {
   const colors = useColors();
   const { addPost } = useSocial();
-  const { userProfile, userStats, rank, scheduledWorkouts, earnedAchievements } = useFitness();
+  const { userProfile, rank, scheduledWorkouts } = useFitness();
 
   const [postType, setPostType] = useState<PostType>("text");
   const [text, setText] = useState("");
   const [audience, setAudience] = useState<Audience>("global");
   const [mediaUri, setMediaUri] = useState<string | null>(null);
+  const [mediaWidth, setMediaWidth] = useState<number | null>(null);
+  const [mediaHeight, setMediaHeight] = useState<number | null>(null);
   const [workoutName, setWorkoutName] = useState("");
   const [workoutDuration, setWorkoutDuration] = useState("");
   const [workoutCalories, setWorkoutCalories] = useState("");
@@ -78,12 +77,13 @@ export default function CreatePostModal({ visible, onClose }: Props) {
     }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
+      allowsEditing: false,
       quality: 0.85,
     });
     if (!result.canceled && result.assets[0]) {
       setMediaUri(result.assets[0].uri);
+      setMediaWidth(result.assets[0].width ?? null);
+      setMediaHeight(result.assets[0].height ?? null);
       setPostType("media");
     }
   };
@@ -109,6 +109,8 @@ export default function CreatePostModal({ visible, onClose }: Props) {
       text: text.trim(),
       audience,
       mediaUri: mediaUri ?? undefined,
+      mediaWidth: mediaWidth ?? undefined,
+      mediaHeight: mediaHeight ?? undefined,
       workoutName: postType === "workout" ? workoutName : undefined,
       workoutDuration: postType === "workout" ? workoutDuration : undefined,
       workoutCalories: postType === "workout" && workoutCalories ? Number(workoutCalories) : undefined,
@@ -116,21 +118,15 @@ export default function CreatePostModal({ visible, onClose }: Props) {
       value,
     });
 
-    setText("");
-    setMediaUri(null);
-    setWorkoutName("");
-    setWorkoutDuration("");
-    setWorkoutCalories("");
-    setMilestoneTitle("");
-    setPrValue("");
-    setPostType("text");
-    setPosting(false);
+    reset();
     onClose();
   };
 
   const reset = () => {
     setText("");
     setMediaUri(null);
+    setMediaWidth(null);
+    setMediaHeight(null);
     setWorkoutName("");
     setWorkoutDuration("");
     setWorkoutCalories("");
@@ -144,9 +140,11 @@ export default function CreatePostModal({ visible, onClose }: Props) {
   const selectedType = POST_TYPES.find((t) => t.type === postType)!;
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={() => { reset(); onClose(); }}>
+      <TouchableOpacity style={styles.overlayDismiss} onPress={() => { reset(); onClose(); }} activeOpacity={1} />
+      <KeyboardAvoidingView style={styles.kavWrap} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <View style={[styles.root, { backgroundColor: colors.background }]}>
+          <View style={[styles.dragHandle, { backgroundColor: colors.border }]} />
 
           <View style={[styles.header, { borderBottomColor: colors.border }]}>
             <TouchableOpacity onPress={() => { reset(); onClose(); }} style={styles.headerBtn}>
@@ -169,7 +167,11 @@ export default function CreatePostModal({ visible, onClose }: Props) {
 
             <View style={styles.authorRow}>
               <View style={[styles.avatar, { backgroundColor: colors.primary + "25", borderColor: colors.primary + "50" }]}>
-                <Text style={[styles.avatarText, { color: colors.primary }]}>{userProfile.name.charAt(0).toUpperCase()}</Text>
+                {userProfile.profileImage ? (
+                  <Image source={{ uri: userProfile.profileImage }} style={styles.avatarImg} />
+                ) : (
+                  <Text style={[styles.avatarText, { color: colors.primary }]}>{userProfile.name.charAt(0).toUpperCase()}</Text>
+                )}
               </View>
               <View style={styles.authorMeta}>
                 <Text style={[styles.authorName, { color: colors.foreground }]}>{userProfile.name}</Text>
@@ -316,7 +318,7 @@ export default function CreatePostModal({ visible, onClose }: Props) {
             {mediaUri && postType !== "media" && (
               <View style={styles.mediaAttached}>
                 <Image source={{ uri: mediaUri }} style={styles.mediaThumb} resizeMode="cover" />
-                <TouchableOpacity onPress={() => setMediaUri(null)} style={styles.mediaRemove}>
+                <TouchableOpacity onPress={() => { setMediaUri(null); setMediaWidth(null); setMediaHeight(null); }} style={styles.mediaRemove}>
                   <Ionicons name="close-circle" size={20} color="#FF2D78" />
                 </TouchableOpacity>
               </View>
@@ -354,18 +356,22 @@ export default function CreatePostModal({ visible, onClose }: Props) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1 },
-  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 14, paddingTop: 20, borderBottomWidth: 1 },
+  overlayDismiss: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "#00000065" },
+  kavWrap: { position: "absolute", bottom: 0, left: 0, right: 0 },
+  root: { borderTopLeftRadius: 26, borderTopRightRadius: 26, overflow: "hidden", maxHeight: SHEET_HEIGHT },
+  dragHandle: { width: 40, height: 4, borderRadius: 2, alignSelf: "center", marginTop: 10, marginBottom: 2 },
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1 },
   headerBtn: { minWidth: 60 },
   headerCancel: { fontSize: 15, fontFamily: "Inter_500Medium" },
   headerTitle: { fontSize: 16, fontFamily: "Inter_700Bold" },
   postBtn: { paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20, minWidth: 60, alignItems: "center" },
   postBtnText: { fontSize: 14, fontFamily: "Inter_700Bold" },
   body: { flex: 1 },
-  bodyContent: { padding: 20, paddingBottom: 60 },
+  bodyContent: { padding: 20, paddingBottom: 40 },
   authorRow: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 16 },
-  avatar: { width: 46, height: 46, borderRadius: 15, alignItems: "center", justifyContent: "center", borderWidth: 2 },
-  avatarText: { fontSize: 18, fontFamily: "Inter_700Bold" },
+  avatar: { width: 42, height: 42, borderRadius: 14, alignItems: "center", justifyContent: "center", borderWidth: 2, overflow: "hidden" },
+  avatarImg: { width: 42, height: 42, borderRadius: 14 },
+  avatarText: { fontSize: 17, fontFamily: "Inter_700Bold" },
   authorMeta: { gap: 5 },
   authorName: { fontSize: 16, fontFamily: "Inter_700Bold" },
   audienceBtn: { flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "flex-start", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, borderWidth: 1 },
@@ -386,13 +392,13 @@ const styles = StyleSheet.create({
   presetToggleText: { fontSize: 12, fontFamily: "Inter_500Medium" },
   presetGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   presetChip: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, borderWidth: 1 },
-  mediaZone: { borderWidth: 1.5, borderStyle: "dashed", borderRadius: 16, height: 180, marginBottom: 14, overflow: "hidden" },
+  mediaZone: { borderWidth: 1.5, borderStyle: "dashed", borderRadius: 16, height: 160, marginBottom: 14, overflow: "hidden" },
   mediaPreview: { width: "100%", height: "100%" },
   mediaPlaceholder: { flex: 1, alignItems: "center", justifyContent: "center" },
   mediaAttached: { marginBottom: 14, borderRadius: 12, overflow: "hidden", position: "relative" },
-  mediaThumb: { width: "100%", height: 140, borderRadius: 12 },
+  mediaThumb: { width: "100%", height: 120, borderRadius: 12 },
   mediaRemove: { position: "absolute", top: 8, right: 8 },
-  textInput: { fontSize: 16, fontFamily: "Inter_400Regular", minHeight: 120, lineHeight: 24 },
+  textInput: { fontSize: 15, fontFamily: "Inter_400Regular", minHeight: 80, lineHeight: 22 },
   bottomBar: { flexDirection: "row", alignItems: "center", gap: 12, marginTop: 12 },
   mediaBtn: { width: 38, height: 38, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1 },
   charCount: { fontSize: 12, fontFamily: "Inter_400Regular", marginLeft: "auto" },

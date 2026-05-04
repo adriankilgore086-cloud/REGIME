@@ -198,6 +198,11 @@ export default function GoalsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <LinearGradient
+        colors={["#FFFFFF18", "#FFFFFF08", "transparent"]}
+        style={{ position: "absolute", top: 0, left: 0, right: 0, height: topPad + 90 }}
+        pointerEvents="none"
+      />
       <View style={[styles.header, { paddingTop: topPad + 12 }]}>
         <Text style={[styles.title, { color: colors.foreground }]}>Goals & AI Plan</Text>
         <TouchableOpacity onPress={() => setShowAdd(true)} style={[styles.addBtn, { backgroundColor: colors.primary }]}>
@@ -506,11 +511,6 @@ export default function GoalsScreen() {
           </ScrollView>
         </View>
       </Modal>
-      <LinearGradient
-        colors={[colors.background, colors.background + "00"]}
-        style={{ position: "absolute", top: 0, left: 0, right: 0, height: topPad + 80 }}
-        pointerEvents="none"
-      />
     </View>
   );
 }

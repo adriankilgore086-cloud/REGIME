@@ -18,11 +18,12 @@ import * as SplashScreen from "expo-splash-screen";
 import * as Font from "expo-font";
 import { Ionicons, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { setBaseUrl } from "@workspace/api-client-react";
-import React, { Component, useEffect } from "react";
+import React, { Component, useEffect, useState, useRef } from "react";
 import { View, Text, Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { FitnessProvider } from "@/contexts/FitnessContext";
+import { FitnessProvider, AppNotification, useFitness } from "@/contexts/FitnessContext";
 import { SocialProvider } from "@/contexts/SocialContext";
+import NotificationBanner from "@/components/NotificationBanner";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -57,6 +58,51 @@ class ErrorBoundary extends Component<
     }
     return this.props.children;
   }
+}
+
+function InnerLayout() {
+  const { notifications } = useFitness();
+  const [bannerQueue, setBannerQueue] = useState<AppNotification[]>([]);
+  const seenIds = useRef(new Set<string>());
+
+  useEffect(() => {
+    const unread = notifications.filter((n) => !n.read);
+    const fresh = unread.filter((n) => !seenIds.current.has(n.id));
+    if (fresh.length > 0) {
+      fresh.forEach((n) => seenIds.current.add(n.id));
+      setBannerQueue((q) => [...q, ...fresh]);
+    }
+  }, [notifications]);
+
+  return (
+    <View style={{ flex: 1, pointerEvents: "box-none" }}>
+      <SocialProvider>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: BG },
+            animation: Platform.OS === "web" ? "none" : "fade",
+          }}
+        >
+          <Stack.Screen name="index" />
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="notifications" />
+          <Stack.Screen
+            name="workout/[id]"
+            options={{ presentation: "modal", contentStyle: { backgroundColor: BG } }}
+          />
+        </Stack>
+      </SocialProvider>
+      {bannerQueue.length > 0 && (
+        <NotificationBanner
+          key={bannerQueue[0].id}
+          notification={bannerQueue[0]}
+          onDismiss={() => setBannerQueue((q) => q.slice(1))}
+        />
+      )}
+    </View>
+  );
 }
 
 export default function RootLayout() {
@@ -97,24 +143,7 @@ export default function RootLayout() {
             <QueryClientProvider client={queryClient}>
               <ErrorBoundary>
                 <FitnessProvider>
-                  <SocialProvider>
-                  <Stack
-                    screenOptions={{
-                      headerShown: false,
-                      contentStyle: { backgroundColor: BG },
-                      animation: Platform.OS === "web" ? "none" : "fade",
-                    }}
-                  >
-                    <Stack.Screen name="index" />
-                    <Stack.Screen name="(auth)" />
-                    <Stack.Screen name="(tabs)" />
-                    <Stack.Screen name="notifications" />
-                    <Stack.Screen
-                      name="workout/[id]"
-                      options={{ presentation: "modal", contentStyle: { backgroundColor: BG } }}
-                    />
-                  </Stack>
-                  </SocialProvider>
+                  <InnerLayout />
                 </FitnessProvider>
               </ErrorBoundary>
             </QueryClientProvider>

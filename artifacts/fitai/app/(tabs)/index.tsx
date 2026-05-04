@@ -283,6 +283,11 @@ export default function HomeScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <LinearGradient
+        colors={["#FFFFFF18", "#FFFFFF08", "transparent"]}
+        style={{ position: "absolute", top: 0, left: 0, right: 0, height: topPad + 90 }}
+        pointerEvents="none"
+      />
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
@@ -572,11 +577,6 @@ export default function HomeScreen() {
           onComplete={(sid) => { completeWorkout(sid); closePlayer(); }}
         />
       )}
-      <LinearGradient
-        colors={[colors.background, colors.background + "00"]}
-        style={{ position: "absolute", top: 0, left: 0, right: 0, height: topPad + 80 }}
-        pointerEvents="none"
-      />
     </View>
   );
 }

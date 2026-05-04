@@ -57,6 +57,11 @@ export default function LibraryScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <LinearGradient
+        colors={["#FFFFFF18", "#FFFFFF08", "transparent"]}
+        style={{ position: "absolute", top: 0, left: 0, right: 0, height: topPad + 90 }}
+        pointerEvents="none"
+      />
       <View style={[styles.header, { paddingTop: topPad + 12, backgroundColor: colors.background }]}>
         <Text style={[styles.title, { color: colors.foreground }]}>Workout Library</Text>
       </View>
@@ -290,11 +295,6 @@ export default function LibraryScreen() {
           </View>
         </View>
       </Modal>
-      <LinearGradient
-        colors={[colors.background, colors.background + "00"]}
-        style={{ position: "absolute", top: 0, left: 0, right: 0, height: topPad + 80 }}
-        pointerEvents="none"
-      />
     </View>
   );
 }

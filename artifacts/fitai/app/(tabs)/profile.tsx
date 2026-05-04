@@ -1,13 +1,13 @@
-import React, { useState, useRef, useMemo, memo } from "react";
+import React, { useState, useMemo, memo, useEffect } from "react";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Platform, Alert, Image, TextInput, KeyboardAvoidingView, ActionSheetIOS,
+  Platform, Alert, Image, TextInput, ActionSheetIOS, Dimensions, Modal,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons, Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useAuth } from "@clerk/expo";
+import { useAuth, useUser } from "@clerk/expo";
 import { useRouter } from "expo-router";
 import { useColors } from "@/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
@@ -35,20 +35,18 @@ const TYPE_META: Record<string, { color: string; icon: string; label: string }> 
   media:     { color: "#A78BFA", icon: "image",       label: "Photo" },
 };
 
-const IDENTITY_TITLES = [
-  "The Grinder", "Elite Performer", "Iron Discipline", "Consistency King",
-  "Endurance Champion", "Power Lifter", "Speed Demon", "Recovery Master",
-];
+const SCREEN_HEIGHT = Dimensions.get("window").height;
 
-
-const PostCard = memo(function PostCard({ post, myUserId, myName, myAvatar, myBadge, myProfileImage }: {
+const PostCard = memo(function PostCard({ post, myUserId, myName, myAvatar, myBadge, myProfileImage, onOtherAvatarPress }: {
   post: SocialPost;
   myUserId: string;
   myName: string;
   myAvatar: string;
   myBadge: string;
   myProfileImage?: string | null;
+  onOtherAvatarPress?: (user: { userId: string; name: string; avatar: string; badge: string; profileImage?: string }) => void;
 }) {
+  const router = useRouter();
   const colors = useColors();
   const { toggleReaction, addComment, deletePost, addReply } = useSocial();
   const [showComments, setShowComments] = useState(false);
@@ -79,18 +77,27 @@ const PostCard = memo(function PostCard({ post, myUserId, myName, myAvatar, myBa
   };
 
   const isImagePost = post.type === "media" && !!post.mediaUri;
-  const isTextOnly = !post.mediaUri && !post.workoutName && !post.milestoneTitle && !post.value && post.text.trim().length > 0 && post.type === "text";
 
   return (
     <View style={[pcStyles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
       <View style={pcStyles.header}>
-        <View style={[pcStyles.avatar, { backgroundColor: meta.color + "25", borderColor: meta.color + "45" }]}>
-          {post.userProfileImage ? (
-            <Image source={{ uri: post.userProfileImage }} style={pcStyles.avatarImage} />
-          ) : (
-            <Text style={[pcStyles.avatarText, { color: meta.color }]}>{post.userAvatar}</Text>
-          )}
-        </View>
+        <TouchableOpacity
+          onPress={() => {
+            if (post.userId === myUserId) {
+              router.push("/(tabs)/profile" as any);
+            } else {
+              onOtherAvatarPress?.({ userId: post.userId, name: post.userName, avatar: post.userAvatar, badge: post.userBadge, profileImage: post.userProfileImage });
+            }
+          }}
+        >
+          <View style={[pcStyles.avatar, { backgroundColor: meta.color + "25", borderColor: meta.color + "45" }]}>
+            {post.userProfileImage ? (
+              <Image source={{ uri: post.userProfileImage }} style={pcStyles.avatarImage} />
+            ) : (
+              <Text style={[pcStyles.avatarText, { color: meta.color }]}>{post.userAvatar}</Text>
+            )}
+          </View>
+        </TouchableOpacity>
         <View style={pcStyles.meta}>
           <Text style={[pcStyles.userName, { color: colors.foreground }]}>{post.userName}</Text>
           <Text style={[pcStyles.userBadge, { color: colors.mutedForeground }]}>{post.userBadge} · {timeAgo(post.createdAt)}</Text>
@@ -115,13 +122,13 @@ const PostCard = memo(function PostCard({ post, myUserId, myName, myAvatar, myBa
       </View>
 
       {post.text.length > 0 && (
-        <View style={[pcStyles.textBox, isTextOnly && { minHeight: 88 }, { borderColor: colors.border, backgroundColor: colors.muted }]}>
+        <View style={[pcStyles.textBox, { borderColor: colors.border, backgroundColor: colors.muted }]}>
           <Text style={[pcStyles.text, { color: colors.foreground }]}>{post.text}</Text>
         </View>
       )}
 
       {post.mediaUri && (
-        <View style={[pcStyles.mediaWrap, { borderColor: colors.border }]}>
+        <View style={[pcStyles.mediaWrap, { borderColor: colors.border, aspectRatio: post.mediaWidth && post.mediaHeight ? post.mediaWidth / post.mediaHeight : 4 / 3 }]}>
           <Image source={{ uri: post.mediaUri }} style={pcStyles.media} resizeMode="cover" />
         </View>
       )}
@@ -280,7 +287,7 @@ const pcStyles = StyleSheet.create({
   audienceChip: { width: 22, height: 22, borderRadius: 7, alignItems: "center", justifyContent: "center" },
   textBox: { borderWidth: 1, borderRadius: 14, padding: 12, marginBottom: 10 },
   text: { fontSize: 14, fontFamily: "Inter_400Regular", lineHeight: 21 },
-  mediaWrap: { width: "100%", aspectRatio: 1, borderRadius: 14, borderWidth: 1, overflow: "hidden", marginBottom: 10 },
+  mediaWrap: { width: "100%", borderRadius: 14, borderWidth: 1, overflow: "hidden", marginBottom: 10 },
   media: { width: "100%", height: "100%" },
   workoutCard: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 12, borderWidth: 1, padding: 12, marginBottom: 10 },
   valueChip: { alignSelf: "flex-start", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, borderWidth: 1, marginBottom: 10 },
@@ -321,16 +328,24 @@ export default function ProfileScreen() {
   const { signOut } = useAuth();
   const { userProfile, userStats, level, rank, xpProgress, earnedAchievements, updateProfile, scheduledWorkouts } = useFitness();
   const { posts } = useSocial();
+  const { user } = useUser() as any;
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const [activeTab, setActiveTab] = useState<Tab>("Overview");
   const [feedFilter, setFeedFilter] = useState<Audience>("global");
   const [showCreatePost, setShowCreatePost] = useState(false);
+  const [viewingUser, setViewingUser] = useState<{ userId: string; name: string; avatar: string; badge: string; profileImage?: string } | null>(null);
 
-  const [activeTitle, setActiveTitle] = useState(userProfile.activeTitle ?? "");
+  const { isPremium = false, unlockedTitles = [], activeTitle = "", username = "" } = userProfile;
   const myUserId = "me";
-  const myAvatar = userProfile.name.charAt(0).toUpperCase();
+  const myAvatar = userProfile.name.charAt(0).toUpperCase() || "?";
   const myBadge = rank;
   const myProfileImage = userProfile.profileImage;
+
+  useEffect(() => {
+    if (user?.fullName && !userProfile.name) {
+      updateProfile({ name: user.fullName });
+    }
+  }, [user?.fullName]);
 
   const recentActivity = useMemo(() => {
     return [...scheduledWorkouts]
@@ -342,19 +357,26 @@ export default function ProfileScreen() {
     () => posts.filter((p) => feedFilter === "global" ? true : p.audience === "friends" || p.userId === myUserId),
     [posts, feedFilter, myUserId]
   );
+  const viewingUserPosts = useMemo(
+    () => viewingUser ? posts.filter((p) => p.userId === viewingUser.userId) : [],
+    [viewingUser, posts]
+  );
 
   const handleSettingsPress = () => {
+    const premiumLabel = isPremium ? "Disable Premium (Dev)" : "Enable Premium (Dev)";
     if (Platform.OS === "ios") {
       ActionSheetIOS.showActionSheetWithOptions(
-        { options: ["Cancel", "Edit Profile", "Sign Out"], cancelButtonIndex: 0, destructiveButtonIndex: 2 },
+        { options: ["Cancel", "Edit Profile", premiumLabel, "Sign Out"], cancelButtonIndex: 0, destructiveButtonIndex: 3 },
         (i) => {
           if (i === 1) router.push("/edit-profile");
-          if (i === 2) signOut();
+          if (i === 2) updateProfile({ isPremium: !isPremium });
+          if (i === 3) signOut();
         }
       );
     } else {
       Alert.alert("Profile", "", [
         { text: "Edit Profile", onPress: () => router.push("/edit-profile") },
+        { text: premiumLabel, onPress: () => updateProfile({ isPremium: !isPremium }) },
         { text: "Sign Out", style: "destructive", onPress: () => signOut() },
         { text: "Cancel", style: "cancel" },
       ]);
@@ -403,6 +425,9 @@ export default function ProfileScreen() {
           </TouchableOpacity>
           <View style={styles.profileMeta}>
             <Text style={[styles.profileName, { color: colors.foreground }]}>{userProfile.name}</Text>
+            {username ? (
+              <Text style={[styles.usernameText, { color: colors.mutedForeground }]}>{username}</Text>
+            ) : null}
             {activeTitle ? (
               <Text style={[styles.activeTitleText, { color: colors.primary }]}>{activeTitle}</Text>
             ) : null}
@@ -515,9 +540,10 @@ export default function ProfileScreen() {
               </>
             )}
 
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-              Achievements ({earnedBadges.length}/{ACHIEVEMENTS.length})
-            </Text>
+            <View style={styles.sectionTitleRow}>
+              <Ionicons name="shield-checkmark" size={16} color="#F3D27A" />
+              <Text style={[styles.sectionTitle, { color: colors.foreground, marginBottom: 0 }]}>Badges ({earnedBadges.length}/{ACHIEVEMENTS.length})</Text>
+            </View>
 
             {earnedBadges.length === 0 ? (
               <View style={[styles.emptyCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -566,34 +592,36 @@ export default function ProfileScreen() {
               </>
             )}
 
-            <Text style={[styles.sectionTitle, { color: colors.foreground, marginTop: 4 }]}>Identity Titles</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.titlesScroll} contentContainerStyle={styles.titlesContent}>
-              {IDENTITY_TITLES.map((title, i) => {
-                const earned = i < 2;
-                const isActive = activeTitle === title;
-                return (
-                  <TouchableOpacity
-                    key={title}
-                    disabled={!earned}
-                    onPress={() => {
-                      const next = isActive ? "" : title;
-                      setActiveTitle(next);
-                      updateProfile({ activeTitle: next });
-                    }}
-                    style={[styles.titleChip,
-                      isActive
-                        ? { backgroundColor: colors.primary, borderColor: colors.primary }
-                        : earned
-                          ? { backgroundColor: colors.primary + "20", borderColor: colors.primary + "50" }
-                          : { backgroundColor: colors.muted, borderColor: colors.border, opacity: 0.5 }
-                    ]}
-                  >
-                    {earned && <Ionicons name={isActive ? "checkmark-circle" : "checkmark-circle-outline"} size={12} color={isActive ? "#0D0D0D" : colors.primary} />}
-                    <Text style={[styles.titleChipText, { color: isActive ? "#0D0D0D" : earned ? colors.primary : colors.mutedForeground }]}>{title}</Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
+            <View style={styles.sectionTitleRow}>
+              <Ionicons name="ribbon" size={16} color="#A78BFA" />
+              <Text style={[styles.sectionTitle, { color: colors.foreground, marginBottom: 0 }]}>Identity Titles</Text>
+            </View>
+            {unlockedTitles.length === 0 ? (
+              <View style={[styles.emptyCard, { backgroundColor: colors.card, borderColor: colors.border, marginBottom: 20 }]}>
+                <Ionicons name="ribbon-outline" size={24} color={colors.mutedForeground} />
+                <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>Complete challenges to unlock titles</Text>
+              </View>
+            ) : (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.titlesScroll} contentContainerStyle={styles.titlesContent}>
+                {unlockedTitles.map((title) => {
+                  const isActive = activeTitle === title;
+                  return (
+                    <TouchableOpacity
+                      key={title}
+                      onPress={() => updateProfile({ activeTitle: isActive ? "" : title })}
+                      style={[styles.titleChip,
+                        isActive
+                          ? { backgroundColor: colors.primary, borderColor: colors.primary }
+                          : { backgroundColor: colors.primary + "20", borderColor: colors.primary + "50" }
+                      ]}
+                    >
+                      <Ionicons name={isActive ? "checkmark-circle" : "checkmark-circle-outline"} size={12} color={isActive ? "#0D0D0D" : colors.primary} />
+                      <Text style={[styles.titleChipText, { color: isActive ? "#0D0D0D" : colors.primary }]}>{title}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            )}
 
             <Text style={[styles.sectionTitle, { color: colors.foreground, marginTop: 4 }]}>Settings</Text>
             {[
@@ -620,73 +648,93 @@ export default function ProfileScreen() {
 
         {activeTab === "Social" && (
           <>
-            <View style={[styles.feedHeader, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <LinearGradient colors={["#8FB8FF10", "#A78BFA10"]} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
-              <Ionicons name="people" size={16} color={colors.primary} />
-              <Text style={[styles.feedHeaderText, { color: colors.foreground }]}>Community Feed</Text>
-              <View style={[styles.liveBadge, { backgroundColor: "#FF2D7820", borderColor: "#FF2D7840" }]}>
-                <View style={[styles.liveDot, { backgroundColor: "#FF2D78" }]} />
-                <Text style={[styles.liveText, { color: "#FF2D78" }]}>LIVE</Text>
+            {!isPremium ? (
+              <View style={[styles.premiumGate, { backgroundColor: colors.card, borderColor: "#A78BFA35" }]}>
+                <LinearGradient colors={["#A78BFA18", "transparent"]} style={StyleSheet.absoluteFill} />
+                <Ionicons name="lock-closed" size={32} color="#A78BFA" />
+                <Text style={[styles.gateTitle, { color: colors.foreground }]}>Community is a Premium Feature</Text>
+                <Text style={[styles.gateSub, { color: colors.mutedForeground }]}>Upgrade to connect with the community, share workouts, and see the live feed.</Text>
+                <TouchableOpacity onPress={() => updateProfile({ isPremium: true })} style={styles.upgradeBtn}>
+                  <Ionicons name="flash" size={14} color="#0D0D0D" />
+                  <Text style={styles.upgradeBtnText}>Upgrade to Premium</Text>
+                </TouchableOpacity>
               </View>
-            </View>
+            ) : (
+              <>
+                <View style={[styles.feedHeader, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                  <LinearGradient colors={["#8FB8FF10", "#A78BFA10"]} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
+                  <Ionicons name="people" size={16} color={colors.primary} />
+                  <Text style={[styles.feedHeaderText, { color: colors.foreground }]}>Community Feed</Text>
+                  <View style={[styles.liveBadge, { backgroundColor: "#FF2D7820", borderColor: "#FF2D7840" }]}>
+                    <View style={[styles.liveDot, { backgroundColor: "#FF2D78" }]} />
+                    <Text style={[styles.liveText, { color: "#FF2D78" }]}>LIVE</Text>
+                  </View>
+                </View>
 
-            <View style={styles.feedControls}>
-              <View style={[styles.feedFilterRow, { backgroundColor: colors.muted, borderColor: colors.border }]}>
-                {(["global", "friends"] as const).map((f) => (
+                <View style={styles.feedControls}>
+                  <View style={[styles.feedFilterRow, { backgroundColor: colors.muted, borderColor: colors.border }]}>
+                    {(["global", "friends"] as const).map((f) => (
+                      <TouchableOpacity
+                        key={f}
+                        onPress={() => setFeedFilter(f)}
+                        style={[styles.feedFilterBtn, feedFilter === f && { backgroundColor: colors.card }]}
+                      >
+                        <Ionicons name={f === "global" ? "globe-outline" : "people-outline"} size={12} color={feedFilter === f ? colors.foreground : colors.mutedForeground} />
+                        <Text style={[styles.feedFilterText, { color: feedFilter === f ? colors.foreground : colors.mutedForeground }]}>
+                          {f === "global" ? "Everyone" : "Friends"}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
                   <TouchableOpacity
-                    key={f}
-                    onPress={() => setFeedFilter(f)}
-                    style={[styles.feedFilterBtn, feedFilter === f && { backgroundColor: colors.card }]}
+                    onPress={() => setShowCreatePost(true)}
+                    style={[styles.createPostBtn, { backgroundColor: colors.primary }]}
                   >
-                    <Ionicons name={f === "global" ? "globe-outline" : "people-outline"} size={12} color={feedFilter === f ? colors.foreground : colors.mutedForeground} />
-                    <Text style={[styles.feedFilterText, { color: feedFilter === f ? colors.foreground : colors.mutedForeground }]}>
-                      {f === "global" ? "Everyone" : "Friends"}
-                    </Text>
+                    <Ionicons name="add" size={16} color="#0D0D0D" />
+                    <Text style={styles.createPostText}>Post</Text>
                   </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  onPress={() => setShowCreatePost(true)}
+                  style={[styles.composeBar, { backgroundColor: colors.card, borderColor: colors.border }]}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.composeAvatar, { backgroundColor: colors.primary + "25", borderColor: colors.primary + "40" }]}>
+                    {myProfileImage ? (
+                      <Image source={{ uri: myProfileImage }} style={styles.composeAvatarImg} />
+                    ) : (
+                      <Text style={[styles.composeAvatarText, { color: colors.primary }]}>{myAvatar}</Text>
+                    )}
+                  </View>
+                  <View style={[styles.composePlaceholder, { backgroundColor: colors.muted, borderColor: colors.border }]}>
+                    <Text style={[styles.composePlaceholderText, { color: colors.mutedForeground }]}>Share a workout, milestone, or PR...</Text>
+                  </View>
+                  <View style={styles.composeActions}>
+                    <Ionicons name="image-outline" size={18} color={colors.mutedForeground} />
+                  </View>
+                </TouchableOpacity>
+
+                {filteredPosts.map((post) => (
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    myUserId={myUserId}
+                    myName={userProfile.name}
+                    myAvatar={myAvatar}
+                    myBadge={rank}
+                    myProfileImage={myProfileImage}
+                    onOtherAvatarPress={setViewingUser}
+                  />
                 ))}
-              </View>
-              <TouchableOpacity
-                onPress={() => setShowCreatePost(true)}
-                style={[styles.createPostBtn, { backgroundColor: colors.primary }]}
-              >
-                <Ionicons name="add" size={16} color="#0D0D0D" />
-                <Text style={styles.createPostText}>Post</Text>
-              </TouchableOpacity>
-            </View>
 
-            <TouchableOpacity
-              onPress={() => setShowCreatePost(true)}
-              style={[styles.composeBar, { backgroundColor: colors.card, borderColor: colors.border }]}
-              activeOpacity={0.8}
-            >
-              <View style={[styles.composeAvatar, { backgroundColor: colors.primary + "25", borderColor: colors.primary + "40" }]}>
-                <Text style={[styles.composeAvatarText, { color: colors.primary }]}>{myAvatar}</Text>
-              </View>
-              <View style={[styles.composePlaceholder, { backgroundColor: colors.muted, borderColor: colors.border }]}>
-                <Text style={[styles.composePlaceholderText, { color: colors.mutedForeground }]}>Share a workout, milestone, or PR...</Text>
-              </View>
-              <View style={styles.composeActions}>
-                <Ionicons name="image-outline" size={18} color={colors.mutedForeground} />
-              </View>
-            </TouchableOpacity>
-
-            {filteredPosts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                myUserId={myUserId}
-                myName={userProfile.name}
-                myAvatar={myAvatar}
-                myBadge={rank}
-                myProfileImage={myProfileImage}
-              />
-            ))}
-
-            {filteredPosts.length === 0 && (
-              <View style={[styles.emptyCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <Ionicons name="people-outline" size={28} color={colors.mutedForeground} />
-                <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>No friend posts yet — be the first to share!</Text>
-              </View>
+                {filteredPosts.length === 0 && (
+                  <View style={[styles.emptyCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                    <Ionicons name="people-outline" size={28} color={colors.mutedForeground} />
+                    <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>No posts yet — be the first to share!</Text>
+                  </View>
+                )}
+              </>
             )}
           </>
         )}
@@ -756,6 +804,53 @@ export default function ProfileScreen() {
       </ScrollView>
 
       <CreatePostModal visible={showCreatePost} onClose={() => setShowCreatePost(false)} />
+
+      <Modal visible={!!viewingUser} animationType="slide" transparent onRequestClose={() => setViewingUser(null)}>
+        <TouchableOpacity style={styles.sheetOverlay} onPress={() => setViewingUser(null)} activeOpacity={1} />
+        <View style={[styles.userSheet, { backgroundColor: colors.background }]}>
+          <View style={[styles.dragHandle2, { backgroundColor: colors.border }]} />
+          {viewingUser && (
+            <>
+              <View style={[styles.userSheetHeader, { borderBottomColor: colors.border }]}>
+                <View style={[styles.userSheetAvatar, { backgroundColor: colors.primary + "25" }]}>
+                  {viewingUser.profileImage ? (
+                    <Image source={{ uri: viewingUser.profileImage }} style={styles.userSheetAvatarImg} />
+                  ) : (
+                    <Text style={[styles.userSheetAvatarText, { color: colors.primary }]}>{viewingUser.avatar}</Text>
+                  )}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.userSheetName, { color: colors.foreground }]}>{viewingUser.name}</Text>
+                  <Text style={[styles.userSheetBadge, { color: colors.mutedForeground }]}>{viewingUser.badge}</Text>
+                </View>
+                <TouchableOpacity onPress={() => setViewingUser(null)} style={[styles.closeBtn, { backgroundColor: colors.muted, borderColor: colors.border }]}>
+                  <Ionicons name="close" size={16} color={colors.mutedForeground} />
+                </TouchableOpacity>
+              </View>
+              <ScrollView contentContainerStyle={{ padding: 16, gap: 10 }}>
+                {viewingUserPosts.length === 0 ? (
+                  <View style={{ alignItems: "center", paddingTop: 32, gap: 10 }}>
+                    <Ionicons name="newspaper-outline" size={28} color={colors.mutedForeground} />
+                    <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>No posts yet</Text>
+                  </View>
+                ) : (
+                  viewingUserPosts.map((post) => (
+                    <PostCard
+                      key={post.id}
+                      post={post}
+                      myUserId={myUserId}
+                      myName={userProfile.name}
+                      myAvatar={myAvatar}
+                      myBadge={rank}
+                      myProfileImage={myProfileImage}
+                    />
+                  ))
+                )}
+              </ScrollView>
+            </>
+          )}
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -853,4 +948,22 @@ const styles = StyleSheet.create({
   lbPreviewXP: { fontSize: 13, fontFamily: "Inter_700Bold" },
   lbViewAll: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 14, paddingVertical: 11, borderRadius: 12, borderWidth: 1 },
   lbViewAllText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  usernameText: { fontSize: 12, fontFamily: "Inter_500Medium", marginBottom: 4, letterSpacing: 0.1 },
+  sectionTitleRow: { flexDirection: "row", alignItems: "center", gap: 7, marginBottom: 12 },
+  composeAvatarImg: { width: 34, height: 34, borderRadius: 11 },
+  premiumGate: { borderRadius: 22, borderWidth: 1, padding: 28, alignItems: "center", gap: 12, marginBottom: 16, overflow: "hidden" },
+  gateTitle: { fontSize: 17, fontFamily: "Inter_700Bold", textAlign: "center", letterSpacing: -0.3 },
+  gateSub: { fontSize: 13, fontFamily: "Inter_400Regular", textAlign: "center", lineHeight: 19 },
+  upgradeBtn: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "#A78BFA", paddingHorizontal: 22, paddingVertical: 12, borderRadius: 14, marginTop: 4 },
+  upgradeBtnText: { fontSize: 14, fontFamily: "Inter_700Bold", color: "#0D0D0D" },
+  sheetOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "#00000065" },
+  userSheet: { position: "absolute", bottom: 0, left: 0, right: 0, height: SCREEN_HEIGHT * 0.55, borderTopLeftRadius: 26, borderTopRightRadius: 26, overflow: "hidden" },
+  dragHandle2: { width: 40, height: 4, borderRadius: 2, alignSelf: "center", marginTop: 10, marginBottom: 8 },
+  userSheetHeader: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 20, paddingBottom: 14, borderBottomWidth: 1 },
+  userSheetAvatar: { width: 46, height: 46, borderRadius: 15, alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  userSheetAvatarImg: { width: 46, height: 46, borderRadius: 15 },
+  userSheetAvatarText: { fontSize: 18, fontFamily: "Inter_700Bold" },
+  userSheetName: { fontSize: 16, fontFamily: "Inter_700Bold" },
+  userSheetBadge: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
+  closeBtn: { width: 32, height: 32, borderRadius: 10, alignItems: "center", justifyContent: "center", borderWidth: 1 },
 });

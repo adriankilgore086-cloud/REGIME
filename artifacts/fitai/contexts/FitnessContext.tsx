@@ -9,6 +9,7 @@ const USER_PREFIX = '@regime_user_';
 
 export interface UserProfile {
   name: string;
+  username: string;
   age: number;
   weight: number;
   height: number;
@@ -16,6 +17,8 @@ export interface UserProfile {
   profileImage?: string | null;
   bio?: string;
   activeTitle?: string;
+  unlockedTitles: string[];
+  isPremium: boolean;
 }
 
 export interface UserStats {
@@ -66,9 +69,10 @@ export interface AppNotification {
   id: string;
   title: string;
   message: string;
-  type: 'workout' | 'achievement' | 'streak' | 'ai';
+  type: 'workout' | 'achievement' | 'streak' | 'ai' | 'social';
   read: boolean;
   createdAt: string;
+  route?: string;
 }
 
 export interface RewardData {
@@ -111,10 +115,13 @@ interface FitnessContextType extends FitnessState {
 const createEmptyState = (): FitnessState => ({
   userProfile: {
     name: "",
+    username: "",
     age: 0,
     weight: 0,
     height: 0,
     fitnessGoal: "general",
+    unlockedTitles: ["The Grinder", "Elite Performer", "Iron Discipline"],
+    isPremium: false,
   },
   userStats: {
     xp: 0,
@@ -173,7 +180,13 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
   }, [save]);
 
   const updateProfile = useCallback(async (profile: Partial<UserProfile>) => {
-    await updateState((s) => ({ ...s, userProfile: { ...s.userProfile, ...profile } }));
+    await updateState((s) => {
+      const merged = { ...s.userProfile, ...profile };
+      if (profile.name !== undefined) {
+        merged.username = "@" + profile.name.trim().toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
+      }
+      return { ...s, userProfile: merged };
+    });
   }, [updateState]);
 
   const scheduleWorkout = useCallback(async (workoutId: string, date: string) => {
@@ -272,12 +285,22 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
         notifications: [
           {
             id: Date.now().toString() + "n",
-            title: "Workout Complete",
-            message: `You earned +${xpEarned} XP and kept your streak alive.`,
-            type: "workout",
+            title: "Workout Complete 💪",
+            message: `+${xpEarned} XP earned — streak alive!`,
+            type: "workout" as const,
             read: false,
             createdAt: new Date().toISOString(),
+            route: "/(tabs)",
           },
+          ...newAchievements.map((a, i) => ({
+            id: Date.now().toString() + "a" + i,
+            title: "Achievement Unlocked 🏆",
+            message: a.name,
+            type: "achievement" as const,
+            read: false,
+            createdAt: new Date().toISOString(),
+            route: "/(tabs)/profile",
+          })),
           ...prev.notifications,
         ],
       };

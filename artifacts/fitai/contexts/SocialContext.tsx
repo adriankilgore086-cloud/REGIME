@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "@clerk/expo";
+import { useFitness } from "@/contexts/FitnessContext";
 
 const STORAGE_KEY = "@regime_social_v1";
 const USER_PREFIX = "@regime_user_";
@@ -30,6 +31,8 @@ export interface SocialPost {
   type: PostType;
   text: string;
   mediaUri?: string;
+  mediaWidth?: number;
+  mediaHeight?: number;
   workoutName?: string;
   workoutDuration?: string;
   workoutCalories?: number;
@@ -54,6 +57,7 @@ const SocialContext = createContext<SocialContextType | null>(null);
 
 export function SocialProvider({ children }: { children: React.ReactNode }) {
   const { userId } = useAuth();
+  const { addNotification } = useFitness();
   const [posts, setPosts] = useState<SocialPost[]>([]);
 
   useEffect(() => {
@@ -89,7 +93,14 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
       save(next);
       return next;
     });
-  }, [save]);
+    const typeLabel = post.type === "workout" ? "workout" : post.type === "milestone" ? "milestone" : post.type === "pr" ? "PR" : "post";
+    addNotification({
+      title: "Posted to Community 🎉",
+      message: `Your ${typeLabel} is live on the feed`,
+      type: "social",
+      route: "/(tabs)/profile",
+    });
+  }, [save, addNotification]);
 
   const addComment = useCallback((postId: string, comment: Omit<SocialComment, "id" | "createdAt">) => {
     setPosts((prev) => {
