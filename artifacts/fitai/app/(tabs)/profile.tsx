@@ -385,11 +385,6 @@ export default function ProfileScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <LinearGradient
-        colors={["rgba(255,255,255,0.07)", "transparent"]}
-        style={{ position: "absolute", top: 0, left: 0, right: 0, height: 180, zIndex: 0 }}
-        pointerEvents="none"
-      />
       <View style={[styles.topSection, { paddingTop: topPad + 12 }]}>
         <LinearGradient colors={["#8FB8FF15", "#A78BFA10", "transparent"]} style={StyleSheet.absoluteFill} />
 

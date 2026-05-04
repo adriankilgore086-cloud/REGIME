@@ -283,11 +283,6 @@ export default function HomeScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <LinearGradient
-        colors={["rgba(255,255,255,0.07)", "transparent"]}
-        style={{ position: "absolute", top: 0, left: 0, right: 0, height: 180, zIndex: 0 }}
-        pointerEvents="none"
-      />
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
