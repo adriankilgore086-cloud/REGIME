@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal, TextInput, Platform } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
@@ -289,6 +290,11 @@ export default function LibraryScreen() {
           </View>
         </View>
       </Modal>
+      <LinearGradient
+        colors={[colors.background, colors.background + "00"]}
+        style={{ position: "absolute", top: 0, left: 0, right: 0, height: topPad + 80 }}
+        pointerEvents="none"
+      />
     </View>
   );
 }

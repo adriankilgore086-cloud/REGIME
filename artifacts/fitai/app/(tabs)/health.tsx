@@ -504,6 +504,11 @@ export default function HealthScreen() {
       </ScrollView>
 
       <AIChatModal visible={showAICoach} onClose={() => setShowAICoach(false)} />
+      <LinearGradient
+        colors={[colors.background, colors.background + "00"]}
+        style={{ position: "absolute", top: 0, left: 0, right: 0, height: topPad + 80 }}
+        pointerEvents="none"
+      />
     </View>
   );
 }

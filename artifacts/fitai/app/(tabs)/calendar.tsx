@@ -641,6 +641,11 @@ export default function CalendarScreen() {
         <Ionicons name="library-outline" size={16} color={colors.primary} />
         <Text style={[styles.libraryBtnText, { color: colors.foreground }]}>Workout Library</Text>
       </TouchableOpacity>
+      <LinearGradient
+        colors={[colors.background, colors.background + "00"]}
+        style={{ position: "absolute", top: 0, left: 0, right: 0, height: topPad + 80 }}
+        pointerEvents="none"
+      />
     </View>
   );
 }
