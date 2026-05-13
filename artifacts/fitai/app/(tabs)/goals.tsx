@@ -39,10 +39,26 @@ function StreakCalendar() {
   const colors = useColors();
   const { scheduledWorkouts, userStats } = useFitness();
 
-  const completedDates = useMemo(() => {
-    const set = new Set<string>();
-    scheduledWorkouts.forEach((sw) => { if (sw.completed) set.add(sw.date); });
-    return set;
+  const statusByDate = useMemo(() => {
+    const map = new Map<string, "completed" | "missed" | "empty">();
+    const grouped = new Map<string, typeof scheduledWorkouts>();
+    scheduledWorkouts.forEach((sw) => {
+      const arr = grouped.get(sw.date) ?? [];
+      arr.push(sw);
+      grouped.set(sw.date, arr);
+    });
+    grouped.forEach((items, date) => {
+      if (items.some((item) => item.completed)) {
+        map.set(date, "completed");
+        return;
+      }
+      if (items.some((item) => item.skipped) || items.length > 0) {
+        map.set(date, "missed");
+        return;
+      }
+      map.set(date, "empty");
+    });
+    return map;
   }, [scheduledWorkouts]);
 
   const today = new Date();
@@ -51,25 +67,25 @@ function StreakCalendar() {
   const totalDays = WEEKS * 7;
 
   const cells = useMemo(() => {
-    const arr: { iso: string; done: boolean; isToday: boolean; future: boolean }[] = [];
+      const arr: { iso: string; status: "completed" | "missed" | "empty"; isToday: boolean }[] = [];
     for (let i = totalDays - 1; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
       const iso = d.toISOString().split("T")[0];
       const todayIso = today.toISOString().split("T")[0];
+        const status = statusByDate.get(iso) ?? "empty";
       arr.push({
         iso,
-        done: completedDates.has(iso),
+          status,
         isToday: iso === todayIso,
-        future: iso > todayIso,
       });
     }
     return arr;
-  }, [completedDates]);
+  }, [statusByDate]);
 
   const byWeek: typeof cells[] = [];
   for (let w = 0; w < WEEKS; w++) byWeek.push(cells.slice(w * 7, w * 7 + 7));
-  const doneCount = cells.filter((c) => c.done).length;
+  const doneCount = cells.filter((c) => c.status === "completed").length;
 
   return (
     <View style={[scStyles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -100,11 +116,11 @@ function StreakCalendar() {
                   scStyles.cell,
                   cell.isToday && { borderColor: colors.primary, borderWidth: 1.5 },
                   {
-                    backgroundColor: cell.done
+                    backgroundColor: cell.status === "completed"
                       ? colors.success
-                      : cell.future
-                        ? colors.muted + "40"
-                        : colors.success + "40",
+                      : cell.status === "missed"
+                        ? colors.destructive
+                        : colors.muted,
                   },
                 ]}
               />
@@ -116,7 +132,7 @@ function StreakCalendar() {
       <View style={scStyles.legend}>
         <View style={[scStyles.legendDot, { backgroundColor: colors.success }]} />
         <Text style={[scStyles.legendText, { color: colors.mutedForeground }]}>Completed</Text>
-        <View style={[scStyles.legendDot, { backgroundColor: colors.muted, marginLeft: 10 }]} />
+        <View style={[scStyles.legendDot, { backgroundColor: colors.destructive, marginLeft: 10 }]} />
         <Text style={[scStyles.legendText, { color: colors.mutedForeground }]}>Missed</Text>
         <View style={[scStyles.legendDotToday, { borderColor: colors.primary, marginLeft: 10 }]} />
         <Text style={[scStyles.legendText, { color: colors.mutedForeground }]}>Today</Text>

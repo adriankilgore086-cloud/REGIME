@@ -7,17 +7,21 @@ import { Ionicons, Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
-import { Workout, CATEGORY_COLORS, DifficultyLevel } from '@/constants/workouts';
+import { Workout, DifficultyLevel, type WorkoutCategory } from '@/constants/workouts';
+import { getWorkoutAccent } from '@/constants/workoutAccents';
 
 const { width } = Dimensions.get('window');
 const SWIPE_THRESHOLD = 110;
 
-const DIFFICULTY_COLORS: Record<DifficultyLevel, string> = {
-  beginner: '#7BE0B8',
-  intermediate: '#8FB8FF',
-  advanced: '#F3D27A',
-  elite: '#FF2D78',
-};
+function difficultyAccent(diff: DifficultyLevel, colors: ReturnType<typeof useColors>) {
+  switch (diff) {
+    case 'beginner': return colors.success;
+    case 'intermediate': return colors.purple;
+    case 'advanced': return colors.warning;
+    case 'elite': return colors.accent;
+    default: return colors.mutedForeground;
+  }
+}
 
 interface Props {
   workout: Workout;
@@ -25,15 +29,19 @@ interface Props {
   onComplete: (scheduledId: string) => void;
   onSkip: (scheduledId: string) => void;
   onPress: (workout: Workout) => void;
+  displayName?: string;
+  accentCategory?: WorkoutCategory;
 }
 
-export function WorkoutSwipeCard({ workout, scheduledId, onComplete, onSkip, onPress }: Props) {
+export function WorkoutSwipeCard({ workout, scheduledId, onComplete, onSkip, onPress, displayName, accentCategory }: Props) {
   const colors = useColors();
   const translateX = useRef(new Animated.Value(0)).current;
   const rotate = translateX.interpolate({ inputRange: [-width, 0, width], outputRange: ['-10deg', '0deg', '10deg'] });
   const [swiping, setSwiping] = useState<'left' | 'right' | null>(null);
   const swipingRef = useRef<'left' | 'right' | null>(null);
-  const categoryColor = CATEGORY_COLORS[workout.category];
+  const accentCat = accentCategory ?? workout.category;
+  const accent = getWorkoutAccent(colors, accentCat);
+  const categoryColor = accent.main;
 
   const panResponder = useRef(PanResponder.create({
     onStartShouldSetPanResponder: () => true,
@@ -71,7 +79,7 @@ export function WorkoutSwipeCard({ workout, scheduledId, onComplete, onSkip, onP
   const rightOpacity = translateX.interpolate({ inputRange: [0, 60, SWIPE_THRESHOLD], outputRange: [0, 0.4, 1] });
   const leftOpacity = translateX.interpolate({ inputRange: [-SWIPE_THRESHOLD, -60, 0], outputRange: [1, 0.4, 0] });
 
-  const diffColor = DIFFICULTY_COLORS[workout.difficulty];
+  const diffColor = difficultyAccent(workout.difficulty, colors);
 
   return (
     <Animated.View
@@ -90,7 +98,7 @@ export function WorkoutSwipeCard({ workout, scheduledId, onComplete, onSkip, onP
             <View style={styles.topRow}>
               <View style={[styles.categoryChip, { backgroundColor: categoryColor + '18', borderColor: categoryColor + '35' }]}>
                 <Text style={[styles.categoryText, { color: categoryColor }]}>
-                  {workout.category.toUpperCase()}
+                  {accentCat.toUpperCase()}
                 </Text>
               </View>
               <View style={[styles.diffChip, { backgroundColor: diffColor + '18', borderColor: diffColor + '35' }]}>
@@ -98,7 +106,7 @@ export function WorkoutSwipeCard({ workout, scheduledId, onComplete, onSkip, onP
               </View>
             </View>
 
-            <Text style={[styles.workoutName, { color: colors.foreground }]}>{workout.name}</Text>
+            <Text style={[styles.workoutName, { color: colors.foreground }]}>{displayName ?? workout.name}</Text>
             <Text style={[styles.description, { color: colors.mutedForeground }]} numberOfLines={2}>
               {workout.description}
             </Text>

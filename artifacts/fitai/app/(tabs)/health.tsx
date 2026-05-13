@@ -229,7 +229,7 @@ export default function HealthScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { healthMetrics, userStats, userProfile } = useFitness();
+  const { healthMetrics, userStats, userProfile, lastHealthSyncAt, syncHealthData } = useFitness();
   const [showAICoach, setShowAICoach] = useState(false);
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
@@ -254,10 +254,12 @@ export default function HealthScreen() {
   const weekCalories = calorieData.reduce((a, b) => a + b, 0);
   const avgCalories = Math.round(weekCalories / Math.max(calorieData.length, 1));
   const todayMetric = healthMetrics.find((h) => h.date === new Date().toISOString().split("T")[0]);
+  const todaySteps = todayMetric?.steps ?? 0;
   const recoveryScore = 82;
 
   const TOP_STATS = [
     { icon: "flame-outline", label: "Calories Today", value: `${todayMetric?.calories ?? 0} kcal`, color: "#FF2D78" },
+    { icon: "walk-outline", label: "Steps Today", value: `${todaySteps.toLocaleString()} steps`, color: colors.success },
     { icon: "heart-outline", label: "Heart Rate", value: "72 bpm", color: "#FF2D78" },
     { icon: "time-outline", label: "Active Today", value: `${todayMetric?.activeMinutes ?? 0} min`, color: colors.primary },
     { icon: "trending-up-outline", label: "Weekly Avg Calories", value: `${avgCalories} kcal`, color: colors.success },
@@ -276,8 +278,15 @@ export default function HealthScreen() {
         <View style={styles.headerRight}>
           <View style={[styles.syncBadge, { backgroundColor: colors.success + "20", borderColor: colors.success + "40" }]}>
             <View style={[styles.syncDot, { backgroundColor: colors.success }]} />
-            <Text style={[styles.syncText, { color: colors.success }]}>Synced</Text>
+            <Text style={[styles.syncText, { color: colors.success }]}>{lastHealthSyncAt ? "Synced" : "Pending"}</Text>
           </View>
+          <TouchableOpacity
+            onPress={() => { void syncHealthData(); }}
+            style={[styles.syncBadge, { backgroundColor: colors.primary + "20", borderColor: colors.primary + "40" }]}
+          >
+            <Ionicons name="sync-outline" size={12} color={colors.primary} />
+            <Text style={[styles.syncText, { color: colors.primary }]}>Refresh</Text>
+          </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => setShowAICoach(true)}

@@ -100,14 +100,22 @@ function PodiumCard({ entry, catColor }: { entry: LeaderEntry; catColor: string 
   }, []);
 
   const isFirst = entry.rank === 1;
+  const isSecondOrThird = entry.rank === 2 || entry.rank === 3;
   const color = entry.isYou ? "#FFFFFF" : entry.avatarColor;
 
   return (
-    <Animated.View style={[{ opacity: opacAnim, transform: [{ scale: scaleAnim }] }, isFirst && pod.firstWrap]}>
+    <Animated.View
+      style={[
+        { opacity: opacAnim, transform: [{ scale: scaleAnim }] },
+        isFirst && pod.firstWrap,
+        isSecondOrThird && pod.sideWrap,
+      ]}
+    >
       <View style={[
         pod.card,
         { backgroundColor: colors.card, borderColor: entry.isYou ? color + "60" : color + "30" },
         isFirst && pod.firstCard,
+        isSecondOrThird && pod.sideCard,
       ]}>
         <LinearGradient
           colors={[color + (isFirst ? "22" : "12"), "transparent"]}
@@ -134,13 +142,15 @@ function PodiumCard({ entry, catColor }: { entry: LeaderEntry; catColor: string 
 }
 
 const pod = StyleSheet.create({
-  firstWrap: { marginTop: -16 },
+  firstWrap: { marginTop: -30, zIndex: 4 },
+  sideWrap: { marginTop: 14, marginHorizontal: -10, zIndex: 2 },
   card: {
     borderRadius: 20, borderWidth: 1, padding: 14,
     alignItems: "center", gap: 6, overflow: "hidden",
     minWidth: 108,
   },
-  firstCard: { borderRadius: 24, paddingVertical: 18, paddingHorizontal: 16 },
+  firstCard: { borderRadius: 26, paddingVertical: 22, paddingHorizontal: 18, minWidth: 130 },
+  sideCard: { minWidth: 104 },
   avatar: {
     width: 44, height: 44, borderRadius: 22,
     alignItems: "center", justifyContent: "center", borderWidth: 1.5,

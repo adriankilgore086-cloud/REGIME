@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useColors } from "@/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
+import * as Haptics from "expo-haptics";
 
 const FITNESS_GOALS = ["weight_loss", "muscle_gain", "strength", "endurance", "general"] as const;
 const GOAL_LABELS = { weight_loss: "Weight Loss", muscle_gain: "Muscle Gain", strength: "Strength", endurance: "Endurance", general: "General Fitness" };
@@ -34,6 +35,7 @@ export default function EditProfileScreen() {
       height: parseFloat(height) || 0,
       fitnessGoal: goal,
     });
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     Alert.alert("Success", "Profile updated");
     router.back();
   };
@@ -51,6 +53,12 @@ export default function EditProfileScreen() {
       </View>
 
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 40 }]} showsVerticalScrollIndicator={false}>
+        <View style={[styles.previewCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Text style={[styles.previewTitle, { color: colors.foreground }]}>{name || "Your name"}</Text>
+          <Text style={[styles.previewSub, { color: colors.mutedForeground }]}>{GOAL_LABELS[goal]} · {age || "0"} yrs</Text>
+          <Text style={[styles.previewBio, { color: colors.mutedForeground }]} numberOfLines={2}>{bio || "Add a short bio to make your profile stand out."}</Text>
+        </View>
+
         <View style={styles.section}>
           <Text style={[styles.label, { color: colors.foreground }]}>Name</Text>
           <TextInput
@@ -147,6 +155,10 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 20, paddingTop: 20 },
   section: { marginBottom: 20 },
   row: { flexDirection: "row", marginBottom: 20 },
+  previewCard: { borderRadius: 14, borderWidth: 1, padding: 14, marginBottom: 18 },
+  previewTitle: { fontSize: 18, fontFamily: "Inter_700Bold" },
+  previewSub: { fontSize: 12, fontFamily: "Inter_500Medium", marginTop: 3 },
+  previewBio: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 8, lineHeight: 18 },
   label: { fontSize: 13, fontFamily: "Inter_600SemiBold", marginBottom: 8 },
   input: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, fontFamily: "Inter_400Regular" },
   goalGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },

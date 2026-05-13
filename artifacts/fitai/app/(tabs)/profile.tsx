@@ -1,7 +1,7 @@
 import React, { useState, useMemo, memo, useEffect } from "react";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Platform, Alert, Image, TextInput, ActionSheetIOS, Dimensions, Modal,
+  Platform, Alert, Image, TextInput, ActionSheetIOS,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
@@ -16,6 +16,7 @@ import { ACHIEVEMENTS, RARITY_COLORS } from "@/constants/achievements";
 import { SAMPLE_WORKOUTS } from "@/constants/workouts";
 import { XPProgressBar } from "@/components/XPProgressBar";
 import CreatePostModal from "@/components/CreatePostModal";
+import UserProfileModal from "@/components/UserProfileModal";
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -34,8 +35,6 @@ const TYPE_META: Record<string, { color: string; icon: string; label: string }> 
   pr:        { color: "#FF2D78", icon: "flash",       label: "PR" },
   media:     { color: "#A78BFA", icon: "image",       label: "Photo" },
 };
-
-const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 const PostCard = memo(function PostCard({ post, myUserId, myName, myAvatar, myBadge, myProfileImage, onOtherAvatarPress }: {
   post: SocialPost;
@@ -404,15 +403,18 @@ export default function ProfileScreen() {
   const earnedSet = useMemo(() => new Set(earnedAchievements.map((a) => a.id)), [earnedAchievements]);
   const earnedBadges = useMemo(() => ACHIEVEMENTS.filter((a) => earnedSet.has(a.id)), [earnedSet]);
   const lockedBadges = useMemo(() => ACHIEVEMENTS.filter((a) => !earnedSet.has(a.id)).slice(0, 4), [earnedSet]);
+             return (
+                <View style={[styles.container, { backgroundColor: colors.background }]}>
+                  <View style={[styles.topSection, { paddingTop: topPad + 12 }]}>
+                    <LinearGradient 
+                      colors={["#8FB8FF15", "#A78BFA10", "transparent"]} 
+                      style={StyleSheet.absoluteFill} 
+                    />
 
-  return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.topSection, { paddingTop: topPad + 12 }]}>
-        <LinearGradient colors={["#8FB8FF15", "#A78BFA10", "transparent"]} style={StyleSheet.absoluteFill} />
-
-        <View style={styles.profileRow}>
-          <TouchableOpacity onPress={handleSelectProfileImage}>
-            <View style={[styles.avatarCircle, { backgroundColor: colors.primary + "20", borderColor: colors.primary + "50" }]}>
+                    <View style={styles.profileRow}>
+                      <TouchableOpacity onPress={handleSelectProfileImage}>
+                        <View style={[styles.avatarCircle, { backgroundColor: colors.primary + "20", borderColor: colors.primary + "50" }]}>
+{[styles.avatarCircle, { backgroundColor: colors.primary + "20", borderColor: colors.primary + "50" }]}>
               {userProfile.profileImage ? (
                 <Image source={{ uri: userProfile.profileImage }} style={styles.avatarImage} />
               ) : (
@@ -443,7 +445,7 @@ export default function ProfileScreen() {
             {userProfile.bio ? (
               <Text style={[styles.bioText, { color: colors.mutedForeground }]} numberOfLines={2}>{userProfile.bio}</Text>
             ) : null}
-          </View>
+          </View>t
           <TouchableOpacity onPress={handleSettingsPress} style={[styles.settingsBtn, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Ionicons name="settings-outline" size={17} color={colors.mutedForeground} />
           </TouchableOpacity>
@@ -626,6 +628,7 @@ export default function ProfileScreen() {
             <Text style={[styles.sectionTitle, { color: colors.foreground, marginTop: 4 }]}>Settings</Text>
             {[
               { icon: "person-outline", label: "Edit Profile", route: "/edit-profile" },
+              { icon: "newspaper-outline", label: "Feed", route: "/feed" },
               { icon: "notifications-outline", label: "Notifications", route: "/notifications" },
               { icon: "shield-checkmark-outline", label: "Privacy & Security", route: "/privacy-security" },
               { icon: "help-circle-outline", label: "Help & Support", route: "/help-support" },
@@ -648,6 +651,17 @@ export default function ProfileScreen() {
 
         {activeTab === "Social" && (
           <>
+            <TouchableOpacity
+              onPress={() => router.push("/feed" as any)}
+              style={[styles.settingsRow, { backgroundColor: colors.card, borderColor: colors.border }]}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.settingsIcon, { backgroundColor: colors.primary + "15" }]}>
+                <Ionicons name="newspaper-outline" size={18} color={colors.primary} />
+              </View>
+              <Text style={[styles.settingsLabel, { color: colors.foreground }]}>Open Feed</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
+            </TouchableOpacity>
             {!isPremium ? (
               <View style={[styles.premiumGate, { backgroundColor: colors.card, borderColor: "#A78BFA35" }]}>
                 <LinearGradient colors={["#A78BFA18", "transparent"]} style={StyleSheet.absoluteFill} />
@@ -804,53 +818,7 @@ export default function ProfileScreen() {
       </ScrollView>
 
       <CreatePostModal visible={showCreatePost} onClose={() => setShowCreatePost(false)} />
-
-      <Modal visible={!!viewingUser} animationType="slide" transparent onRequestClose={() => setViewingUser(null)}>
-        <TouchableOpacity style={styles.sheetOverlay} onPress={() => setViewingUser(null)} activeOpacity={1} />
-        <View style={[styles.userSheet, { backgroundColor: colors.background }]}>
-          <View style={[styles.dragHandle2, { backgroundColor: colors.border }]} />
-          {viewingUser && (
-            <>
-              <View style={[styles.userSheetHeader, { borderBottomColor: colors.border }]}>
-                <View style={[styles.userSheetAvatar, { backgroundColor: colors.primary + "25" }]}>
-                  {viewingUser.profileImage ? (
-                    <Image source={{ uri: viewingUser.profileImage }} style={styles.userSheetAvatarImg} />
-                  ) : (
-                    <Text style={[styles.userSheetAvatarText, { color: colors.primary }]}>{viewingUser.avatar}</Text>
-                  )}
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.userSheetName, { color: colors.foreground }]}>{viewingUser.name}</Text>
-                  <Text style={[styles.userSheetBadge, { color: colors.mutedForeground }]}>{viewingUser.badge}</Text>
-                </View>
-                <TouchableOpacity onPress={() => setViewingUser(null)} style={[styles.closeBtn, { backgroundColor: colors.muted, borderColor: colors.border }]}>
-                  <Ionicons name="close" size={16} color={colors.mutedForeground} />
-                </TouchableOpacity>
-              </View>
-              <ScrollView contentContainerStyle={{ padding: 16, gap: 10 }}>
-                {viewingUserPosts.length === 0 ? (
-                  <View style={{ alignItems: "center", paddingTop: 32, gap: 10 }}>
-                    <Ionicons name="newspaper-outline" size={28} color={colors.mutedForeground} />
-                    <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>No posts yet</Text>
-                  </View>
-                ) : (
-                  viewingUserPosts.map((post) => (
-                    <PostCard
-                      key={post.id}
-                      post={post}
-                      myUserId={myUserId}
-                      myName={userProfile.name}
-                      myAvatar={myAvatar}
-                      myBadge={rank}
-                      myProfileImage={myProfileImage}
-                    />
-                  ))
-                )}
-              </ScrollView>
-            </>
-          )}
-        </View>
-      </Modal>
+      <UserProfileModal visible={!!viewingUser} user={viewingUser} posts={viewingUserPosts} onClose={() => setViewingUser(null)} />
     </View>
   );
 }
@@ -956,14 +924,4 @@ const styles = StyleSheet.create({
   gateSub: { fontSize: 13, fontFamily: "Inter_400Regular", textAlign: "center", lineHeight: 19 },
   upgradeBtn: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "#A78BFA", paddingHorizontal: 22, paddingVertical: 12, borderRadius: 14, marginTop: 4 },
   upgradeBtnText: { fontSize: 14, fontFamily: "Inter_700Bold", color: "#0D0D0D" },
-  sheetOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "#00000065" },
-  userSheet: { position: "absolute", bottom: 0, left: 0, right: 0, height: SCREEN_HEIGHT * 0.55, borderTopLeftRadius: 26, borderTopRightRadius: 26, overflow: "hidden" },
-  dragHandle2: { width: 40, height: 4, borderRadius: 2, alignSelf: "center", marginTop: 10, marginBottom: 8 },
-  userSheetHeader: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 20, paddingBottom: 14, borderBottomWidth: 1 },
-  userSheetAvatar: { width: 46, height: 46, borderRadius: 15, alignItems: "center", justifyContent: "center", overflow: "hidden" },
-  userSheetAvatarImg: { width: 46, height: 46, borderRadius: 15 },
-  userSheetAvatarText: { fontSize: 18, fontFamily: "Inter_700Bold" },
-  userSheetName: { fontSize: 16, fontFamily: "Inter_700Bold" },
-  userSheetBadge: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
-  closeBtn: { width: 32, height: 32, borderRadius: 10, alignItems: "center", justifyContent: "center", borderWidth: 1 },
 });

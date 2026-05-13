@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput,
   KeyboardAvoidingView, ScrollView, Platform, ActivityIndicator,
@@ -7,10 +7,11 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useSignIn, useSSO, useAuth } from "@clerk/expo";
 import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
-import { useRouter, Link } from "expo-router";
+import { useRouter, Link, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
+import * as Haptics from "expo-haptics";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -30,14 +31,15 @@ export default function SignInScreen() {
   // v3 API: useSignIn returns { signIn, errors, fetchStatus } — no isLoaded/setActive
   const { signIn, errors, fetchStatus } = useSignIn();
   const { startSSOFlow } = useSSO();
-
-  const [email, setEmail] = useState("");
+  const { prefill } = useLocalSearchParams<{ prefill: string }>();
+  const [email, setEmail] = useState(prefill || "");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
   const [mfaCode, setMfaCode] = useState("");
   const [showMfa, setShowMfa] = useState(false);
+  const redirectUrl = useMemo(() => AuthSession.makeRedirectUri({ path: "oauth-native-callback" }), []);
 
   useEffect(() => {
     if (Platform.OS !== "android") return;
@@ -50,6 +52,7 @@ export default function SignInScreen() {
   }, [router]);
 
   const handleSubmit = async () => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     signIn.reset();
     setShowMfa(false);
     setMfaCode("");
@@ -58,13 +61,14 @@ export default function SignInScreen() {
       if (result.error) return;
 
       if (signIn.status === "complete") {
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         router.replace("/(tabs)");
       } else if (signIn.status === "needs_client_trust") {
         await (signIn as any).mfa.sendEmailCode();
         setShowMfa(true);
       }
-    } catch (e: any) {
-      // error handled via errors object from hook
+    } catch {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
   };
 
@@ -72,10 +76,11 @@ export default function SignInScreen() {
     try {
       await (signIn as any).mfa.verifyEmailCode({ code: mfaCode });
       if (signIn.status === "complete") {
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         router.replace("/(tabs)");
       }
-    } catch (e: any) {
-      // error handled via errors object
+    } catch {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
   };
 
@@ -85,20 +90,21 @@ export default function SignInScreen() {
       signIn.reset();
       const { createdSessionId, setActive } = await startSSOFlow({
         strategy: "oauth_google",
-        redirectUrl: AuthSession.makeRedirectUri(),
+        redirectUrl,
       });
       if (createdSessionId && setActive) {
         await setActive({
           session: createdSessionId,
           navigate: async () => router.replace("/(tabs)"),
         });
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
-    } catch (e: any) {
-      // error shown via errors object from hook
+    } catch {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setGoogleLoading(false);
     }
-  }, [signIn, startSSOFlow]);
+  }, [redirectUrl, router, signIn, startSSOFlow]);
 
   const handleApple = useCallback(async () => {
     setAppleLoading(true);
@@ -106,19 +112,21 @@ export default function SignInScreen() {
       signIn.reset();
       const { createdSessionId, setActive } = await startSSOFlow({
         strategy: "oauth_apple",
-        redirectUrl: AuthSession.makeRedirectUri(),
+        redirectUrl,
       });
       if (createdSessionId && setActive) {
         await setActive({
           session: createdSessionId,
           navigate: async () => router.replace("/(tabs)"),
         });
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
     } catch {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setAppleLoading(false);
     }
-  }, [signIn, startSSOFlow, router]);
+  }, [redirectUrl, router, signIn, startSSOFlow]);
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
@@ -153,7 +161,7 @@ export default function SignInScreen() {
           </View>
           {!!globalError && (
             <View style={styles.errorBox}>
-              <Ionicons name="alert-circle-outline" size={15} color="#FF4B4B" />
+              <Ionicons name="alert-circle-outline" size={15} color={colors.destructive} />
               <Text style={styles.errorText}>{globalError}</Text>
             </View>
           )}
@@ -162,10 +170,10 @@ export default function SignInScreen() {
             disabled={fetchStatus === "fetching" || mfaCode.length < 6}
             style={[styles.primaryBtn, { opacity: mfaCode.length < 6 ? 0.6 : 1, width: "100%" }]}
           >
-            <LinearGradient colors={["#FFFFFF", "#E8E8E8"]} style={styles.primaryBtnGrad}>
+            <LinearGradient colors={[colors.primary, colors.warmGray]} style={styles.primaryBtnGrad}>
               {fetchStatus === "fetching"
-                ? <ActivityIndicator color="#0D0D0D" />
-                : <Text style={styles.primaryBtnText}>Verify</Text>
+                ? <ActivityIndicator color={colors.primaryForeground} />
+                : <Text style={[styles.primaryBtnText, { color: colors.primaryForeground }]}>Verify</Text>
               }
             </LinearGradient>
           </TouchableOpacity>
@@ -195,8 +203,8 @@ export default function SignInScreen() {
         </TouchableOpacity>
 
         <View style={[styles.logoRow, { marginTop: 20 }]}>
-          <LinearGradient colors={["#FFFFFF", "#E0E0E0"]} style={styles.logoIcon}>
-            <Ionicons name="flash" size={34} color="#0D0D0D" />
+          <LinearGradient colors={[colors.primary, colors.warmGray]} style={styles.logoIcon}>
+            <Ionicons name="flash" size={34} color={colors.primaryForeground} />
           </LinearGradient>
           <Text style={[styles.appName, { color: colors.foreground }]}>REGIME</Text>
         </View>
@@ -204,41 +212,11 @@ export default function SignInScreen() {
         <Text style={[styles.title, { color: colors.foreground }]}>Welcome back</Text>
         <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Get in. Lock in. Earn the next level.</Text>
 
-        <TouchableOpacity onPress={handleGoogle} disabled={googleLoading} style={styles.socialBtn}>
-          {googleLoading
-            ? <ActivityIndicator size="small" color="#F5F5F5" />
-            : <>
-              <View style={styles.googleMark}>
-                <Ionicons name="logo-google" size={16} color="#4285F4" />
-                <View style={styles.googleDotRed} />
-                <View style={styles.googleDotYellow} />
-                <View style={styles.googleDotGreen} />
-              </View>
-              <Text style={[styles.googleText, { color: "#F5F5F5" }]}>Continue with Google</Text>
-            </>
-          }
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={handleApple} disabled={appleLoading} style={styles.socialBtn}>
-          {appleLoading
-            ? <ActivityIndicator size="small" color="#F5F5F5" />
-            : <>
-              <Ionicons name="logo-apple" size={18} color="#F5F5F5" />
-              <Text style={[styles.googleText, { color: "#F5F5F5" }]}>Continue with Apple</Text>
-            </>
-          }
-        </TouchableOpacity>
-
-        <View style={styles.dividerRow}>
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <Text style={[styles.dividerText, { color: colors.mutedForeground }]}>use email</Text>
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-        </View>
-
         <View style={styles.form}>
           <View style={styles.field}>
-            <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Email</Text>
-            <View style={[styles.inputWrap, { backgroundColor: "transparent", borderColor: emailError ? "#FF4B4B" : colors.border }]}>
+            <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Username or Email</Text>
+            
+            <View style={[styles.inputWrap, { backgroundColor: "transparent", borderColor: emailError ? colors.destructive : colors.border }]}>
               <Ionicons name="mail-outline" size={16} color={colors.mutedForeground} style={styles.inputIcon} />
               <TextInput
                 style={[styles.inputField, { color: colors.foreground }]}
@@ -246,17 +224,17 @@ export default function SignInScreen() {
                 placeholderTextColor={colors.mutedForeground}
                 value={email}
                 onChangeText={setEmail}
-                keyboardType="email-address"
+                keyboardType="default"
                 autoCapitalize="none"
                 autoComplete="email"
               />
             </View>
-            {!!emailError && <Text style={styles.fieldError}>{emailError}</Text>}
+            {!!emailError && <Text style={[styles.fieldError, { color: colors.destructive }]}>{emailError}</Text>}
           </View>
 
           <View style={styles.field}>
             <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Password</Text>
-            <View style={[styles.inputWrap, { backgroundColor: "transparent", borderColor: passwordError ? "#FF4B4B" : colors.border }]}>
+            <View style={[styles.inputWrap, { backgroundColor: "transparent", borderColor: passwordError ? colors.destructive : colors.border }]}>
               <Ionicons name="lock-closed-outline" size={16} color={colors.mutedForeground} style={styles.inputIcon} />
               <TextInput
                 style={[styles.inputField, { color: colors.foreground }]}
@@ -270,14 +248,14 @@ export default function SignInScreen() {
                 <Ionicons name={showPass ? "eye-off-outline" : "eye-outline"} size={16} color={colors.mutedForeground} />
               </TouchableOpacity>
             </View>
-            {!!passwordError && <Text style={styles.fieldError}>{passwordError}</Text>}
+            {!!passwordError && <Text style={[styles.fieldError, { color: colors.destructive }]}>{passwordError}</Text>}
           </View>
         </View>
 
         {!!globalError && (
           <View style={styles.errorBox}>
-            <Ionicons name="alert-circle-outline" size={15} color="#FF4B4B" />
-            <Text style={styles.errorText}>{globalError}</Text>
+            <Ionicons name="alert-circle-outline" size={15} color={colors.destructive} />
+            <Text style={[styles.errorText, { color: colors.destructive }]}>{globalError}</Text>
           </View>
         )}
 
@@ -286,12 +264,38 @@ export default function SignInScreen() {
           disabled={!email || !password || fetchStatus === "fetching"}
           style={[styles.primaryBtn, { opacity: (!email || !password) ? 0.6 : 1 }]}
         >
-          <LinearGradient colors={["#FFFFFF", "#E8E8E8"]} style={styles.primaryBtnGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+          <LinearGradient colors={[colors.primary, colors.warmGray]} style={styles.primaryBtnGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
             {fetchStatus === "fetching"
-              ? <ActivityIndicator color="#0D0D0D" />
-              : <Text style={styles.primaryBtnText}>Sign In</Text>
+              ? <ActivityIndicator color={colors.primaryForeground} />
+              : <Text style={[styles.primaryBtnText, { color: colors.primaryForeground }]}>Sign In</Text>
             }
           </LinearGradient>
+        </TouchableOpacity>
+
+        <View style={styles.dividerRow}>
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+          <Text style={[styles.dividerText, { color: colors.mutedForeground }]}>or continue with</Text>
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+        </View>
+
+        <TouchableOpacity onPress={handleGoogle} disabled={googleLoading} style={[styles.socialBtn, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          {googleLoading
+            ? <ActivityIndicator size="small" color={colors.foreground} />
+            : <>
+              <Ionicons name="logo-google" size={16} color={colors.foreground} />
+              <Text style={[styles.googleText, { color: colors.foreground }]}>Continue with Google</Text>
+            </>
+          }
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={handleApple} disabled={appleLoading} style={[styles.socialBtn, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          {appleLoading
+            ? <ActivityIndicator size="small" color={colors.foreground} />
+            : <>
+              <Ionicons name="logo-apple" size={18} color={colors.foreground} />
+              <Text style={[styles.googleText, { color: colors.foreground }]}>Continue with Apple</Text>
+            </>
+          }
         </TouchableOpacity>
 
         <View style={styles.linkRow}>
@@ -334,11 +338,7 @@ const styles = StyleSheet.create({
   appName: { fontSize: 34, fontFamily: "Inter_700Bold" },
   title: { fontSize: 34, fontFamily: "Inter_700Bold", letterSpacing: -1.1, marginBottom: 6 },
   subtitle: { fontSize: 18, fontFamily: "Inter_500Medium", marginBottom: 28, lineHeight: 26 },
-  socialBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, borderRadius: 999, borderWidth: 1, paddingVertical: 15, marginBottom: 14, backgroundColor: "#171717", borderColor: "#2A2A2A" },
-  googleMark: { width: 18, height: 18, position: "relative", alignItems: "center", justifyContent: "center" },
-  googleDotRed: { position: "absolute", width: 4, height: 4, borderRadius: 2, backgroundColor: "#EA4335", top: 2, right: -1 },
-  googleDotYellow: { position: "absolute", width: 4, height: 4, borderRadius: 2, backgroundColor: "#FBBC05", bottom: 0, right: 1 },
-  googleDotGreen: { position: "absolute", width: 4, height: 4, borderRadius: 2, backgroundColor: "#34A853", bottom: 1, left: 0 },
+  socialBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, borderRadius: 999, borderWidth: 1, paddingVertical: 15, marginBottom: 14 },
   googleText: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
   dividerRow: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 20 },
   divider: { flex: 1, height: 1 },
@@ -346,16 +346,16 @@ const styles = StyleSheet.create({
   form: { gap: 16, marginBottom: 16 },
   field: { gap: 6 },
   fieldLabel: { fontSize: 13, fontFamily: "Inter_500Medium" },
-  fieldError: { fontSize: 12, color: "#FF4B4B", fontFamily: "Inter_400Regular", marginTop: 2 },
+  fieldError: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
   inputWrap: { flexDirection: "row", alignItems: "center", borderRadius: 14, borderWidth: 1, paddingHorizontal: 14, height: 50 },
   inputIcon: { marginRight: 8 },
   inputField: { flex: 1, fontSize: 15, fontFamily: "Inter_400Regular" },
   eyeBtn: { padding: 4 },
   errorBox: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 12 },
-  errorText: { fontSize: 13, color: "#FF4B4B", fontFamily: "Inter_400Regular", flex: 1 },
+  errorText: { fontSize: 13, fontFamily: "Inter_400Regular", flex: 1 },
   primaryBtn: { borderRadius: 16, overflow: "hidden", marginBottom: 20 },
   primaryBtnGrad: { paddingVertical: 16, alignItems: "center", justifyContent: "center" },
-  primaryBtnText: { color: "#0D0D0D", fontSize: 16, fontFamily: "Inter_700Bold" },
+  primaryBtnText: { fontSize: 16, fontFamily: "Inter_700Bold" },
   linkRow: { flexDirection: "row", justifyContent: "center" },
   linkLabel: { fontSize: 14, fontFamily: "Inter_400Regular" },
   linkText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },

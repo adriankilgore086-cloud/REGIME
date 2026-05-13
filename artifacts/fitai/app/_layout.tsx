@@ -88,6 +88,8 @@ function InnerLayout() {
           <Stack.Screen name="(auth)" />
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="notifications" />
+          <Stack.Screen name="feed" />
+          <Stack.Screen name="workout-library-editor" />
           <Stack.Screen
             name="workout/[id]"
             options={{ presentation: "modal", contentStyle: { backgroundColor: BG } }}

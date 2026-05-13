@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useAuth } from "@clerk/expo";
-import { SAMPLE_WORKOUTS, getLevel, getRank, getXpProgress } from '@/constants/workouts';
+import { useAuth, useUser } from "@clerk/expo";
+import { SAMPLE_WORKOUTS, getLevel, getRank, getXpProgress, type WorkoutCategory } from '@/constants/workouts';
 import { ACHIEVEMENTS, Achievement, checkAchievements } from '@/constants/achievements';
 
 const STORAGE_KEY = '@regime_data_v2';
@@ -19,6 +19,16 @@ export interface UserProfile {
   activeTitle?: string;
   unlockedTitles: string[];
   isPremium: boolean;
+}
+
+export interface OnboardingProfile {
+  motivation: string;
+  biggestHurdle: string;
+  trainingFrequency: string;
+  preferredIntensity: string;
+  healthPermissionsRequested: boolean;
+  notificationsRequested: boolean;
+  completedAt: string | null;
 }
 
 export interface UserStats {
@@ -63,6 +73,7 @@ export interface HealthMetric {
   calories: number;
   activeMinutes: number;
   muscleGroups: string[];
+  steps?: number;
 }
 
 export interface AppNotification {
@@ -81,14 +92,24 @@ export interface RewardData {
   achievement?: Achievement;
 }
 
+export interface WorkoutLibraryEntry {
+  customName?: string;
+  accentCategory?: WorkoutCategory;
+}
+
 interface FitnessState {
   userProfile: UserProfile;
+  onboardingProfile: OnboardingProfile;
   userStats: UserStats;
   scheduledWorkouts: ScheduledWorkout[];
   goals: Goal[];
   earnedAchievements: EarnedAchievement[];
   healthMetrics: HealthMetric[];
   notifications: AppNotification[];
+  pendingSyncCount: number;
+  lastGlobalRefreshUtc: string | null;
+  lastHealthSyncAt: string | null;
+  workoutLibraryCustomization: Record<string, WorkoutLibraryEntry>;
 }
 
 interface FitnessContextType extends FitnessState {
@@ -100,6 +121,7 @@ interface FitnessContextType extends FitnessState {
   unreadCount: number;
   todaysWorkouts: ScheduledWorkout[];
   updateProfile: (profile: Partial<UserProfile>) => Promise<void>;
+  updateOnboardingProfile: (profile: Partial<OnboardingProfile>) => Promise<void>;
   scheduleWorkout: (workoutId: string, date: string) => Promise<void>;
   unscheduleWorkout: (scheduledWorkoutId: string) => Promise<void>;
   completeWorkout: (scheduledId: string) => Promise<void>;
@@ -110,6 +132,8 @@ interface FitnessContextType extends FitnessState {
   dismissReward: () => void;
   markNotificationRead: (id: string) => void;
   addNotification: (n: Omit<AppNotification, 'id' | 'createdAt' | 'read'>) => void;
+  syncHealthData: () => Promise<void>;
+  updateWorkoutLibraryCustomization: (workoutId: string, patch: Partial<WorkoutLibraryEntry>) => Promise<void>;
 }
 
 const createEmptyState = (): FitnessState => ({
@@ -122,6 +146,15 @@ const createEmptyState = (): FitnessState => ({
     fitnessGoal: "general",
     unlockedTitles: ["The Grinder", "Elite Performer", "Iron Discipline"],
     isPremium: false,
+  },
+  onboardingProfile: {
+    motivation: "",
+    biggestHurdle: "",
+    trainingFrequency: "",
+    preferredIntensity: "",
+    healthPermissionsRequested: false,
+    notificationsRequested: false,
+    completedAt: null,
   },
   userStats: {
     xp: 0,
@@ -137,6 +170,10 @@ const createEmptyState = (): FitnessState => ({
   earnedAchievements: [],
   healthMetrics: [],
   notifications: [],
+  pendingSyncCount: 0,
+  lastGlobalRefreshUtc: null,
+  lastHealthSyncAt: null,
+  workoutLibraryCustomization: {},
 });
 
 const FitnessContext = createContext<FitnessContextType | null>(null);
@@ -147,6 +184,17 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
   const [loaded, setLoaded] = useState(false);
   const [showReward, setShowReward] = useState(false);
   const [rewardData, setRewardData] = useState<RewardData | null>(null);
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  const onlineRef = useRef(true);
+  const utcTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const healthSyncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     setLoaded(false);
@@ -159,7 +207,12 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
       if (raw) {
         try {
           const saved = JSON.parse(raw) as Partial<FitnessState>;
-          setState((s) => ({ ...createEmptyState(), ...s, ...saved }));
+          setState((s) => ({
+            ...createEmptyState(),
+            ...s,
+            ...saved,
+            workoutLibraryCustomization: saved.workoutLibraryCustomization ?? createEmptyState().workoutLibraryCustomization,
+          }));
         } catch {}
       }
       setLoaded(true);
@@ -179,6 +232,126 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
     });
   }, [save]);
 
+  const checkOnline = useCallback(async () => {
+    try {
+      const res = await fetch("https://www.gstatic.com/generate_204", { method: "GET" });
+      onlineRef.current = res.ok;
+      return res.ok;
+    } catch {
+      onlineRef.current = false;
+      return false;
+    }
+  }, []);
+
+  const updateWorkoutLibraryCustomization = useCallback(async (workoutId: string, patch: Partial<WorkoutLibraryEntry>) => {
+    await updateState((s) => ({
+      ...s,
+      workoutLibraryCustomization: {
+        ...s.workoutLibraryCustomization,
+        [workoutId]: { ...s.workoutLibraryCustomization[workoutId], ...patch },
+      },
+    }));
+  }, [updateState]);
+
+  const syncHealthData = useCallback(async () => {
+    const today = new Date().toISOString().split("T")[0];
+    let steps = 0;
+    try {
+      const sensors = await import("expo-sensors");
+      if ("Pedometer" in sensors) {
+        const pedometer = (sensors as any).Pedometer;
+        const start = new Date();
+        start.setHours(0, 0, 0, 0);
+        const end = new Date();
+        const result = await pedometer.getStepCountAsync(start, end);
+        steps = Number(result?.steps ?? 0);
+      }
+    } catch {
+      // Best-effort health integration; keep app stable when API is unavailable.
+    }
+
+    const estimatedCalories = Math.round(steps * 0.04);
+    await updateState((s) => {
+      const existing = s.healthMetrics.find((h) => h.date === today);
+      const merged: HealthMetric = {
+        date: today,
+        calories: Math.max(existing?.calories ?? 0, estimatedCalories),
+        activeMinutes: existing?.activeMinutes ?? Math.round(steps / 100),
+        muscleGroups: existing?.muscleGroups ?? [],
+        steps,
+      };
+      const rest = s.healthMetrics.filter((h) => h.date !== today);
+      return {
+        ...s,
+        healthMetrics: [merged, ...rest].slice(0, 45),
+        lastHealthSyncAt: new Date().toISOString(),
+      };
+    });
+  }, [updateState]);
+
+  const runUtcRefresh = useCallback(async () => {
+    await syncHealthData();
+    await updateState((s) => ({
+      ...s,
+      lastGlobalRefreshUtc: new Date().toISOString(),
+      notifications: [{
+        id: Date.now().toString() + "utc",
+        title: "Daily Sync Complete",
+        message: "Leaderboard and daily statuses refreshed for the new UTC day.",
+        type: "ai",
+        read: false,
+        createdAt: new Date().toISOString(),
+        route: "/leaderboard",
+      }, ...s.notifications],
+    }));
+  }, [syncHealthData, updateState]);
+
+  useEffect(() => {
+    if (!userId) return;
+    const scheduleUtcRefresh = () => {
+      if (utcTimerRef.current) clearTimeout(utcTimerRef.current);
+      const now = new Date();
+      const nextUtcMidnight = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0, 0);
+      const delay = Math.max(nextUtcMidnight - now.getTime(), 1000);
+      utcTimerRef.current = setTimeout(async () => {
+        await runUtcRefresh();
+        scheduleUtcRefresh();
+      }, delay);
+    };
+    scheduleUtcRefresh();
+    return () => {
+      if (utcTimerRef.current) clearTimeout(utcTimerRef.current);
+    };
+  }, [runUtcRefresh, userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+    let mounted = true;
+    const run = async () => {
+      const isOnline = await checkOnline();
+      if (!mounted) return;
+      if (isOnline) {
+        setState((prev) => {
+          if (prev.pendingSyncCount === 0) return prev;
+          const next = { ...prev, pendingSyncCount: 0 };
+          save(next);
+          return next;
+        });
+      }
+    };
+    run();
+    healthSyncIntervalRef.current = setInterval(run, 60000);
+    return () => {
+      mounted = false;
+      if (healthSyncIntervalRef.current) clearInterval(healthSyncIntervalRef.current);
+    };
+  }, [checkOnline, save, userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+    void syncHealthData();
+  }, [syncHealthData, userId]);
+
   const updateProfile = useCallback(async (profile: Partial<UserProfile>) => {
     await updateState((s) => {
       const merged = { ...s.userProfile, ...profile };
@@ -187,6 +360,13 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
       }
       return { ...s, userProfile: merged };
     });
+  }, [updateState]);
+
+  const updateOnboardingProfile = useCallback(async (profile: Partial<OnboardingProfile>) => {
+    await updateState((s) => ({
+      ...s,
+      onboardingProfile: { ...s.onboardingProfile, ...profile },
+    }));
   }, [updateState]);
 
   const scheduleWorkout = useCallback(async (workoutId: string, date: string) => {
@@ -201,6 +381,7 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
     const workout = SAMPLE_WORKOUTS.find((w) => w.id === workoutId);
     await updateState((s) => ({
       ...s,
+      pendingSyncCount: onlineRef.current ? s.pendingSyncCount : s.pendingSyncCount + 1,
       scheduledWorkouts: [...s.scheduledWorkouts, newScheduled],
       notifications: workout
         ? [
@@ -221,6 +402,7 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
   const unscheduleWorkout = useCallback(async (scheduledWorkoutId: string) => {
     await updateState((s) => ({
       ...s,
+      pendingSyncCount: onlineRef.current ? s.pendingSyncCount : s.pendingSyncCount + 1,
       scheduledWorkouts: s.scheduledWorkouts.filter((w) => w.id !== scheduledWorkoutId),
     }));
   }, [updateState]);
@@ -276,6 +458,7 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
 
       const next: FitnessState = {
         ...prev,
+        pendingSyncCount: onlineRef.current ? prev.pendingSyncCount : prev.pendingSyncCount + 1,
         userStats: newStats,
         scheduledWorkouts: prev.scheduledWorkouts.map((w) =>
           w.id === scheduledId ? { ...w, completed: true, completedAt: new Date().toISOString() } : w
@@ -309,6 +492,7 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
     });
 
     setTimeout(() => {
+      if (!isMountedRef.current) return;
       setRewardData({
         xp: xpEarned,
         message: newAchievements.length > 0 ? `Achievement Unlocked: ${newAchievements[0].name}!` : 'Workout Complete!',
@@ -321,6 +505,7 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
   const skipWorkout = useCallback(async (scheduledId: string) => {
     await updateState((s) => ({
       ...s,
+      pendingSyncCount: onlineRef.current ? s.pendingSyncCount : s.pendingSyncCount + 1,
       scheduledWorkouts: s.scheduledWorkouts.map((w) =>
         w.id === scheduledId ? { ...w, skipped: true } : w
       ),
@@ -333,12 +518,13 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
       id: Date.now().toString(),
       completed: false,
     };
-    await updateState((s) => ({ ...s, goals: [...s.goals, newGoal] }));
+    await updateState((s) => ({ ...s, pendingSyncCount: onlineRef.current ? s.pendingSyncCount : s.pendingSyncCount + 1, goals: [...s.goals, newGoal] }));
   }, [updateState]);
 
   const updateGoalProgress = useCallback(async (goalId: string, value: number) => {
     await updateState((s) => ({
       ...s,
+      pendingSyncCount: onlineRef.current ? s.pendingSyncCount : s.pendingSyncCount + 1,
       goals: s.goals.map((g) =>
         g.id === goalId ? { ...g, currentValue: value, completed: value >= g.targetValue } : g
       ),
@@ -348,9 +534,26 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
   const deleteGoal = useCallback(async (goalId: string) => {
     await updateState((s) => ({
       ...s,
+      pendingSyncCount: onlineRef.current ? s.pendingSyncCount : s.pendingSyncCount + 1,
       goals: s.goals.filter((g) => g.id !== goalId),
     }));
   }, [updateState]);
+  // ==========================================
+  // CLERK <-> APP DATA SYNC
+  // Automatically pulls login data into the app profile
+  // ==========================================
+  const { user } = useUser();
+
+  useEffect(() => {
+    if (user) {
+      updateProfile({
+        name: user.fullName || user.firstName || "Athlete",
+        username: user.username ? `@${user.username}` : undefined,
+        profileImage: user.imageUrl,
+      });
+    }
+  }, [user?.id, user?.username, user?.imageUrl, updateProfile]);
+
 
   const dismissReward = useCallback(() => {
     setShowReward(false);
@@ -397,6 +600,7 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
       unreadCount,
       todaysWorkouts,
       updateProfile,
+      updateOnboardingProfile,
       scheduleWorkout,
       unscheduleWorkout,
       completeWorkout,
@@ -407,6 +611,8 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
       dismissReward,
       markNotificationRead,
       addNotification,
+      syncHealthData,
+      updateWorkoutLibraryCustomization,
     }}>
       {children}
     </FitnessContext.Provider>

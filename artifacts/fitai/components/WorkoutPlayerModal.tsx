@@ -8,7 +8,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
-import { Workout, Exercise, WorkoutCategory, CATEGORY_COLORS } from "@/constants/workouts";
+import { useFitness } from "@/contexts/FitnessContext";
+import { resolveWorkoutDisplay } from "@/lib/workoutDisplay";
+import { getWorkoutAccent } from "@/constants/workoutAccents";
+import { Workout, Exercise, WorkoutCategory } from "@/constants/workouts";
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 const SWIPE_THRESHOLD = 100;
@@ -344,8 +347,10 @@ export function WorkoutPlayerModal({
   visible, workout, scheduledId, onClose, onComplete,
 }: WorkoutPlayerModalProps) {
   const colors = useColors();
+  const { workoutLibraryCustomization } = useFitness();
   const insets = useSafeAreaInsets();
-  const catColor = CATEGORY_COLORS[workout.category];
+  const { accentCategory, displayName } = resolveWorkoutDisplay(workout, workoutLibraryCustomization);
+  const catColor = getWorkoutAccent(colors, accentCategory).main;
 
   const [exIdx, setExIdx] = useState(0);
   const [resting, setResting] = useState(false);
@@ -433,7 +438,7 @@ export function WorkoutPlayerModal({
             <Ionicons name="close" size={18} color="#A1A1A1" />
           </TouchableOpacity>
           <View style={styles.titleBlock}>
-            <Text style={styles.workoutTitle} numberOfLines={1}>{workout.name}</Text>
+            <Text style={styles.workoutTitle} numberOfLines={1}>{displayName}</Text>
             <Text style={styles.workoutSub}>
               {completed.size}/{exercises.length} exercises · {workout.durationMinutes}min
             </Text>

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Platform, RefreshControl, Animated, Image,
@@ -7,9 +7,14 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
-import { SAMPLE_WORKOUTS, CATEGORY_COLORS, Exercise } from "@/constants/workouts";
+import { SAMPLE_WORKOUTS, Exercise, type Workout, type WorkoutCategory } from "@/constants/workouts";
+import { getWorkoutAccent } from "@/constants/workoutAccents";
+import { resolveWorkoutDisplay } from "@/lib/workoutDisplay";
+import { rankWorkoutsForUser, pickDailyCurated, buildWorkoutAiOverview } from "@/lib/smartRecommendations";
+import { AIWorkoutOverviewSheet } from "@/components/AIWorkoutOverviewSheet";
 import { WorkoutSwipeCard } from "@/components/WorkoutSwipeCard";
 import { XPProgressBar } from "@/components/XPProgressBar";
 import { StatCard } from "@/components/StatCard";
@@ -31,12 +36,6 @@ const GHOST_STATS = {
   xp: 420,
 };
 
-const SMART_RECS = [
-  { id: "rec1", name: "HIIT Inferno", tag: "High Calorie Burn", minutes: 30, xp: 200, color: "#FF2D78", icon: "flame" as const },
-  { id: "rec2", name: "Mobility Flow", tag: "Recovery Focused", minutes: 20, xp: 80, color: "#7BE0B8", icon: "body" as const },
-  { id: "rec3", name: "Core Crusher", tag: "AI Recommended", minutes: 25, xp: 120, color: "#A78BFA", icon: "sparkles" as const },
-];
-
 const PR_BOARD = [
   { lift: "Bench Press", current: 100, prev: 90, unit: "kg", icon: "barbell-outline" as const, color: "#FF2D78" },
   { lift: "Back Squat", current: 130, prev: 125, unit: "kg", icon: "body-outline" as const, color: "#A78BFA" },
@@ -45,95 +44,99 @@ const PR_BOARD = [
   { lift: "Pull-ups", current: 15, prev: 12, unit: "reps", icon: "trending-up-outline" as const, color: "#8FB8FF" },
 ];
 
-function getDailyCuratedWorkout() {
-  const dayIndex = new Date().getDay();
-  return SAMPLE_WORKOUTS[dayIndex % SAMPLE_WORKOUTS.length];
+function recCategoryIcon(cat: WorkoutCategory): keyof typeof Ionicons.glyphMap {
+  switch (cat) {
+    case "strength": return "barbell-outline";
+    case "cardio": return "heart-outline";
+    case "hiit": return "flash-outline";
+    case "recovery": return "leaf-outline";
+    case "running": return "walk-outline";
+    default: return "fitness-outline";
+  }
 }
 
-function DailyCuratedWorkoutCard({ onStartPlayer }: { onStartPlayer: (workout: import("@/constants/workouts").Workout) => void }) {
+function DailyCuratedWorkoutCard({
+  workout,
+  displayName,
+  accentCategory,
+  onOpenOverview,
+  onStartPlayer,
+}: {
+  workout: Workout;
+  displayName: string;
+  accentCategory: WorkoutCategory;
+  onOpenOverview: () => void;
+  onStartPlayer: (w: Workout) => void;
+}) {
   const colors = useColors();
-  const workout = getDailyCuratedWorkout();
-  const accentColor = CATEGORY_COLORS[workout.category] ?? colors.primary;
+  const accent = getWorkoutAccent(colors, accentCategory);
 
   return (
-    <View style={[dcStyles.card, { backgroundColor: colors.card, borderColor: accentColor + "35" }]}>
-      <LinearGradient
-        colors={[accentColor + "14", accentColor + "04", "transparent"]}
-        style={StyleSheet.absoluteFill}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      />
+    <View style={[dcStyles.card, { backgroundColor: colors.card, borderColor: accent.main + "35" }]}>
+      <TouchableOpacity activeOpacity={0.92} onPress={onOpenOverview} style={dcStyles.touchMain}>
+        <LinearGradient
+          pointerEvents="none"
+          colors={[accent.subtleFill, accent.main + "06", "transparent"]}
+          style={StyleSheet.absoluteFill}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        />
 
-      <View style={dcStyles.topRow}>
-        <View style={[dcStyles.badge, { backgroundColor: accentColor + "20", borderColor: accentColor + "40" }]}>
-          <Ionicons name="sparkles" size={10} color={accentColor} />
-          <Text style={[dcStyles.badgeText, { color: accentColor }]}>AI CURATED FOR TODAY</Text>
-        </View>
-        <View style={[dcStyles.xpPill, { backgroundColor: colors.primary + "18" }]}>
-          <Text style={[dcStyles.xpText, { color: colors.primary }]}>+{workout.xpReward} XP</Text>
-        </View>
-      </View>
-
-      <Text style={[dcStyles.workoutName, { color: colors.foreground }]}>{workout.name}</Text>
-
-      <View style={dcStyles.metaRow}>
-        <View style={dcStyles.metaItem}>
-          <Ionicons name="time-outline" size={13} color={colors.mutedForeground} />
-          <Text style={[dcStyles.metaText, { color: colors.mutedForeground }]}>{workout.durationMinutes} min</Text>
-        </View>
-        <View style={[dcStyles.dot, { backgroundColor: colors.mutedForeground }]} />
-        <View style={dcStyles.metaItem}>
-          <Ionicons name="flame-outline" size={13} color={colors.mutedForeground} />
-          <Text style={[dcStyles.metaText, { color: colors.mutedForeground }]}>{workout.calories} kcal</Text>
-        </View>
-        <View style={[dcStyles.dot, { backgroundColor: colors.mutedForeground }]} />
-        <Text style={[dcStyles.metaText, { color: accentColor }]}>
-          {workout.difficulty.charAt(0).toUpperCase() + workout.difficulty.slice(1)}
-        </Text>
-      </View>
-
-      <View style={dcStyles.exercisePreview}>
-        {workout.exercises.slice(0, 3).map((ex: Exercise) => (
-          <View key={ex.id} style={[dcStyles.exPreviewRow, { borderColor: colors.border }]}>
-            <View style={[dcStyles.exPreviewDot, { backgroundColor: accentColor }]} />
-            <Text style={[dcStyles.exPreviewName, { color: colors.foreground }]}>{ex.name}</Text>
-            <Text style={[dcStyles.exPreviewMeta, { color: colors.mutedForeground }]}>
-              {ex.sets}×{ex.reps}
-            </Text>
+        <View style={dcStyles.topRow}>
+          <View style={[dcStyles.badge, { backgroundColor: accent.chipBg, borderColor: accent.chipBorder }]}>
+            <Ionicons name="sparkles" size={10} color={accent.main} />
+            <Text style={[dcStyles.badgeText, { color: accent.main }]}>AI CURATED FOR TODAY</Text>
           </View>
-        ))}
-        {workout.exercises.length > 3 && (
-          <Text style={[dcStyles.exMore, { color: colors.mutedForeground }]}>
-            +{workout.exercises.length - 3} more exercises
+          <View style={[dcStyles.xpPill, { backgroundColor: colors.primary + "18" }]}>
+            <Text style={[dcStyles.xpText, { color: colors.primary }]}>+{workout.xpReward} XP</Text>
+          </View>
+        </View>
+
+        <Text style={[dcStyles.workoutName, { color: colors.foreground }]}>{displayName}</Text>
+
+        <View style={dcStyles.metaRow}>
+          <View style={dcStyles.metaItem}>
+            <Ionicons name="time-outline" size={13} color={colors.mutedForeground} />
+            <Text style={[dcStyles.metaText, { color: colors.mutedForeground }]}>{workout.durationMinutes} min</Text>
+          </View>
+          <View style={[dcStyles.dot, { backgroundColor: colors.mutedForeground }]} />
+          <View style={dcStyles.metaItem}>
+            <Ionicons name="flame-outline" size={13} color={colors.mutedForeground} />
+            <Text style={[dcStyles.metaText, { color: colors.mutedForeground }]}>{workout.calories} kcal</Text>
+          </View>
+          <View style={[dcStyles.dot, { backgroundColor: colors.mutedForeground }]} />
+          <Text style={[dcStyles.metaText, { color: accent.main }]}>
+            {workout.difficulty.charAt(0).toUpperCase() + workout.difficulty.slice(1)}
           </Text>
-        )}
-      </View>
+        </View>
+
+        <View style={dcStyles.exercisePreview}>
+          {workout.exercises.slice(0, 3).map((ex: Exercise) => (
+            <View key={ex.id} style={[dcStyles.exPreviewRow, { borderColor: colors.border }]}>
+              <View style={[dcStyles.exPreviewDot, { backgroundColor: accent.main }]} />
+              <Text style={[dcStyles.exPreviewName, { color: colors.foreground }]}>{ex.name}</Text>
+              <Text style={[dcStyles.exPreviewMeta, { color: colors.mutedForeground }]}>
+                {ex.sets}×{ex.reps}
+              </Text>
+            </View>
+          ))}
+          {workout.exercises.length > 3 && (
+            <Text style={[dcStyles.exMore, { color: colors.mutedForeground }]}>
+              +{workout.exercises.length - 3} more exercises
+            </Text>
+          )}
+        </View>
+      </TouchableOpacity>
 
       <TouchableOpacity
-        style={[dcStyles.startBtn, { backgroundColor: accentColor }]}
+        style={[dcStyles.startBtn, { backgroundColor: accent.main }]}
         onPress={() => onStartPlayer(workout)}
         activeOpacity={0.85}
       >
-        <Ionicons name="play" size={14} color="#0D0D0D" />
-        <Text style={dcStyles.startBtnText}>Start Session</Text>
+        <Ionicons name="play" size={14} color={colors.primaryForeground} />
+        <Text style={[dcStyles.startBtnText, { color: colors.primaryForeground }]}>Start Session</Text>
       </TouchableOpacity>
     </View>
-    {/* Spacer and Section Header to reduce overcrowding */}
-    <View style={{ height: 35 }} /> 
-    <View style={{ paddingHorizontal: 16, marginBottom: 16 }}>
-      <Text style={{ 
-        color: '#FFFFFF', 
-        fontSize: 20, 
-        fontWeight: '700',
-        letterSpacing: -0.5 
-      }}>
-        Weekly Progress
-      </Text>
-      <Text style={{ color: '#A1A1A1', fontSize: 14 }}>
-        Your performance at a glance
-      </Text>
-    </View>
-
   );
 }
 
@@ -141,18 +144,19 @@ const dcStyles = StyleSheet.create({
   card: { 
     borderRadius: 24, 
     borderWidth: 1, 
-    padding: 22, // Increased padding for 10% size boost
-    marginBottom: 24, 
+    padding: 26,
+    marginBottom: 20,
     overflow: "hidden",
-    minHeight: 180 // Giving it more vertical presence
+    minHeight: 220,
   },
+  touchMain: { flex: 1 },
 
   topRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 },
   badge: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 9, paddingVertical: 4, borderRadius: 10, borderWidth: 1 },
   badgeText: { fontSize: 9, fontFamily: "Inter_700Bold", letterSpacing: 0.8 },
   xpPill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
   xpText: { fontSize: 12, fontFamily: "Inter_700Bold" },
-  workoutName: { fontSize: 20, fontFamily: "Poppins_700Bold", letterSpacing: -0.4, marginBottom: 8 },
+  workoutName: { fontSize: 24, fontFamily: "Poppins_700Bold", letterSpacing: -0.4, marginBottom: 8 },
   metaRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 14 },
   metaItem: { flexDirection: "row", alignItems: "center", gap: 4 },
   metaText: { fontSize: 12, fontFamily: "Inter_500Medium" },
@@ -167,8 +171,8 @@ const dcStyles = StyleSheet.create({
   exPreviewName: { flex: 1, fontSize: 13, fontFamily: "Inter_500Medium" },
   exPreviewMeta: { fontSize: 12, fontFamily: "Inter_400Regular" },
   exMore: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
-  startBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 13, borderRadius: 14 },
-  startBtnText: { fontSize: 14, fontFamily: "Inter_700Bold", color: "#0D0D0D" },
+  startBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 13, borderRadius: 14, marginTop: 14 },
+  startBtnText: { fontSize: 14, fontFamily: "Inter_700Bold" },
 });
 
 function GhostCard({ userStats, colors }: { userStats: any; colors: any }) {
@@ -257,18 +261,40 @@ export default function HomeScreen() {
     todaysWorkouts, scheduledWorkouts, healthMetrics,
     showReward, rewardData, unreadCount,
     completeWorkout, skipWorkout, dismissReward,
+    onboardingProfile, workoutLibraryCustomization,
   } = useFitness();
   const [showAI, setShowAI] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [suggestionIdx] = useState(() => Math.floor(Math.random() * AI_SUGGESTIONS.length));
-  const [playerWorkout, setPlayerWorkout] = useState<import("@/constants/workouts").Workout | null>(null);
+  const [playerWorkout, setPlayerWorkout] = useState<Workout | null>(null);
   const [playerScheduledId, setPlayerScheduledId] = useState<string | null>(null);
+  const [overviewWorkout, setOverviewWorkout] = useState<Workout | null>(null);
 
-  const openPlayer = (workout: import("@/constants/workouts").Workout, scheduledId?: string) => {
+  const rankedWorkouts = useMemo(
+    () => rankWorkoutsForUser(SAMPLE_WORKOUTS, onboardingProfile, userProfile),
+    [onboardingProfile, userProfile]
+  );
+  const curatedWorkout = useMemo(
+    () => pickDailyCurated(rankedWorkouts, SAMPLE_WORKOUTS),
+    [rankedWorkouts]
+  );
+  const curatedDisplay = useMemo(
+    () => resolveWorkoutDisplay(curatedWorkout, workoutLibraryCustomization),
+    [curatedWorkout, workoutLibraryCustomization]
+  );
+  const smartRecList = useMemo(() => rankedWorkouts.slice(0, 6), [rankedWorkouts]);
+
+  const openPlayer = (workout: Workout, scheduledId?: string) => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setPlayerWorkout(workout);
     setPlayerScheduledId(scheduledId ?? null);
   };
   const closePlayer = () => { setPlayerWorkout(null); setPlayerScheduledId(null); };
+
+  const openOverview = useCallback((workout: Workout) => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setOverviewWorkout(workout);
+  }, []);
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const hour = new Date().getHours();
@@ -327,8 +353,8 @@ export default function HomeScreen() {
               )}
             </View>
             <View>
-              <Text style={[styles.greeting, { color: colors.mutedForeground }]}>{greeting}</Text>
-              <Text style={[styles.name, { color: colors.foreground }]}>{userProfile.name}</Text>
+              <Text style={[styles.greeting, { color: colors.mutedForeground }]}>{`${greeting}, ${userProfile.name || "Athlete"}`}</Text>
+              <Text style={[styles.name, { color: colors.foreground }]}>Project Don</Text>
             </View>
           </View>
           <View style={styles.headerRight}>
@@ -378,7 +404,13 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        <DailyCuratedWorkoutCard onStartPlayer={(w) => openPlayer(w)} />
+        <DailyCuratedWorkoutCard
+          workout={curatedWorkout}
+          displayName={curatedDisplay.displayName}
+          accentCategory={curatedDisplay.accentCategory}
+          onOpenOverview={() => openOverview(curatedWorkout)}
+          onStartPlayer={(w) => openPlayer(w)}
+        />
 
         <GhostCard userStats={userStats} colors={colors} />
 
@@ -410,6 +442,7 @@ export default function HomeScreen() {
         {todaysWorkouts.map((sw) => {
           const workout = SAMPLE_WORKOUTS.find((w) => w.id === sw.workoutId);
           if (!workout) return null;
+          const display = resolveWorkoutDisplay(workout, workoutLibraryCustomization);
           return (
             <WorkoutSwipeCard
               key={sw.id}
@@ -418,6 +451,8 @@ export default function HomeScreen() {
               onComplete={completeWorkout}
               onSkip={skipWorkout}
               onPress={(w) => openPlayer(w, sw.id)}
+              displayName={display.displayName}
+              accentCategory={display.accentCategory}
             />
           );
         })}
@@ -458,7 +493,7 @@ export default function HomeScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => setShowAI(true)}
+          onPress={() => openOverview(curatedWorkout)}
           style={[styles.aiCard, { backgroundColor: colors.card, borderColor: colors.primary + "40" }]}
           activeOpacity={0.85}
         >
@@ -530,35 +565,52 @@ export default function HomeScreen() {
         </TouchableOpacity>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.recsScroll} contentContainerStyle={styles.recsContent}>
-          {SMART_RECS.map((rec) => (
-            <TouchableOpacity
-              key={rec.id}
-              onPress={() => router.push("/stats-overview" as any)}
-              style={[styles.recCard, { backgroundColor: colors.card, borderColor: rec.color + "30" }]}
-              activeOpacity={0.85}
-            >
-              <LinearGradient
-                colors={[rec.color + "18", "transparent"]}
-                style={StyleSheet.absoluteFill}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 0, y: 1 }}
-              />
-              <View style={[styles.recIcon, { backgroundColor: rec.color + "20" }]}>
-                <Ionicons name={rec.icon} size={20} color={rec.color} />
-              </View>
-              <Text style={[styles.recName, { color: colors.foreground }]}>{rec.name}</Text>
-              <View style={[styles.recTag, { backgroundColor: rec.color + "15" }]}>
-                <Text style={[styles.recTagText, { color: rec.color }]}>{rec.tag}</Text>
-              </View>
-              <View style={styles.recMeta}>
-                <Ionicons name="time-outline" size={11} color={colors.mutedForeground} />
-                <Text style={[styles.recMetaText, { color: colors.mutedForeground }]}>{rec.minutes}m</Text>
-                <View style={[styles.recXp, { backgroundColor: colors.primary + "20" }]}>
-                  <Text style={[styles.recXpText, { color: colors.primary }]}>+{rec.xp} XP</Text>
+          {smartRecList.map((rec) => {
+            const { displayName, accentCategory } = resolveWorkoutDisplay(rec, workoutLibraryCustomization);
+            const ac = getWorkoutAccent(colors, accentCategory);
+            const iconName = recCategoryIcon(accentCategory);
+            const tag =
+              rec.category === "recovery"
+                ? "Recovery bias"
+                : rec.category === "strength"
+                  ? "Strength match"
+                  : rec.category === "hiit"
+                    ? "Metabolic push"
+                    : "AI ranked";
+            return (
+              <TouchableOpacity
+                key={rec.id}
+                onPress={() => openOverview(rec)}
+                style={[styles.recCard, { backgroundColor: colors.card, borderColor: ac.main + "30" }]}
+                activeOpacity={0.85}
+              >
+                <LinearGradient
+                  colors={[ac.subtleFill, "transparent"]}
+                  style={StyleSheet.absoluteFill}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 0, y: 1 }}
+                />
+                <View style={[styles.recIcon, { backgroundColor: ac.chipBg }]}>
+                  <Ionicons name={iconName} size={20} color={ac.main} />
                 </View>
-              </View>
-            </TouchableOpacity>
-          ))}
+                <Text style={[styles.recName, { color: colors.foreground }]} numberOfLines={2}>
+                  {displayName}
+                </Text>
+                <View style={[styles.recTag, { backgroundColor: ac.main + "15" }]}>
+                  <Text style={[styles.recTagText, { color: ac.main }]}>{tag}</Text>
+                </View>
+                <View style={styles.recMeta}>
+                  <Ionicons name="time-outline" size={11} color={colors.mutedForeground} />
+                  <Text style={[styles.recMetaText, { color: colors.mutedForeground }]}>
+                    {rec.durationMinutes}m
+                  </Text>
+                  <View style={[styles.recXp, { backgroundColor: colors.primary + "20" }]}>
+                    <Text style={[styles.recXpText, { color: colors.primary }]}>+{rec.xpReward} XP</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
 
         <View style={styles.sectionHeader}>
@@ -571,11 +623,12 @@ export default function HomeScreen() {
           .map((sw) => {
             const workout = SAMPLE_WORKOUTS.find((w) => w.id === sw.workoutId);
             if (!workout) return null;
+            const actDisplay = resolveWorkoutDisplay(workout, workoutLibraryCustomization);
             return (
               <View key={sw.id} style={[styles.activityRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
                 <View style={[styles.activityDot, { backgroundColor: colors.success }]} />
                 <View style={styles.activityInfo}>
-                  <Text style={[styles.activityName, { color: colors.foreground }]}>{workout.name}</Text>
+                  <Text style={[styles.activityName, { color: colors.foreground }]}>{actDisplay.displayName}</Text>
                   <Text style={[styles.activitySub, { color: colors.mutedForeground }]}>
                     {workout.durationMinutes}m · {workout.calories} cal · +{workout.xpReward} XP
                   </Text>
@@ -601,6 +654,18 @@ export default function HomeScreen() {
           onComplete={(sid) => { completeWorkout(sid); closePlayer(); }}
         />
       )}
+
+      <AIWorkoutOverviewSheet
+        visible={overviewWorkout !== null}
+        title={overviewWorkout ? resolveWorkoutDisplay(overviewWorkout, workoutLibraryCustomization).displayName : ""}
+        subtitle="Personalized from your onboarding answers"
+        body={
+          overviewWorkout
+            ? buildWorkoutAiOverview(overviewWorkout, onboardingProfile, userProfile)
+            : ""
+        }
+        onClose={() => setOverviewWorkout(null)}
+      />
     </View>
   );
 }
@@ -610,11 +675,11 @@ const styles = StyleSheet.create({
   scrollContent: { paddingHorizontal: 20 },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20, gap: 12 },
   headerLeft: { flexDirection: "row", alignItems: "center", gap: 10, flex: 1 },
-  miniProfile: { width: 48, height: 48, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1.5, overflow: "hidden", flexShrink: 0 },
-  miniProfileImage: { width: 48, height: 48, borderRadius: 12 },
-  miniProfileText: { fontSize: 20, fontFamily: "Inter_700Bold" },
-  greeting: { fontSize: 12, fontFamily: "Inter_400Regular" },
-  name: { fontSize: 18, fontFamily: "Poppins_700Bold", letterSpacing: -0.5, marginTop: 2 },
+  miniProfile: { width: 52, height: 52, borderRadius: 14, alignItems: "center", justifyContent: "center", borderWidth: 1.5, overflow: "hidden", flexShrink: 0 },
+  miniProfileImage: { width: 52, height: 52, borderRadius: 14 },
+  miniProfileText: { fontSize: 22, fontFamily: "Inter_700Bold" },
+  greeting: { fontSize: 14, fontFamily: "Inter_500Medium" },
+  name: { fontSize: 22, fontFamily: "Poppins_700Bold", letterSpacing: -0.5, marginTop: 1 },
   headerRight: { flexDirection: "row", alignItems: "center", gap: 10 },
   iconBtn: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1, position: "relative" },
   badge: { position: "absolute", top: -4, right: -4, width: 16, height: 16, borderRadius: 8, alignItems: "center", justifyContent: "center" },
@@ -623,7 +688,7 @@ const styles = StyleSheet.create({
   streakNum: { fontSize: 14, fontFamily: "Inter_700Bold" },
   xpCard: { borderRadius: 20, borderWidth: 1, padding: 16, marginBottom: 16 },
   statsRow: { flexDirection: "row", gap: 10, marginBottom: 16 },
-  ghostCard: { borderRadius: 20, borderWidth: 1, padding: 16, marginBottom: 20, overflow: "hidden" },
+  ghostCard: { borderRadius: 20, borderWidth: 1, padding: 16, marginTop: 10, marginBottom: 28, overflow: "hidden" },
   ghostHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 },
   ghostBadge: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10, borderWidth: 1 },
   ghostBadgeText: { fontSize: 10, fontFamily: "Inter_700Bold", letterSpacing: 0.5 },

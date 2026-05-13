@@ -2,25 +2,26 @@ import React, { useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal, TextInput, Platform } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+import * as Haptics from "expo-haptics";
 import { Ionicons } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
-import { SAMPLE_WORKOUTS, CATEGORY_COLORS } from "@/constants/workouts";
-import type { Workout, Exercise } from "@/constants/workouts";
+import { SAMPLE_WORKOUTS } from "@/constants/workouts";
+import type { Workout } from "@/constants/workouts";
+import { getWorkoutAccent } from "@/constants/workoutAccents";
+import { resolveWorkoutDisplay } from "@/lib/workoutDisplay";
 
 export default function LibraryScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { scheduleWorkout } = useFitness();
+  const router = useRouter();
+  const { scheduleWorkout, workoutLibraryCustomization } = useFitness();
   const [expandedWorkout, setExpandedWorkout] = useState<string | null>(null);
   const [selectedWorkout, setSelectedWorkout] = useState<Workout | null>(null);
   const [showCustomizeModal, setShowCustomizeModal] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [pickedDate, setPickedDate] = useState(new Date().toISOString().split("T")[0]);
-  const [longPressedWorkout, setLongPressedWorkout] = useState<string | null>(null);
-  const [editName, setEditName] = useState("");
-  const [editIntensity, setEditIntensity] = useState("");
-  
+
   const [customDuration, setCustomDuration] = useState("");
   const [exerciseOverrides, setExerciseOverrides] = useState<Record<string, { sets?: number; reps?: string }>>({});
 
@@ -64,31 +65,39 @@ export default function LibraryScreen() {
       />
       <View style={[styles.header, { paddingTop: topPad + 12, backgroundColor: colors.background }]}>
         <Text style={[styles.title, { color: colors.foreground }]}>Workout Library</Text>
+        <TouchableOpacity
+          onPress={() => {
+            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push("/workout-library-editor" as any);
+          }}
+          style={[styles.editorBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+        >
+          <Ionicons name="color-wand-outline" size={20} color={colors.primary} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
         <View style={styles.content}>
           {SAMPLE_WORKOUTS.map((workout) => {
-            const isPressed = longPressedWorkout === workout.id;
+            const { displayName, accentCategory } = resolveWorkoutDisplay(workout, workoutLibraryCustomization);
+            const accent = getWorkoutAccent(colors, accentCategory);
             return (
             <View key={workout.id}>
               <TouchableOpacity
-                onPress={() => { if (!isPressed) setExpandedWorkout(expandedWorkout === workout.id ? null : workout.id); }}
-                onLongPress={() => { setLongPressedWorkout(workout.id); setEditName(workout.name); setEditIntensity(workout.difficulty); }}
-                delayLongPress={500}
-                style={[styles.workoutCard, { backgroundColor: colors.card, borderColor: isPressed ? colors.primary : colors.border }]}
+                onPress={() => setExpandedWorkout(expandedWorkout === workout.id ? null : workout.id)}
+                style={[styles.workoutCard, { backgroundColor: colors.card, borderColor: colors.border }]}
               >
                 <View style={styles.cardHeader}>
                   <View style={styles.cardLeft}>
                     <View
                       style={[
                         styles.categoryDot,
-                        { backgroundColor: CATEGORY_COLORS[workout.category] },
+                        { backgroundColor: accent.main },
                       ]}
                     />
                     <View style={styles.cardInfo}>
                       <Text style={[styles.workoutName, { color: colors.foreground }]}>
-                        {workout.name}
+                        {displayName}
                       </Text>
                       <Text style={[styles.workoutMeta, { color: colors.mutedForeground }]}>
                         {workout.durationMinutes}m • {workout.difficulty} • +{workout.xpReward} XP
@@ -157,36 +166,6 @@ export default function LibraryScreen() {
                   >
                     <Ionicons name="pencil" size={16} color="#0D0D0D" />
                     <Text style={[styles.customizeBtnText, { color: "#0D0D0D" }]}>Customize & Add to Schedule</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-              {isPressed && (
-                <View style={[styles.editPanel, { backgroundColor: colors.primary + "10", borderColor: colors.primary }]}>
-                  <View style={styles.editField}>
-                    <Text style={[styles.editLabel, { color: colors.foreground }]}>Name</Text>
-                    <TextInput
-                      style={[styles.editInput, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.card }]}
-                      value={editName}
-                      onChangeText={setEditName}
-                      placeholderTextColor={colors.mutedForeground}
-                    />
-                  </View>
-                  <View style={styles.editField}>
-                    <Text style={[styles.editLabel, { color: colors.foreground }]}>Intensity</Text>
-                    <View style={styles.intensityButtons}>
-                      {["Easy", "Medium", "Hard"].map((level) => (
-                        <TouchableOpacity
-                          key={level}
-                          onPress={() => setEditIntensity(level)}
-                          style={[styles.intensityBtn, { backgroundColor: editIntensity === level ? colors.primary : colors.muted }]}
-                        >
-                          <Text style={[styles.intensityText, { color: editIntensity === level ? "#0D0D0D" : colors.mutedForeground }]}>{level}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  </View>
-                  <TouchableOpacity onPress={() => setLongPressedWorkout(null)} style={[styles.saveBtnEdit, { backgroundColor: colors.primary }]}>
-                    <Text style={{ color: "#0D0D0D", fontFamily: "Inter_600SemiBold" }}>Done</Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -302,7 +281,8 @@ export default function LibraryScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingBottom: 12 },
-  title: { fontSize: 26, fontFamily: "Poppins_700Bold", letterSpacing: -0.5 },
+  title: { fontSize: 26, fontFamily: "Poppins_700Bold", letterSpacing: -0.5, flex: 1 },
+  editorBtn: { width: 44, height: 44, borderRadius: 14, alignItems: "center", justifyContent: "center", borderWidth: 1 },
   content: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 20 },
   workoutCard: { borderRadius: 16, borderWidth: 1, marginBottom: 12, overflow: "hidden" },
   cardHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 14 },
@@ -343,12 +323,4 @@ const styles = StyleSheet.create({
   dateText: { fontSize: 14, fontFamily: "Inter_500Medium" },
   todayLabel: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
   cancelText: { textAlign: "center", fontSize: 14, fontFamily: "Inter_400Regular", paddingTop: 8 },
-  editPanel: { borderTopWidth: 1, padding: 14, gap: 12 },
-  editField: { gap: 6 },
-  editLabel: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
-  editInput: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8, fontSize: 13, fontFamily: "Inter_400Regular" },
-  intensityButtons: { flexDirection: "row", gap: 8 },
-  intensityBtn: { flex: 1, paddingVertical: 8, borderRadius: 8, alignItems: "center" },
-  intensityText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
-  saveBtnEdit: { paddingVertical: 10, borderRadius: 8, alignItems: "center", marginTop: 4 },
 });

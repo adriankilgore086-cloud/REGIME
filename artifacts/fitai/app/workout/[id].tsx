@@ -10,7 +10,9 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
-import { SAMPLE_WORKOUTS, CATEGORY_COLORS } from "@/constants/workouts";
+import { SAMPLE_WORKOUTS } from "@/constants/workouts";
+import { getWorkoutAccent } from "@/constants/workoutAccents";
+import { resolveWorkoutDisplay } from "@/lib/workoutDisplay";
 import { WorkoutTimer } from "@/components/WorkoutTimer";
 
 export default function WorkoutDetailScreen() {
@@ -18,7 +20,7 @@ export default function WorkoutDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { todaysWorkouts, completeWorkout } = useFitness();
+  const { todaysWorkouts, completeWorkout, workoutLibraryCustomization } = useFitness();
   const [activeExercise, setActiveExercise] = useState(0);
   const [completedExercises, setCompletedExercises] = useState<Set<number>>(new Set());
   const [showRestTimer, setShowRestTimer] = useState(false);
@@ -37,7 +39,9 @@ export default function WorkoutDetailScreen() {
     );
   }
 
-  const catColor = CATEGORY_COLORS[workout.category];
+  const { displayName, accentCategory } = resolveWorkoutDisplay(workout, workoutLibraryCustomization);
+  const catAccent = getWorkoutAccent(colors, accentCategory);
+  const catColor = catAccent.main;
   const progress = completedExercises.size / workout.exercises.length;
 
   const markExerciseDone = (idx: number) => {
@@ -76,11 +80,11 @@ export default function WorkoutDetailScreen() {
               <Ionicons name="close" size={20} color="#fff" />
             </TouchableOpacity>
             <View style={[styles.categoryChip, { backgroundColor: catColor + "30", borderColor: catColor + "50" }]}>
-              <Text style={[styles.categoryText, { color: catColor }]}>{workout.category.toUpperCase()}</Text>
+              <Text style={[styles.categoryText, { color: catColor }]}>{accentCategory.toUpperCase()}</Text>
             </View>
           </View>
 
-          <Text style={styles.workoutName}>{workout.name}</Text>
+          <Text style={styles.workoutName}>{displayName}</Text>
           <Text style={[styles.workoutDesc, { color: "rgba(255,255,255,0.65)" }]}>{workout.description}</Text>
 
           <View style={styles.metaRow}>

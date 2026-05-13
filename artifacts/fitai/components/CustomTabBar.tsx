@@ -70,7 +70,7 @@ const AnimatedTab = memo(function AnimatedTab({
             style={styles.centerBtn}
           >
             <View style={[styles.centerBtnInner, { backgroundColor: colors.primary }]}>
-              <Feather name="home" size={23} color="#0D0D0D" />
+              <Feather name="home" size={27} color={colors.primaryForeground} />
             </View>
           </TouchableOpacity>
         </Animated.View>
@@ -131,7 +131,7 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
               index={index}
               isFocused={isFocused}
               onPress={onPress}
-              isCenter={false}
+              isCenter={route.name === 'index'}
             />
           );
         })}
@@ -188,7 +188,8 @@ const styles = StyleSheet.create({
   centerWrapper: {
     flex: 1,
     alignItems: 'center',
-    marginTop: -18,
+    marginTop: -30,
+    zIndex: 20,
   },
   centerBtn: {
     alignItems: 'center',
@@ -196,9 +197,9 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   centerBtnInner: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 78,
+    height: 78,
+    borderRadius: 39,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',

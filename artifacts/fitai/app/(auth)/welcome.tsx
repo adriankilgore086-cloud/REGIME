@@ -12,6 +12,8 @@ import { useSignIn, useSSO, useAuth } from "@clerk/expo";
 import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 import { useColors } from "@/hooks/useColors";
+import { useSignIn } from "@clerk/expo";
+import { useRouter } from "expo-router";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -53,7 +55,6 @@ export default function WelcomeScreen() {
 
   const { signIn, errors, fetchStatus } = useSignIn();
   const { startSSOFlow } = useSSO();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
