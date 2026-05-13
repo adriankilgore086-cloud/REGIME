@@ -414,7 +414,6 @@ export default function ProfileScreen() {
                     <View style={styles.profileRow}>
                       <TouchableOpacity onPress={handleSelectProfileImage}>
                         <View style={[styles.avatarCircle, { backgroundColor: colors.primary + "20", borderColor: colors.primary + "50" }]}>
-{[styles.avatarCircle, { backgroundColor: colors.primary + "20", borderColor: colors.primary + "50" }]}>
               {userProfile.profileImage ? (
                 <Image source={{ uri: userProfile.profileImage }} style={styles.avatarImage} />
               ) : (
@@ -445,7 +444,7 @@ export default function ProfileScreen() {
             {userProfile.bio ? (
               <Text style={[styles.bioText, { color: colors.mutedForeground }]} numberOfLines={2}>{userProfile.bio}</Text>
             ) : null}
-          </View>t
+          </View>
           <TouchableOpacity onPress={handleSettingsPress} style={[styles.settingsBtn, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Ionicons name="settings-outline" size={17} color={colors.mutedForeground} />
           </TouchableOpacity>
