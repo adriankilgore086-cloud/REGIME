@@ -40,12 +40,13 @@ waitForPort = 3001
 name = "Regime App"
 author = "agent"
 
+[workflows.workflow.metadata]
+outputType = "webview"
+
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "PORT=24172 pnpm --filter @workspace/fitai run dev"
-
-[workflows.workflow.metadata]
-outputType = "webview"
+waitForPort = 24172
 
 [agent]
 stack = "PNPM_WORKSPACE"
