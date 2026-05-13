@@ -23,9 +23,6 @@
   "pnpm": {
     "minimumReleaseAgeExclude": [
       "expo"
-    ],
-    "patchedDependencies": {
-      "@expo/cli@54.0.24": "patches/@expo-cli@54.0.24.patch"
-    }
+    ]
   }
 }
