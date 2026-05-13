@@ -140,17 +140,29 @@ export default function RootLayout() {
     <View style={{ flex: 1, backgroundColor: BG }}>
       <ErrorBoundary>
         <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache} proxyUrl={proxyUrl}>
-          <ClerkLoaded>
-          <SafeAreaProvider>
-            <QueryClientProvider client={queryClient}>
-              <ErrorBoundary>
-                <FitnessProvider>
-                  <InnerLayout />
-                </FitnessProvider>
-              </ErrorBoundary>
-            </QueryClientProvider>
-          </SafeAreaProvider>
-          </ClerkLoaded>
+          {Platform.OS === "web" ? (
+            <SafeAreaProvider>
+              <QueryClientProvider client={queryClient}>
+                <ErrorBoundary>
+                  <FitnessProvider>
+                    <InnerLayout />
+                  </FitnessProvider>
+                </ErrorBoundary>
+              </QueryClientProvider>
+            </SafeAreaProvider>
+          ) : (
+            <ClerkLoaded>
+            <SafeAreaProvider>
+              <QueryClientProvider client={queryClient}>
+                <ErrorBoundary>
+                  <FitnessProvider>
+                    <InnerLayout />
+                  </FitnessProvider>
+                </ErrorBoundary>
+              </QueryClientProvider>
+            </SafeAreaProvider>
+            </ClerkLoaded>
+          )}
         </ClerkProvider>
       </ErrorBoundary>
     </View>

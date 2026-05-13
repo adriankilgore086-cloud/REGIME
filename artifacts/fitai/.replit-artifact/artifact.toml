@@ -3,7 +3,6 @@ previewPath = "/"
 title = "Regime — Premium Fitness App"
 version = "1.0.0"
 id = "artifacts/fitai"
-router = "expo-domain"
 
 [[integratedSkills]]
 name = "expo"
