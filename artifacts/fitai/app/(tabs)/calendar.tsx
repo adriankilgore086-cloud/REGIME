@@ -1,7 +1,7 @@
-import React, { useState, useRef } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Platform, Modal, Animated, TextInput,
+  Platform, Modal, PanResponder, TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -13,6 +13,7 @@ import { SAMPLE_WORKOUTS, CATEGORY_COLORS } from "@/constants/workouts";
 import { WorkoutPlayerModal } from "@/components/WorkoutPlayerModal";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const WEEK_SWIPE_THRESHOLD = 40;
 
 function getWeekDates(weekOffset = 0) {
   const today = new Date();
@@ -25,6 +26,12 @@ function getWeekDates(weekOffset = 0) {
     week.push(d);
   }
   return week;
+}
+
+function shiftIsoDate(isoDate: string, days: number) {
+  const date = new Date(`${isoDate}T12:00:00`);
+  date.setDate(date.getDate() + days);
+  return date.toISOString().split("T")[0];
 }
 
 function WeeklyReport({ userStats, scheduledWorkouts, onClose }: {
@@ -449,6 +456,30 @@ export default function CalendarScreen() {
     setShowAddModal(false);
   };
 
+  const navigateWeek = useCallback((direction: -1 | 1) => {
+    setWeekOffset((current) => current + direction);
+    setSelectedDate((current) => shiftIsoDate(current, direction * 7));
+  }, []);
+
+  const weekStripPanResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_, gestureState) =>
+          Math.abs(gestureState.dx) > WEEK_SWIPE_THRESHOLD &&
+          Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 1.2,
+        onMoveShouldSetPanResponderCapture: (_, gestureState) =>
+          Math.abs(gestureState.dx) > WEEK_SWIPE_THRESHOLD &&
+          Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 1.2,
+        onPanResponderTerminationRequest: () => false,
+        onPanResponderRelease: (_, gestureState) => {
+          if (Math.abs(gestureState.dx) < WEEK_SWIPE_THRESHOLD) return;
+          if (gestureState.dx < 0) navigateWeek(1);
+          if (gestureState.dx > 0) navigateWeek(-1);
+        },
+      }),
+    [navigateWeek]
+  );
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <LinearGradient
@@ -475,8 +506,11 @@ export default function CalendarScreen() {
         </View>
       </View>
 
-      <View style={[styles.weekStrip, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => setWeekOffset(weekOffset - 1)} style={styles.weekNavBtn}>
+      <View
+        style={[styles.weekStrip, { backgroundColor: colors.card, borderBottomColor: colors.border }]}
+        {...weekStripPanResponder.panHandlers}
+      >
+        <TouchableOpacity onPress={() => navigateWeek(-1)} style={styles.weekNavBtn}>
           <Ionicons name="chevron-back" size={18} color={colors.mutedForeground} />
         </TouchableOpacity>
         <View style={styles.weekDaysRow}>
@@ -511,7 +545,7 @@ export default function CalendarScreen() {
             );
           })}
         </View>
-        <TouchableOpacity onPress={() => setWeekOffset(weekOffset + 1)} style={styles.weekNavBtn}>
+        <TouchableOpacity onPress={() => navigateWeek(1)} style={styles.weekNavBtn}>
           <Ionicons name="chevron-forward" size={18} color={colors.mutedForeground} />
         </TouchableOpacity>
       </View>
