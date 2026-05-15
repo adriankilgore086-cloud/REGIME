@@ -30,8 +30,19 @@
         {}
       ],
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "REGIME accesses your photo library so you can choose images for your profile and community posts.",
+          "cameraPermission": "REGIME accesses your camera when you choose to capture a new photo for your profile or posts."
+        }
+      ]
     ],
+    "extra": {
+      "privacyPolicyUrl": "https://regime.app/privacy",
+      "eulaNote": "Replace privacyPolicyUrl with your production policy URL before App Store / Play submission."
+    },
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": false

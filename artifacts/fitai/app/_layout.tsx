@@ -18,16 +18,18 @@ import * as SplashScreen from "expo-splash-screen";
 import * as Font from "expo-font";
 import { Ionicons, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { setBaseUrl } from "@workspace/api-client-react";
-import React, { Component, useEffect, useState, useRef } from "react";
-import { View, Text, Platform } from "react-native";
+import React, { useEffect, useState, useRef } from "react";
+import { View, Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { FitnessProvider, AppNotification, useFitness } from "@/contexts/FitnessContext";
 import { SocialProvider } from "@/contexts/SocialContext";
 import NotificationBanner from "@/components/NotificationBanner";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { rootStackScreenOptions, workoutModalScreenOptions, ROOT_STACK_BG } from "@/navigation/rootStackOptions";
 
 SplashScreen.preventAutoHideAsync();
 
-const BG = "#0D0D0D";
+const BG = ROOT_STACK_BG;
 const domain = process.env.EXPO_PUBLIC_DOMAIN;
 if (domain) setBaseUrl(`https://${domain}`);
 
@@ -35,30 +37,6 @@ const queryClient = new QueryClient();
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
 const proxyUrl = process.env.EXPO_PUBLIC_CLERK_PROXY_URL || undefined;
 const tokenCache = Platform.OS !== "web" ? nativeTokenCache : undefined;
-
-class ErrorBoundary extends Component<
-  { children: React.ReactNode },
-  { error: Error | null }
-> {
-  state = { error: null as Error | null };
-  static getDerivedStateFromError(e: Error) { return { error: e }; }
-  componentDidCatch(e: Error) { console.error("[RootError]", e.message); }
-  render() {
-    if (this.state.error) {
-      return (
-        <View style={{ flex: 1, backgroundColor: BG, alignItems: "center", justifyContent: "center", padding: 24 }}>
-          <Text style={{ color: "#FF2D78", fontSize: 18, fontWeight: "700", marginBottom: 12, textAlign: "center" }}>
-            Something went wrong
-          </Text>
-          <Text style={{ color: "#F5F5F5", fontSize: 13, textAlign: "center" }}>
-            {this.state.error.message}
-          </Text>
-        </View>
-      );
-    }
-    return this.props.children;
-  }
-}
 
 function InnerLayout() {
   const { notifications } = useFitness();
@@ -77,23 +55,14 @@ function InnerLayout() {
   return (
     <View style={{ flex: 1, pointerEvents: "box-none" }}>
       <SocialProvider>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: BG },
-            animation: Platform.OS === "web" ? "none" : "fade",
-          }}
-        >
+        <Stack screenOptions={rootStackScreenOptions}>
           <Stack.Screen name="index" />
           <Stack.Screen name="(auth)" />
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="notifications" />
           <Stack.Screen name="feed" />
           <Stack.Screen name="workout-library-editor" />
-          <Stack.Screen
-            name="workout/[id]"
-            options={{ presentation: "modal", contentStyle: { backgroundColor: BG } }}
-          />
+          <Stack.Screen name="workout/[id]" options={workoutModalScreenOptions} />
         </Stack>
       </SocialProvider>
       {bannerQueue.length > 0 && (
@@ -138,12 +107,12 @@ export default function RootLayout() {
 
   return (
     <View style={{ flex: 1, backgroundColor: BG }}>
-      <ErrorBoundary>
+      <ErrorBoundary onError={(e) => console.error("[RootError]", e.message)}>
         <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache} proxyUrl={proxyUrl}>
           {Platform.OS === "web" ? (
             <SafeAreaProvider>
               <QueryClientProvider client={queryClient}>
-                <ErrorBoundary>
+                <ErrorBoundary onError={(e) => console.error("[RootError]", e.message)}>
                   <FitnessProvider>
                     <InnerLayout />
                   </FitnessProvider>
@@ -154,7 +123,7 @@ export default function RootLayout() {
             <ClerkLoaded>
             <SafeAreaProvider>
               <QueryClientProvider client={queryClient}>
-                <ErrorBoundary>
+                <ErrorBoundary onError={(e) => console.error("[RootError]", e.message)}>
                   <FitnessProvider>
                     <InnerLayout />
                   </FitnessProvider>
