@@ -7,7 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
 import { RewardData } from '@/contexts/FitnessContext';
-import { RARITY_COLORS } from '@/constants/achievements';
+import { RARITY_COLORS } from '@features/gamification/constants/achievements';
 
 const { width, height } = Dimensions.get('window');
 const NUM_PARTICLES = 18;

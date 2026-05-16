@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useColors } from "@/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
-import { SAMPLE_WORKOUTS, CATEGORY_COLORS } from "@/constants/workouts";
+import { SAMPLE_WORKOUTS, CATEGORY_COLORS } from "@features/gamification/constants/workouts";
 import { WorkoutPlayerModal } from "@/components/WorkoutPlayerModal";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -422,11 +422,11 @@ export default function CalendarScreen() {
   const [showReport, setShowReport] = useState(false);
   const [weekOffset, setWeekOffset] = useState(0);
   const [longPressedWorkout, setLongPressedWorkout] = useState<string | null>(null);
-  const [playerWorkout, setPlayerWorkout] = useState<import("@/constants/workouts").Workout | null>(null);
+  const [playerWorkout, setPlayerWorkout] = useState<import("@features/gamification/constants/workouts").Workout | null>(null);
   const [playerScheduledId, setPlayerScheduledId] = useState<string | null>(null);
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
-  const openPlayer = (workout: import("@/constants/workouts").Workout, scheduledId: string) => {
+  const openPlayer = (workout: import("@features/gamification/constants/workouts").Workout, scheduledId: string) => {
     setPlayerWorkout(workout);
     setPlayerScheduledId(scheduledId);
   };

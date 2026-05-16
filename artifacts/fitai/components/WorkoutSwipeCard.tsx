@@ -7,7 +7,7 @@ import { Ionicons, Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
-import { Workout, DifficultyLevel, type WorkoutCategory } from '@/constants/workouts';
+import { Workout, DifficultyLevel, type WorkoutCategory } from '@features/gamification/constants/workouts';
 import { getWorkoutAccent } from '@/constants/workoutAccents';
 
 const { width } = Dimensions.get('window');

@@ -12,7 +12,7 @@ import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { useSocial, PostType, Audience } from "@/contexts/SocialContext";
 import { useFitness } from "@/contexts/FitnessContext";
-import { SAMPLE_WORKOUTS } from "@/constants/workouts";
+import { SAMPLE_WORKOUTS } from "@features/gamification/constants/workouts";
 import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat";
 
 interface Props {

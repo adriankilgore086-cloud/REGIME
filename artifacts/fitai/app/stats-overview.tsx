@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useColors } from "@/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
-import { SAMPLE_WORKOUTS } from "@/constants/workouts";
+import { SAMPLE_WORKOUTS } from "@features/gamification/constants/workouts";
 import { XPProgressBar } from "@/components/XPProgressBar";
 
 const SMART_RECS = [

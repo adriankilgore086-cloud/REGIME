@@ -10,7 +10,7 @@ import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
-import { SAMPLE_WORKOUTS, Exercise, type Workout, type WorkoutCategory } from "@/constants/workouts";
+import { SAMPLE_WORKOUTS, Exercise, type Workout, type WorkoutCategory } from "@features/gamification/constants/workouts";
 import { getWorkoutAccent } from "@/constants/workoutAccents";
 import { resolveWorkoutDisplay } from "@/lib/workoutDisplay";
 import { rankWorkoutsForUser, pickDailyCurated, buildWorkoutAiOverview } from "@/lib/smartRecommendations";

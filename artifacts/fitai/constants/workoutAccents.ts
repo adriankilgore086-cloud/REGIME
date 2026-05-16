@@ -1,4 +1,4 @@
-import type { WorkoutCategory } from "@/constants/workouts";
+import type { WorkoutCategory } from "@features/gamification/constants/workouts";
 
 type AccentPalette = {
   primary: string;

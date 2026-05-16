@@ -11,7 +11,7 @@ import { useColors } from "@/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
 import { resolveWorkoutDisplay } from "@/lib/workoutDisplay";
 import { getWorkoutAccent } from "@/constants/workoutAccents";
-import { Workout, Exercise, WorkoutCategory } from "@/constants/workouts";
+import { Workout, Exercise, WorkoutCategory } from "@features/gamification/constants/workouts";
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 const SWIPE_THRESHOLD = 100;

@@ -1,5 +1,5 @@
 import type { OnboardingProfile, UserProfile } from "@/contexts/FitnessContext";
-import type { DifficultyLevel, Workout, WorkoutCategory } from "@/constants/workouts";
+import type { DifficultyLevel, Workout, WorkoutCategory } from "@features/gamification/constants/workouts";
 
 function intensityTier(pref: string): number {
   switch (pref) {

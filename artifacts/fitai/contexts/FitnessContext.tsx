@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth, useUser } from "@clerk/expo";
-import { SAMPLE_WORKOUTS, getLevel, getRank, getXpProgress, type WorkoutCategory } from '@/constants/workouts';
-import { ACHIEVEMENTS, Achievement, checkAchievements } from '@/constants/achievements';
+import { SAMPLE_WORKOUTS, getLevel, getRank, getXpProgress, type WorkoutCategory } from '@features/gamification/constants/workouts';
+import { ACHIEVEMENTS, Achievement, checkAchievements } from '@features/gamification/constants/achievements';
 
 const STORAGE_KEY = '@regime_data_v2';
 const USER_PREFIX = '@regime_user_';

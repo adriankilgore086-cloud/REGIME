@@ -7,8 +7,8 @@ import * as Haptics from "expo-haptics";
 import { Ionicons } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
-import { SAMPLE_WORKOUTS } from "@/constants/workouts";
-import type { Workout } from "@/constants/workouts";
+import { SAMPLE_WORKOUTS } from "@features/gamification/constants/workouts";
+import type { Workout } from "@features/gamification/constants/workouts";
 import { getWorkoutAccent } from "@/constants/workoutAccents";
 import { resolveWorkoutDisplay } from "@/lib/workoutDisplay";
 
