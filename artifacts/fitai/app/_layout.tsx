@@ -10,14 +10,14 @@ import {
   Poppins_700Bold,
   Poppins_800ExtraBold,
 } from "@expo-google-fonts/poppins";
-import { ClerkProvider, ClerkLoaded } from "@clerk/expo";
+import { ClerkProvider, ClerkLoaded, useAuth } from "@clerk/expo";
 import { tokenCache as nativeTokenCache } from "@clerk/expo/token-cache";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import * as Font from "expo-font";
 import { Ionicons, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import { setBaseUrl } from "@workspace/api-client-react";
+import { setAuthTokenGetter, setBaseUrl } from "@workspace/api-client-react";
 import React, { Component, useEffect, useState, useRef } from "react";
 import { View, Text, Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -64,8 +64,14 @@ class ErrorBoundary extends Component<
 
 function InnerLayout() {
   const { notifications } = useFitness();
+  const { getToken } = useAuth();
   const [bannerQueue, setBannerQueue] = useState<AppNotification[]>([]);
   const seenIds = useRef(new Set<string>());
+
+  useEffect(() => {
+    setAuthTokenGetter(() => getToken());
+    return () => setAuthTokenGetter(null);
+  }, [getToken]);
 
   useEffect(() => {
     const unread = notifications.filter((n) => !n.read);

@@ -6,6 +6,8 @@ import { ACHIEVEMENTS, Achievement } from '@features/gamification/constants/achi
 import { useAchievements } from '@features/gamification/hooks/useAchievements';
 import { useRewards } from '@features/gamification/hooks/useRewards';
 import { useXP } from '@features/gamification/hooks/useXP';
+import { useFitnessServerApi } from '@features/fitness/hooks/useFitnessServerApi';
+import { USE_SERVER_PERSISTENCE } from '@shared/api/serverPersistence';
 
 const STORAGE_KEY = '@regime_data_v2';
 const USER_PREFIX = '@regime_user_';
@@ -187,6 +189,8 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
   const [loaded, setLoaded] = useState(false);
   const { showReward, rewardData, showRewardOverlay, dismissReward } = useRewards();
   const { checkUnlockedAchievements } = useAchievements();
+  const useServerPersistence = USE_SERVER_PERSISTENCE && Boolean(userId);
+  const serverApi = useFitnessServerApi(useServerPersistence);
   const isMountedRef = useRef(true);
   useEffect(() => {
     isMountedRef.current = true;
@@ -234,6 +238,78 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
       return next;
     });
   }, [save]);
+
+  useEffect(() => {
+    if (!useServerPersistence || !loaded) return;
+
+    const serverProfile = serverApi.profile.data;
+    const serverGoals = serverApi.goals.data?.goals;
+    const serverHealthMetrics = serverApi.healthMetrics.data?.metrics;
+    const serverStats = serverApi.gamificationStats.data;
+    const serverNotifications = serverApi.notifications.data?.notifications;
+
+    if (!serverProfile && !serverGoals && !serverHealthMetrics && !serverStats && !serverNotifications) return;
+
+    setState((prev) => {
+      const next: FitnessState = {
+        ...prev,
+        pendingSyncCount: 0,
+        userProfile: serverProfile
+          ? {
+              ...prev.userProfile,
+              name: serverProfile.name,
+              username: serverProfile.username,
+              age: serverProfile.age,
+              weight: serverProfile.weight,
+              height: serverProfile.height,
+              fitnessGoal: serverProfile.fitnessGoal,
+              profileImage: serverProfile.profileImage,
+              bio: serverProfile.bio ?? undefined,
+              activeTitle: serverProfile.activeTitle ?? undefined,
+              unlockedTitles: serverProfile.unlockedTitles,
+              isPremium: serverProfile.isPremium,
+            }
+          : prev.userProfile,
+        goals: serverGoals
+          ? serverGoals.map((goal) => ({
+              ...goal,
+              deadline: goal.deadline ?? null,
+            }))
+          : prev.goals,
+        healthMetrics: serverHealthMetrics ?? prev.healthMetrics,
+        notifications: serverNotifications ?? prev.notifications,
+        userStats: serverStats
+          ? {
+              xp: serverStats.xp,
+              streak: serverStats.streak,
+              longestStreak: serverStats.longestStreak,
+              totalWorkouts: serverStats.totalWorkouts,
+              caloriesBurned: serverStats.caloriesBurned,
+              totalMinutes: serverStats.totalMinutes,
+              lastWorkoutDate: serverStats.lastWorkoutDate ?? null,
+            }
+          : prev.userStats,
+        earnedAchievements: serverStats
+          ? serverStats.achievements.map((achievement) => ({
+              id: achievement.id,
+              earnedAt: achievement.earnedAt,
+            }))
+          : prev.earnedAchievements,
+      };
+
+      save(next);
+      return next;
+    });
+  }, [
+    loaded,
+    save,
+    serverApi.gamificationStats.data,
+    serverApi.goals.data,
+    serverApi.healthMetrics.data,
+    serverApi.notifications.data,
+    serverApi.profile.data,
+    useServerPersistence,
+  ]);
 
   const checkOnline = useCallback(async () => {
     try {
@@ -283,6 +359,9 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
         muscleGroups: existing?.muscleGroups ?? [],
         steps,
       };
+      if (useServerPersistence) {
+        serverApi.createHealthMetric.mutateAsync({ data: merged }).catch(() => {});
+      }
       const rest = s.healthMetrics.filter((h) => h.date !== today);
       return {
         ...s,
@@ -290,7 +369,7 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
         lastHealthSyncAt: new Date().toISOString(),
       };
     });
-  }, [updateState]);
+  }, [serverApi.createHealthMetric, updateState, useServerPersistence]);
 
   const runUtcRefresh = useCallback(async () => {
     await syncHealthData();
@@ -356,6 +435,9 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
   }, [syncHealthData, userId]);
 
   const updateProfile = useCallback(async (profile: Partial<UserProfile>) => {
+    if (useServerPersistence) {
+      serverApi.updateProfile.mutateAsync({ data: profile }).catch(() => {});
+    }
     await updateState((s) => {
       const merged = { ...s.userProfile, ...profile };
       if (profile.name !== undefined) {
@@ -363,7 +445,7 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
       }
       return { ...s, userProfile: merged };
     });
-  }, [updateState]);
+  }, [serverApi.updateProfile, updateState, useServerPersistence]);
 
   const updateOnboardingProfile = useCallback(async (profile: Partial<OnboardingProfile>) => {
     await updateState((s) => ({
@@ -413,6 +495,17 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
   const completeWorkout = useCallback(async (scheduledId: string) => {
     let xpEarned = 0;
     let newAchievements: Achievement[] = [];
+    const scheduledWorkout = state.scheduledWorkouts.find((workout) => workout.id === scheduledId);
+    if (useServerPersistence && scheduledWorkout) {
+      serverApi.completeWorkout
+        .mutateAsync({
+          data: {
+            workoutId: scheduledWorkout.workoutId,
+            scheduledWorkoutId: scheduledWorkout.id,
+          },
+        })
+        .catch(() => {});
+    }
 
     setState((prev) => {
       const sw = prev.scheduledWorkouts.find((w) => w.id === scheduledId);
@@ -502,7 +595,7 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
         achievement: newAchievements[0],
       });
     }, 300);
-  }, [checkUnlockedAchievements, save, showRewardOverlay]);
+  }, [checkUnlockedAchievements, save, serverApi.completeWorkout, showRewardOverlay, state.scheduledWorkouts, useServerPersistence]);
 
   const skipWorkout = useCallback(async (scheduledId: string) => {
     await updateState((s) => ({
@@ -520,10 +613,16 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
       id: Date.now().toString(),
       completed: false,
     };
+    if (useServerPersistence) {
+      serverApi.createGoal.mutateAsync({ data: newGoal }).catch(() => {});
+    }
     await updateState((s) => ({ ...s, pendingSyncCount: onlineRef.current ? s.pendingSyncCount : s.pendingSyncCount + 1, goals: [...s.goals, newGoal] }));
-  }, [updateState]);
+  }, [serverApi.createGoal, updateState, useServerPersistence]);
 
   const updateGoalProgress = useCallback(async (goalId: string, value: number) => {
+    if (useServerPersistence) {
+      serverApi.updateGoal.mutateAsync({ id: goalId, data: { currentValue: value } }).catch(() => {});
+    }
     await updateState((s) => ({
       ...s,
       pendingSyncCount: onlineRef.current ? s.pendingSyncCount : s.pendingSyncCount + 1,
@@ -531,15 +630,18 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
         g.id === goalId ? { ...g, currentValue: value, completed: value >= g.targetValue } : g
       ),
     }));
-  }, [updateState]);
+  }, [serverApi.updateGoal, updateState, useServerPersistence]);
 
   const deleteGoal = useCallback(async (goalId: string) => {
+    if (useServerPersistence) {
+      serverApi.deleteGoal.mutateAsync({ id: goalId }).catch(() => {});
+    }
     await updateState((s) => ({
       ...s,
       pendingSyncCount: onlineRef.current ? s.pendingSyncCount : s.pendingSyncCount + 1,
       goals: s.goals.filter((g) => g.id !== goalId),
     }));
-  }, [updateState]);
+  }, [serverApi.deleteGoal, updateState, useServerPersistence]);
   // ==========================================
   // CLERK <-> APP DATA SYNC
   // Automatically pulls login data into the app profile
@@ -557,12 +659,15 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
   }, [user?.id, user?.username, user?.imageUrl, updateProfile]);
 
   const markNotificationRead = useCallback((id: string) => {
+    if (useServerPersistence) {
+      serverApi.markNotificationsRead.mutateAsync({ data: { ids: [id] } }).catch(() => {});
+    }
     setState((prev) => {
       const next = { ...prev, notifications: prev.notifications.map((n) => n.id === id ? { ...n, read: true } : n) };
       save(next);
       return next;
     });
-  }, [save]);
+  }, [save, serverApi.markNotificationsRead, useServerPersistence]);
 
   const addNotification = useCallback((n: Omit<AppNotification, 'id' | 'createdAt' | 'read'>) => {
     const newN: AppNotification = { ...n, id: Date.now().toString(), createdAt: new Date().toISOString(), read: false };
