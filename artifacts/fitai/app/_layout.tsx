@@ -23,6 +23,7 @@ import { View, Text, Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { FitnessProvider, AppNotification, useFitness } from "@store/FitnessContext";
 import { SocialProvider } from "@store/SocialContext";
+import { ErrorBoundary } from "@shared/components/layout/ErrorBoundary";
 import NotificationBanner from "@shared/components/ui/NotificationBanner";
 
 SplashScreen.preventAutoHideAsync();
@@ -38,7 +39,7 @@ const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
 const proxyUrl = process.env.EXPO_PUBLIC_CLERK_PROXY_URL || undefined;
 const tokenCache = Platform.OS !== "web" ? nativeTokenCache : undefined;
 
-class ErrorBoundary extends Component<
+class RootErrorBoundary extends Component<
   { children: React.ReactNode },
   { error: Error | null }
 > {
@@ -146,27 +147,27 @@ export default function RootLayout() {
 
   return (
     <View style={{ flex: 1, backgroundColor: BG }}>
-      <ErrorBoundary>
+      <ErrorBoundary onError={(error) => console.error("[RootError]", error.message)}>
         <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache} proxyUrl={proxyUrl}>
           {Platform.OS === "web" ? (
             <SafeAreaProvider>
               <QueryClientProvider client={queryClient}>
-                <ErrorBoundary>
+                <RootErrorBoundary>
                   <FitnessProvider>
                     <InnerLayout />
                   </FitnessProvider>
-                </ErrorBoundary>
+                </RootErrorBoundary>
               </QueryClientProvider>
             </SafeAreaProvider>
           ) : (
             <ClerkLoaded>
             <SafeAreaProvider>
               <QueryClientProvider client={queryClient}>
-                <ErrorBoundary>
+                <RootErrorBoundary>
                   <FitnessProvider>
                     <InnerLayout />
                   </FitnessProvider>
-                </ErrorBoundary>
+                </RootErrorBoundary>
               </QueryClientProvider>
             </SafeAreaProvider>
             </ClerkLoaded>
