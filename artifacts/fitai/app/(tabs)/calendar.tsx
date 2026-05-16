@@ -10,7 +10,7 @@ import { useRouter } from "expo-router";
 import { useColors } from "@/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
 import { SAMPLE_WORKOUTS, CATEGORY_COLORS } from "@features/gamification/constants/workouts";
-import { WorkoutPlayerModal } from "@/components/WorkoutPlayerModal";
+import { WorkoutPlayerModal } from "@features/workout/components/WorkoutPlayerModal";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 

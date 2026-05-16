@@ -15,12 +15,12 @@ import { getWorkoutAccent } from "@/constants/workoutAccents";
 import { resolveWorkoutDisplay } from "@/lib/workoutDisplay";
 import { rankWorkoutsForUser, pickDailyCurated, buildWorkoutAiOverview } from "@/lib/smartRecommendations";
 import { AIWorkoutOverviewSheet } from "@/components/AIWorkoutOverviewSheet";
-import { WorkoutSwipeCard } from "@/components/WorkoutSwipeCard";
+import { WorkoutSwipeCard } from "@features/workout/components/WorkoutSwipeCard";
 import { XPProgressBar } from "@/components/XPProgressBar";
 import { StatCard } from "@/components/StatCard";
 import { RewardOverlay } from "@/components/RewardOverlay";
 import { AIChatModal } from "@/components/AIChatModal";
-import { WorkoutPlayerModal } from "@/components/WorkoutPlayerModal";
+import { WorkoutPlayerModal } from "@features/workout/components/WorkoutPlayerModal";
 
 const AI_SUGGESTIONS = [
   "You haven't trained legs in 2 days. Add a leg session today.",

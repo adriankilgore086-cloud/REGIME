@@ -13,7 +13,7 @@ import { useFitness } from "@/contexts/FitnessContext";
 import { SAMPLE_WORKOUTS } from "@features/gamification/constants/workouts";
 import { getWorkoutAccent } from "@/constants/workoutAccents";
 import { resolveWorkoutDisplay } from "@/lib/workoutDisplay";
-import { WorkoutTimer } from "@/components/WorkoutTimer";
+import { WorkoutTimer } from "@features/workout/components/WorkoutTimer";
 
 export default function WorkoutDetailScreen() {
   const colors = useColors();
