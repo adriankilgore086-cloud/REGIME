@@ -12,6 +12,9 @@ import { useFitness } from "@store/FitnessContext";
 import { resolveWorkoutDisplay } from "@features/workout/utils/workoutDisplay";
 import { getWorkoutAccent } from "@shared/theme/workoutAccents";
 import { Workout, Exercise, WorkoutCategory } from "@features/gamification/constants/workouts";
+import { useWorkoutCompletion } from "@features/workout/hooks/useWorkoutCompletion";
+import { useWorkoutSets } from "@features/workout/hooks/useWorkoutSets";
+import { useWorkoutTimer } from "@features/workout/hooks/useWorkoutTimer";
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 const SWIPE_THRESHOLD = 100;
@@ -78,31 +81,30 @@ interface RestScreenProps {
   colors: ReturnType<typeof useColors>;
 }
 function RestScreen({ nextExercise, restSeconds, onDone, colors }: RestScreenProps) {
-  const [count, setCount] = useState(restSeconds);
+  const { restTimeRemaining, startRest } = useWorkoutTimer(restSeconds, onDone);
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    const iv = setInterval(() => {
-      setCount((c) => {
-        if (c <= 1) { clearInterval(iv); onDone(); return 0; }
-        if (c <= 4) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        return c - 1;
-      });
-    }, 1000);
+    startRest(restSeconds);
     Animated.loop(
       Animated.sequence([
         Animated.timing(scaleAnim, { toValue: 1.06, duration: 900, useNativeDriver: Platform.OS !== "web" }),
         Animated.timing(scaleAnim, { toValue: 1, duration: 900, useNativeDriver: Platform.OS !== "web" }),
       ])
     ).start();
-    return () => clearInterval(iv);
-  }, []);
+  }, [restSeconds, scaleAnim, startRest]);
+
+  useEffect(() => {
+    if (restTimeRemaining > 0 && restTimeRemaining <= 3) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+  }, [restTimeRemaining]);
 
   return (
     <View style={rest.wrap}>
       <Text style={[rest.label, { color: colors.mutedForeground }]}>REST</Text>
       <Animated.Text style={[rest.count, { color: colors.foreground, transform: [{ scale: scaleAnim }] }]}>
-        {count}
+        {restTimeRemaining}
       </Animated.Text>
       <Text style={[rest.next, { color: colors.mutedForeground }]}>Next up</Text>
       <Text style={[rest.nextName, { color: colors.foreground }]}>{nextExercise.name}</Text>
@@ -352,76 +354,43 @@ export function WorkoutPlayerModal({
   const { accentCategory, displayName } = resolveWorkoutDisplay(workout, workoutLibraryCustomization);
   const catColor = getWorkoutAccent(colors, accentCategory).main;
 
-  const [exIdx, setExIdx] = useState(0);
-  const [resting, setResting] = useState(false);
-  const [completed, setCompleted] = useState<Set<number>>(new Set());
-  const [done, setDone] = useState(false);
   const [quoteIdx] = useState(() => Math.floor(Math.random() * QUOTES.length));
-  const [cardKey, setCardKey] = useState(0);
 
   const headerOpacity = useRef(new Animated.Value(0)).current;
   const doneScale = useRef(new Animated.Value(0.8)).current;
   const doneOpacity = useRef(new Animated.Value(0)).current;
 
   const exercises = workout.exercises;
-  const currentEx = exercises[exIdx];
+  const {
+    currentExerciseIndex,
+    isComplete,
+    isResting,
+    completedExercises,
+    cardKey,
+    currentExercise: currentEx,
+    progress,
+    advanceExercise,
+    goBack,
+    finishRest,
+  } = useWorkoutSets(exercises, visible);
+  const { completeWorkout } = useWorkoutCompletion({ scheduledId, onComplete, onClose });
   const intensity = currentEx ? getIntensity(currentEx, workout.category) : 50;
   const track = getTrack(intensity, workout.id);
-  const progress = completed.size / exercises.length;
 
   useEffect(() => {
-    if (!visible) {
-      setExIdx(0); setResting(false);
-      setCompleted(new Set()); setDone(false); setCardKey(0);
-    } else {
+    if (visible) {
       Animated.timing(headerOpacity, { toValue: 1, duration: 600, useNativeDriver: Platform.OS !== "web" }).start();
     }
   }, [visible]);
 
   useEffect(() => {
-    if (done) {
+    if (isComplete) {
       Animated.parallel([
         Animated.spring(doneScale, { toValue: 1, friction: 5, useNativeDriver: Platform.OS !== "web" }),
         Animated.timing(doneOpacity, { toValue: 1, duration: 400, useNativeDriver: Platform.OS !== "web" }),
       ]).start();
     }
-  }, [done]);
-
-  const handleExerciseDone = useCallback(() => {
-    const next = new Set(completed);
-    next.add(exIdx);
-    setCompleted(next);
-
-    if (exIdx < exercises.length - 1) {
-      if (currentEx.restSeconds > 0) {
-        setResting(true);
-      } else {
-        setExIdx((i) => i + 1);
-        setCardKey((k) => k + 1);
-      }
-    } else {
-      setDone(true);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    }
-  }, [exIdx, exercises, completed, currentEx]);
-
-  const handleBack = useCallback(() => {
-    if (exIdx > 0) {
-      setExIdx((i) => i - 1);
-      setCardKey((k) => k + 1);
-    }
-  }, [exIdx]);
-
-  const handleRestDone = useCallback(() => {
-    setResting(false);
-    setExIdx((i) => i + 1);
-    setCardKey((k) => k + 1);
-  }, []);
-
-  const handleFinish = () => {
-    if (scheduledId) onComplete(scheduledId);
-    onClose();
-  };
+  }, [doneOpacity, doneScale, isComplete]);
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="fullScreen" statusBarTranslucent>
@@ -440,7 +409,7 @@ export function WorkoutPlayerModal({
           <View style={styles.titleBlock}>
             <Text style={styles.workoutTitle} numberOfLines={1}>{displayName}</Text>
             <Text style={styles.workoutSub}>
-              {completed.size}/{exercises.length} exercises · {workout.durationMinutes}min
+              {completedExercises.size}/{exercises.length} exercises · {workout.durationMinutes}min
             </Text>
           </View>
           <View style={[styles.xpChip, { backgroundColor: catColor + "20", borderColor: catColor + "40" }]}>
@@ -455,14 +424,14 @@ export function WorkoutPlayerModal({
         </View>
 
         {/* Quote */}
-        <Text style={styles.quote}>"{QUOTES[(quoteIdx + exIdx) % QUOTES.length]}"</Text>
+        <Text style={styles.quote}>"{QUOTES[(quoteIdx + currentExerciseIndex) % QUOTES.length]}"</Text>
 
         {/* Main area */}
         <View style={styles.mainRow}>
           <IntensityBar intensity={intensity} colors={colors} />
 
           <View style={styles.cardArea}>
-            {done ? (
+            {isComplete ? (
               <Animated.View style={[styles.doneCard, { opacity: doneOpacity, transform: [{ scale: doneScale }], backgroundColor: colors.card, borderColor: catColor + "50" }]}>
                 <LinearGradient colors={[catColor + "20", "transparent"]} style={StyleSheet.absoluteFill} />
                 <Ionicons name="trophy" size={52} color={catColor} />
@@ -471,29 +440,29 @@ export function WorkoutPlayerModal({
                   {exercises.length} exercises · +{workout.xpReward} XP earned
                 </Text>
                 <TouchableOpacity
-                  onPress={handleFinish}
+                  onPress={completeWorkout}
                   style={[styles.finishBtn, { backgroundColor: catColor }]}
                 >
                   <Text style={styles.finishText}>Finish & Claim XP</Text>
                 </TouchableOpacity>
               </Animated.View>
-            ) : resting && exercises[exIdx + 1] ? (
+            ) : isResting && currentEx && exercises[currentExerciseIndex + 1] ? (
               <RestScreen
-                nextExercise={exercises[exIdx + 1]}
+                nextExercise={exercises[currentExerciseIndex + 1]}
                 restSeconds={currentEx.restSeconds}
-                onDone={handleRestDone}
+                onDone={finishRest}
                 colors={colors}
               />
             ) : currentEx ? (
               <ExerciseCard
                 key={cardKey}
                 exercise={currentEx}
-                index={exIdx}
+                index={currentExerciseIndex}
                 total={exercises.length}
                 intensity={intensity}
                 catColor={catColor}
-                onComplete={handleExerciseDone}
-                onBack={handleBack}
+                onComplete={advanceExercise}
+                onBack={goBack}
                 colors={colors}
               />
             ) : null}
@@ -507,12 +476,12 @@ export function WorkoutPlayerModal({
                 style={[
                   styles.exDot,
                   {
-                    backgroundColor: completed.has(i)
+                    backgroundColor: completedExercises.has(i)
                       ? "#7BE0B8"
-                      : i === exIdx
+                      : i === currentExerciseIndex
                       ? catColor
                       : "#2E2E2E",
-                    height: i === exIdx ? 20 : 8,
+                    height: i === currentExerciseIndex ? 20 : 8,
                   },
                 ]}
               />
@@ -521,7 +490,7 @@ export function WorkoutPlayerModal({
         </View>
 
         {/* Music player */}
-        {!done && (
+        {!isComplete && (
           <View style={[styles.musicWrap, { paddingBottom: (Platform.OS === "web" ? 24 : insets.bottom) + 8 }]}>
             <MusicPlayer track={track} intensity={intensity} colors={colors} />
           </View>
