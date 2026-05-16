@@ -7,8 +7,8 @@ import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
 import { Audience, SocialComment, SocialPost, useSocial } from "@/contexts/SocialContext";
-import CreatePostModal from "@/components/CreatePostModal";
-import UserProfileModal from "@/components/UserProfileModal";
+import CreatePostModal from "@features/social/components/CreatePostModal";
+import UserProfileModal from "@features/social/components/UserProfileModal";
 import { AppFlashList } from "@/components/AppFlashList";
 
 type ProfileMini = { userId: string; name: string; avatar: string; badge: string; profileImage?: string };

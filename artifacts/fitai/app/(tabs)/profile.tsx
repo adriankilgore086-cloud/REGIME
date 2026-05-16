@@ -15,8 +15,8 @@ import { useSocial, SocialPost, Audience } from "@/contexts/SocialContext";
 import { ACHIEVEMENTS, RARITY_COLORS } from "@features/gamification/constants/achievements";
 import { SAMPLE_WORKOUTS } from "@features/gamification/constants/workouts";
 import { XPProgressBar } from "@/components/XPProgressBar";
-import CreatePostModal from "@/components/CreatePostModal";
-import UserProfileModal from "@/components/UserProfileModal";
+import CreatePostModal from "@features/social/components/CreatePostModal";
+import UserProfileModal from "@features/social/components/UserProfileModal";
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();

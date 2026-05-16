@@ -14,12 +14,12 @@ import { SAMPLE_WORKOUTS, Exercise, type Workout, type WorkoutCategory } from "@
 import { getWorkoutAccent } from "@/constants/workoutAccents";
 import { resolveWorkoutDisplay } from "@/lib/workoutDisplay";
 import { rankWorkoutsForUser, pickDailyCurated, buildWorkoutAiOverview } from "@/lib/smartRecommendations";
-import { AIWorkoutOverviewSheet } from "@/components/AIWorkoutOverviewSheet";
+import { AIWorkoutOverviewSheet } from "@features/ai-coach/components/AIWorkoutOverviewSheet";
 import { WorkoutSwipeCard } from "@features/workout/components/WorkoutSwipeCard";
 import { XPProgressBar } from "@/components/XPProgressBar";
 import { StatCard } from "@/components/StatCard";
 import { RewardOverlay } from "@/components/RewardOverlay";
-import { AIChatModal } from "@/components/AIChatModal";
+import { AIChatModal } from "@features/ai-coach/components/AIChatModal";
 import { WorkoutPlayerModal } from "@features/workout/components/WorkoutPlayerModal";
 
 const AI_SUGGESTIONS = [
