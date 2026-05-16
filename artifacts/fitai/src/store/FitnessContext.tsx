@@ -1,8 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth, useUser } from "@clerk/expo";
-import { SAMPLE_WORKOUTS, getLevel, getRank, getXpProgress, type WorkoutCategory } from '@features/gamification/constants/workouts';
-import { ACHIEVEMENTS, Achievement, checkAchievements } from '@features/gamification/constants/achievements';
+import { SAMPLE_WORKOUTS, getLevel, type WorkoutCategory } from '@features/gamification/constants/workouts';
+import { ACHIEVEMENTS, Achievement } from '@features/gamification/constants/achievements';
+import { useAchievements } from '@features/gamification/hooks/useAchievements';
+import { useRewards } from '@features/gamification/hooks/useRewards';
+import { useXP } from '@features/gamification/hooks/useXP';
 
 const STORAGE_KEY = '@regime_data_v2';
 const USER_PREFIX = '@regime_user_';
@@ -182,8 +185,8 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
   const { userId } = useAuth();
   const [state, setState] = useState<FitnessState>(createEmptyState());
   const [loaded, setLoaded] = useState(false);
-  const [showReward, setShowReward] = useState(false);
-  const [rewardData, setRewardData] = useState<RewardData | null>(null);
+  const { showReward, rewardData, showRewardOverlay, dismissReward } = useRewards();
+  const { checkUnlockedAchievements } = useAchievements();
   const isMountedRef = useRef(true);
   useEffect(() => {
     isMountedRef.current = true;
@@ -437,7 +440,7 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
 
       const earnedIds = prev.earnedAchievements.map((a) => a.id);
       const level = getLevel(newStats.xp);
-      newAchievements = checkAchievements(
+      newAchievements = checkUnlockedAchievements(
         { totalWorkouts: newStats.totalWorkouts, streak: newStats.streak, caloriesBurned: newStats.caloriesBurned, level },
         earnedIds
       );
@@ -493,14 +496,13 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
 
     setTimeout(() => {
       if (!isMountedRef.current) return;
-      setRewardData({
+      showRewardOverlay({
         xp: xpEarned,
         message: newAchievements.length > 0 ? `Achievement Unlocked: ${newAchievements[0].name}!` : 'Workout Complete!',
         achievement: newAchievements[0],
       });
-      setShowReward(true);
     }, 300);
-  }, [save]);
+  }, [checkUnlockedAchievements, save, showRewardOverlay]);
 
   const skipWorkout = useCallback(async (scheduledId: string) => {
     await updateState((s) => ({
@@ -554,12 +556,6 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user?.id, user?.username, user?.imageUrl, updateProfile]);
 
-
-  const dismissReward = useCallback(() => {
-    setShowReward(false);
-    setRewardData(null);
-  }, []);
-
   const markNotificationRead = useCallback((id: string) => {
     setState((prev) => {
       const next = { ...prev, notifications: prev.notifications.map((n) => n.id === id ? { ...n, read: true } : n) };
@@ -577,9 +573,7 @@ export function FitnessProvider({ children }: { children: React.ReactNode }) {
     });
   }, [save]);
 
-  const level = useMemo(() => getLevel(state.userStats.xp), [state.userStats.xp]);
-  const rank = useMemo(() => getRank(level), [level]);
-  const xpProgress = useMemo(() => getXpProgress(state.userStats.xp), [state.userStats.xp]);
+  const { level, rank, xpProgress } = useXP(state.userStats.xp);
   const todaysWorkouts = useMemo(() => {
     const today = new Date().toISOString().split("T")[0];
     return state.scheduledWorkouts.filter((sw) => sw.date === today && !sw.completed && !sw.skipped);
