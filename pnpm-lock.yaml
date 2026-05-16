@@ -6,60 +6,21 @@ settings:
 
 catalogs:
   default:
-    '@replit/vite-plugin-cartographer':
-      specifier: latest
-      version: 0.5.5
-    '@replit/vite-plugin-runtime-error-modal':
-      specifier: latest
-      version: 0.0.6
-    '@tailwindcss/vite':
-      specifier: latest
-      version: 4.3.0
     '@tanstack/react-query':
       specifier: latest
       version: 5.100.10
     '@types/node':
       specifier: latest
       version: 25.7.0
-    '@types/react':
-      specifier: latest
-      version: 19.2.14
-    '@types/react-dom':
-      specifier: latest
-      version: 19.2.3
-    '@vitejs/plugin-react':
-      specifier: latest
-      version: 6.0.1
-    class-variance-authority:
-      specifier: latest
-      version: 0.7.1
-    clsx:
-      specifier: latest
-      version: 2.1.1
     drizzle-orm:
       specifier: latest
       version: 0.45.2
-    framer-motion:
-      specifier: latest
-      version: 12.38.0
-    lucide-react:
-      specifier: latest
-      version: 1.14.0
     react:
       specifier: 19.1.0
       version: 19.1.0
     react-dom:
       specifier: 19.1.0
       version: 19.1.0
-    tailwind-merge:
-      specifier: latest
-      version: 3.6.0
-    tailwindcss:
-      specifier: latest
-      version: 4.3.0
-    vite:
-      specifier: latest
-      version: 8.0.13
     zod:
       specifier: latest
       version: 4.4.3
@@ -135,6 +96,9 @@ importers:
       '@expo-google-fonts/poppins':
         specifier: ^0.4.1
         version: 0.4.1
+      expo-sensors:
+        specifier: ~15.0.8
+        version: 15.0.8(expo@54.0.34)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))
       expo-speech:
         specifier: ~14.0.8
         version: 14.0.8(expo@54.0.34)
@@ -4429,6 +4393,12 @@ packages:
     resolution: {integrity: sha512-lHnzvRajBu4u+P99+0GEMijQMFCOYpWRO4dWsXSuMt77+THPIGjzNvVKrGSl6mMrLsfVaKL8BpwYZLGlgA+zAw==}
     peerDependencies:
       expo: '*'
+
+  expo-sensors@15.0.8:
+    resolution: {integrity: sha512-ttibOSCYjFAMIfjV+vVukO1v7GKlbcPRfxcRqbTaSMGneewDwVSXbGFImY530fj1BR3mWq4n9jHnuDp8tAEY9g==}
+    peerDependencies:
+      expo: '*'
+      react-native: '*'
 
   expo-server@1.0.6:
     resolution: {integrity: sha512-vb5TBtskvEdzYuW79lATXutOEBfW5m6U4EFpNjCVZTnI7S//SAsLQkYEpn+EDfn84m6VQfzSGkIVR6YPaScKFA==}
@@ -11295,6 +11265,12 @@ snapshots:
   expo-secure-store@15.0.8(expo@54.0.34):
     dependencies:
       expo: 54.0.34(@babel/core@7.29.0)(@expo/metro-runtime@6.1.2)(expo-router@6.0.23)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3)
+
+  expo-sensors@15.0.8(expo@54.0.34)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0)):
+    dependencies:
+      expo: 54.0.34(@babel/core@7.29.0)(@expo/metro-runtime@6.1.2)(expo-router@6.0.23)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3)
+      invariant: 2.2.4
+      react-native: 0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0)
 
   expo-server@1.0.6: {}
 

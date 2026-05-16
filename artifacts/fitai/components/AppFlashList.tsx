@@ -8,6 +8,7 @@ type FlashListProps<T> = {
   estimatedItemSize?: number;
   contentContainerStyle?: any;
   showsVerticalScrollIndicator?: boolean;
+  removeClippedSubviews?: boolean;
 };
 
 let FlashListImpl: React.ComponentType<any> = FlatList;

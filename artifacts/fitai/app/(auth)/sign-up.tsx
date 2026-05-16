@@ -53,7 +53,8 @@ export default function SignUpScreen() {
         password,
         username: username.trim(),
       });
-      await signUp.prepareVerification({ strategy: "email_code" });
+      const { error } = await signUp.verifications.sendEmailCode();
+      if (error) throw error;
     } catch {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
@@ -62,8 +63,9 @@ export default function SignUpScreen() {
   const handleVerify = async () => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     try {
-      const result = await signUp.attemptVerification({ strategy: "email_code", code });
-      if (result.status === "complete") {
+      const { error } = await signUp.verifications.verifyEmailCode({ code });
+      if (error) throw error;
+      if (signUp.status === "complete") {
         void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         router.replace("/(auth)/onboarding");
       }
