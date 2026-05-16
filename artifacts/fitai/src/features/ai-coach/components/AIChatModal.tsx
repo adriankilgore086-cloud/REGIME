@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Speech from 'expo-speech';
-import { useColors } from '@/hooks/useColors';
+import { useColors } from '@shared/hooks/useColors';
 import { useFitness } from '@/contexts/FitnessContext';
 
 interface Message {

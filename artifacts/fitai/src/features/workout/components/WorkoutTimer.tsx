@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Animated, Platform } from 're
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import { useColors } from '@/hooks/useColors';
+import { useColors } from '@shared/hooks/useColors';
 
 interface Props {
   initialSeconds: number;

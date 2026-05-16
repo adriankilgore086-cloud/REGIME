@@ -4,12 +4,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { useColors } from "@/hooks/useColors";
+import { useColors } from "@shared/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
 import { Audience, SocialComment, SocialPost, useSocial } from "@/contexts/SocialContext";
 import CreatePostModal from "@features/social/components/CreatePostModal";
 import UserProfileModal from "@features/social/components/UserProfileModal";
-import { AppFlashList } from "@/components/AppFlashList";
+import { AppFlashList } from "@shared/components/ui/AppFlashList";
 
 type ProfileMini = { userId: string; name: string; avatar: string; badge: string; profileImage?: string };
 

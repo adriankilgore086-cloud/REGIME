@@ -15,7 +15,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
-import { useColors } from "@/hooks/useColors";
+import { useColors } from "@shared/hooks/useColors";
 
 type Props = {
   visible: boolean;

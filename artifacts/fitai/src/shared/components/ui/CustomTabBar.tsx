@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue, useAnimatedStyle, withSpring,
 } from 'react-native-reanimated';
-import { useColors } from '@/hooks/useColors';
+import { useColors } from '@shared/hooks/useColors';
 
 const TAB_ICONS = [
   { name: 'calendar', label: 'Schedule', icon: 'calendar' },

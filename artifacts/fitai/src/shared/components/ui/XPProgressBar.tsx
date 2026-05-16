@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useColors } from '@/hooks/useColors';
+import { useColors } from '@shared/hooks/useColors';
 import { XP_PER_LEVEL } from '@features/gamification/constants/workouts';
 
 interface Props {

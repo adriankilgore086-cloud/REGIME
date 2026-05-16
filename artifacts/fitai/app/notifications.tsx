@@ -7,7 +7,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { useColors } from "@/hooks/useColors";
+import { useColors } from "@shared/hooks/useColors";
 
 type NotifType = "streak" | "achievement" | "workout" | "ai" | "social" | "reminder";
 

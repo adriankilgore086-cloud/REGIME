@@ -23,7 +23,7 @@ import { View, Text, Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { FitnessProvider, AppNotification, useFitness } from "@/contexts/FitnessContext";
 import { SocialProvider } from "@/contexts/SocialContext";
-import NotificationBanner from "@/components/NotificationBanner";
+import NotificationBanner from "@shared/components/ui/NotificationBanner";
 
 SplashScreen.preventAutoHideAsync();
 

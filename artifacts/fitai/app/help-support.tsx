@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert,
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { useColors } from "@/hooks/useColors";
+import { useColors } from "@shared/hooks/useColors";
 
 const FAQS = [
   { q: "How do I schedule a workout?", a: "Go to the Schedule tab, click the plus button, select a date, and choose your workouts." },

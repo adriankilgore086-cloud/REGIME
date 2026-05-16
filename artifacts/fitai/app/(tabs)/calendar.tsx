@@ -7,7 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { useColors } from "@/hooks/useColors";
+import { useColors } from "@shared/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
 import { SAMPLE_WORKOUTS, CATEGORY_COLORS } from "@features/gamification/constants/workouts";
 import { WorkoutPlayerModal } from "@features/workout/components/WorkoutPlayerModal";

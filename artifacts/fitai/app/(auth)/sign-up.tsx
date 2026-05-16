@@ -10,7 +10,7 @@ import * as WebBrowser from "expo-web-browser";
 import { useRouter, Link, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useColors } from "@/hooks/useColors";
+import { useColors } from "@shared/hooks/useColors";
 import * as Haptics from "expo-haptics";
 
 WebBrowser.maybeCompleteAuthSession();

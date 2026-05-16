@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useColors } from '@/hooks/useColors';
+import { useColors } from '@shared/hooks/useColors';
 
 interface Props {
   icon: string;

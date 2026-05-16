@@ -7,10 +7,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { useColors } from "@/hooks/useColors";
+import { useColors } from "@shared/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
 import { SAMPLE_WORKOUTS } from "@features/gamification/constants/workouts";
-import { XPProgressBar } from "@/components/XPProgressBar";
+import { XPProgressBar } from "@shared/components/ui/XPProgressBar";
 
 const SMART_RECS = [
   { id: "rec1", name: "HIIT Inferno", tag: "High Calorie Burn", minutes: 30, xp: 200, color: "#FF2D78", icon: "flame" as const },

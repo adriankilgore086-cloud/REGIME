@@ -7,10 +7,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
-import { useColors } from "@/hooks/useColors";
+import { useColors } from "@shared/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
 import { resolveWorkoutDisplay } from "@/lib/workoutDisplay";
-import { getWorkoutAccent } from "@/constants/workoutAccents";
+import { getWorkoutAccent } from "@shared/theme/workoutAccents";
 import { Workout, Exercise, WorkoutCategory } from "@features/gamification/constants/workouts";
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");

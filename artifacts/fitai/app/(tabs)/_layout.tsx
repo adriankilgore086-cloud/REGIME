@@ -1,7 +1,7 @@
 import { Tabs } from "expo-router";
 import React, { useMemo, useRef } from "react";
 import { PanResponder, View, Dimensions } from "react-native";
-import { CustomTabBar } from "@/components/CustomTabBar";
+import { CustomTabBar } from "@shared/components/ui/CustomTabBar";
 
 export default function TabLayout() {
   const tabNames = useMemo(() => ["calendar", "library", "goals", "index", "health", "profile"], []);

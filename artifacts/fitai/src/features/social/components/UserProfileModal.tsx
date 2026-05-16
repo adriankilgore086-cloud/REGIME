@@ -1,8 +1,8 @@
 import React, { useMemo, useRef } from "react";
 import { Modal, PanResponder, StyleSheet, Text, TouchableOpacity, View, Image, Dimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useColors } from "@/hooks/useColors";
-import { AppFlashList } from "@/components/AppFlashList";
+import { useColors } from "@shared/hooks/useColors";
+import { AppFlashList } from "@shared/components/ui/AppFlashList";
 import type { SocialPost } from "@/contexts/SocialContext";
 
 type UserIdentity = {

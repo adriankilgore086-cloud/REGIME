@@ -9,12 +9,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth, useUser } from "@clerk/expo";
 import { useRouter } from "expo-router";
-import { useColors } from "@/hooks/useColors";
+import { useColors } from "@shared/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
 import { useSocial, SocialPost, Audience } from "@/contexts/SocialContext";
 import { ACHIEVEMENTS, RARITY_COLORS } from "@features/gamification/constants/achievements";
 import { SAMPLE_WORKOUTS } from "@features/gamification/constants/workouts";
-import { XPProgressBar } from "@/components/XPProgressBar";
+import { XPProgressBar } from "@shared/components/ui/XPProgressBar";
 import CreatePostModal from "@features/social/components/CreatePostModal";
 import UserProfileModal from "@features/social/components/UserProfileModal";
 

@@ -12,12 +12,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
-import { useColors } from "@/hooks/useColors";
+import { useColors } from "@shared/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
 import { SAMPLE_WORKOUTS, type Workout, type WorkoutCategory } from "@features/gamification/constants/workouts";
-import { getWorkoutAccent, WORKOUT_CATEGORY_ORDER } from "@/constants/workoutAccents";
+import { getWorkoutAccent, WORKOUT_CATEGORY_ORDER } from "@shared/theme/workoutAccents";
 import { resolveWorkoutDisplay } from "@/lib/workoutDisplay";
-import { AppFlashList } from "@/components/AppFlashList";
+import { AppFlashList } from "@shared/components/ui/AppFlashList";
 
 export default function WorkoutLibraryEditorScreen() {
   const colors = useColors();

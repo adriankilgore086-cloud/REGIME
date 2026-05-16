@@ -8,10 +8,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { useColors } from "@/hooks/useColors";
+import { useColors } from "@shared/hooks/useColors";
 import { useFitness } from "@/contexts/FitnessContext";
 import { SAMPLE_WORKOUTS } from "@features/gamification/constants/workouts";
-import { getWorkoutAccent } from "@/constants/workoutAccents";
+import { getWorkoutAccent } from "@shared/theme/workoutAccents";
 import { resolveWorkoutDisplay } from "@/lib/workoutDisplay";
 import { WorkoutTimer } from "@features/workout/components/WorkoutTimer";
 

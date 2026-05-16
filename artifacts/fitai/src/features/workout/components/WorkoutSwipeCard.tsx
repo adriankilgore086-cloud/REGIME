@@ -6,9 +6,9 @@ import {
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import { useColors } from '@/hooks/useColors';
+import { useColors } from '@shared/hooks/useColors';
 import { Workout, DifficultyLevel, type WorkoutCategory } from '@features/gamification/constants/workouts';
-import { getWorkoutAccent } from '@/constants/workoutAccents';
+import { getWorkoutAccent } from '@shared/theme/workoutAccents';
 
 const { width } = Dimensions.get('window');
 const SWIPE_THRESHOLD = 110;

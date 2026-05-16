@@ -9,11 +9,11 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
-import { useColors } from "@/hooks/useColors";
+import { useColors } from "@shared/hooks/useColors";
 import { useSocial, PostType, Audience } from "@/contexts/SocialContext";
 import { useFitness } from "@/contexts/FitnessContext";
 import { SAMPLE_WORKOUTS } from "@features/gamification/constants/workouts";
-import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat";
+import { KeyboardAwareScrollViewCompat } from "@shared/components/ui/KeyboardAwareScrollViewCompat";
 
 interface Props {
   visible: boolean;

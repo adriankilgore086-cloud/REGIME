@@ -5,7 +5,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import { useColors } from '@/hooks/useColors';
+import { useColors } from '@shared/hooks/useColors';
 import { RewardData } from '@/contexts/FitnessContext';
 import { RARITY_COLORS } from '@features/gamification/constants/achievements';
 
