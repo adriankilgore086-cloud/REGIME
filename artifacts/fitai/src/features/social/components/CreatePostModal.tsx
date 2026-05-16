@@ -10,8 +10,8 @@ import * as ImagePicker from "expo-image-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@shared/hooks/useColors";
-import { useSocial, PostType, Audience } from "@/contexts/SocialContext";
-import { useFitness } from "@/contexts/FitnessContext";
+import { useSocial, PostType, Audience } from "@store/SocialContext";
+import { useFitness } from "@store/FitnessContext";
 import { SAMPLE_WORKOUTS } from "@features/gamification/constants/workouts";
 import { KeyboardAwareScrollViewCompat } from "@shared/components/ui/KeyboardAwareScrollViewCompat";
 

@@ -6,7 +6,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@shared/hooks/useColors";
-import { useFitness } from "@/contexts/FitnessContext";
+import { useFitness } from "@store/FitnessContext";
 
 const motivators = ["Lose fat", "Build strength", "Stay consistent", "Boost confidence"];
 const hurdles = ["No time", "No motivation", "No clear plan", "Injury setbacks"];

@@ -3,7 +3,7 @@ import { Modal, PanResponder, StyleSheet, Text, TouchableOpacity, View, Image, D
 import { Ionicons } from "@expo/vector-icons";
 import { useColors } from "@shared/hooks/useColors";
 import { AppFlashList } from "@shared/components/ui/AppFlashList";
-import type { SocialPost } from "@/contexts/SocialContext";
+import type { SocialPost } from "@store/SocialContext";
 
 type UserIdentity = {
   userId: string;

@@ -21,8 +21,8 @@ import { setBaseUrl } from "@workspace/api-client-react";
 import React, { Component, useEffect, useState, useRef } from "react";
 import { View, Text, Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { FitnessProvider, AppNotification, useFitness } from "@/contexts/FitnessContext";
-import { SocialProvider } from "@/contexts/SocialContext";
+import { FitnessProvider, AppNotification, useFitness } from "@store/FitnessContext";
+import { SocialProvider } from "@store/SocialContext";
 import NotificationBanner from "@shared/components/ui/NotificationBanner";
 
 SplashScreen.preventAutoHideAsync();

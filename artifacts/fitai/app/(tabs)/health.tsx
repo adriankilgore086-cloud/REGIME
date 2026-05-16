@@ -7,7 +7,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useColors } from "@shared/hooks/useColors";
-import { useFitness } from "@/contexts/FitnessContext";
+import { useFitness } from "@store/FitnessContext";
 import { AIChatModal } from "@features/ai-coach/components/AIChatModal";
 import { Image } from "react-native";
 

@@ -1,5 +1,5 @@
 import type { Workout, WorkoutCategory } from "@features/gamification/constants/workouts";
-import type { WorkoutLibraryEntry } from "@/contexts/FitnessContext";
+import type { WorkoutLibraryEntry } from "@store/FitnessContext";
 
 export function resolveWorkoutDisplay(
   workout: Workout,

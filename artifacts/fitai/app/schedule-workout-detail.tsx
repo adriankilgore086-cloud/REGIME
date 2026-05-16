@@ -7,7 +7,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useColors } from "@shared/hooks/useColors";
-import { useFitness } from "@/contexts/FitnessContext";
+import { useFitness } from "@store/FitnessContext";
 import { SAMPLE_WORKOUTS, CATEGORY_COLORS } from "@features/gamification/constants/workouts";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];

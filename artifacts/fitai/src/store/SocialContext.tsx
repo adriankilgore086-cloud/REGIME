@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "@clerk/expo";
-import { useFitness } from "@/contexts/FitnessContext";
+import { useFitness } from "@store/FitnessContext";
 
 const STORAGE_KEY = "@regime_social_v1";
 const USER_PREFIX = "@regime_user_";

@@ -9,7 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Speech from 'expo-speech';
 import { useColors } from '@shared/hooks/useColors';
-import { useFitness } from '@/contexts/FitnessContext';
+import { useFitness } from '@store/FitnessContext';
 
 interface Message {
   id: string;

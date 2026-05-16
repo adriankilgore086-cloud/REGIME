@@ -7,7 +7,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@shared/hooks/useColors";
-import { useFitness } from "@/contexts/FitnessContext";
+import { useFitness } from "@store/FitnessContext";
 
 const AI_PLAN_WEEKS = [
   {

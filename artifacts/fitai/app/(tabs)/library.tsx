@@ -6,11 +6,11 @@ import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { Ionicons } from "@expo/vector-icons";
 import { useColors } from "@shared/hooks/useColors";
-import { useFitness } from "@/contexts/FitnessContext";
+import { useFitness } from "@store/FitnessContext";
 import { SAMPLE_WORKOUTS } from "@features/gamification/constants/workouts";
 import type { Workout } from "@features/gamification/constants/workouts";
 import { getWorkoutAccent } from "@shared/theme/workoutAccents";
-import { resolveWorkoutDisplay } from "@/lib/workoutDisplay";
+import { resolveWorkoutDisplay } from "@features/workout/utils/workoutDisplay";
 
 export default function LibraryScreen() {
   const colors = useColors();

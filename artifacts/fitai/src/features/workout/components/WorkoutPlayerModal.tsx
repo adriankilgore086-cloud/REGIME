@@ -8,8 +8,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@shared/hooks/useColors";
-import { useFitness } from "@/contexts/FitnessContext";
-import { resolveWorkoutDisplay } from "@/lib/workoutDisplay";
+import { useFitness } from "@store/FitnessContext";
+import { resolveWorkoutDisplay } from "@features/workout/utils/workoutDisplay";
 import { getWorkoutAccent } from "@shared/theme/workoutAccents";
 import { Workout, Exercise, WorkoutCategory } from "@features/gamification/constants/workouts";
 

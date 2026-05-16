@@ -5,7 +5,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { AppNotification } from "@/contexts/FitnessContext";
+import { AppNotification } from "@store/FitnessContext";
 
 interface Props {
   notification: AppNotification;

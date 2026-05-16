@@ -4,7 +4,7 @@ import { Ionicons, Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useColors } from "@shared/hooks/useColors";
-import { useFitness } from "@/contexts/FitnessContext";
+import { useFitness } from "@store/FitnessContext";
 import * as Haptics from "expo-haptics";
 
 const FITNESS_GOALS = ["weight_loss", "muscle_gain", "strength", "endurance", "general"] as const;
