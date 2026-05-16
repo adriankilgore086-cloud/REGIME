@@ -39,6 +39,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     permissions: [
       "android.permission.ACTIVITY_RECOGNITION",
       "android.permission.BODY_SENSORS",
+      "android.permission.POST_NOTIFICATIONS",
     ],
     softwareKeyboardLayoutMode: "resize",
   },
@@ -48,6 +49,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   plugins: [
     "expo-router",
     "expo-font",
+    "expo-notifications",
+    "@sentry/react-native",
     [
       "expo-build-properties",
       {

@@ -25,6 +25,9 @@ import { FitnessProvider, AppNotification, useFitness } from "@store/FitnessCont
 import { SocialProvider } from "@store/SocialContext";
 import { ErrorBoundary } from "@shared/components/layout/ErrorBoundary";
 import NotificationBanner from "@shared/components/ui/NotificationBanner";
+import { initAnalytics } from "@shared/services/analytics";
+import { captureException, initCrashReporting } from "@shared/services/crashReporting";
+import { usePushNotifications } from "@shared/services/pushNotifications";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -65,9 +68,10 @@ class RootErrorBoundary extends Component<
 
 function InnerLayout() {
   const { notifications } = useFitness();
-  const { getToken } = useAuth();
+  const { getToken, isSignedIn } = useAuth();
   const [bannerQueue, setBannerQueue] = useState<AppNotification[]>([]);
   const seenIds = useRef(new Set<string>());
+  usePushNotifications(Boolean(isSignedIn));
 
   useEffect(() => {
     setAuthTokenGetter(() => getToken());
@@ -141,13 +145,21 @@ export default function RootLayout() {
     }).catch(() => {});
   }, []);
 
+  useEffect(() => {
+    initCrashReporting();
+    void initAnalytics();
+  }, []);
+
   if (!fontsLoaded && !fontError && Platform.OS !== "web") {
     return <View style={{ flex: 1, backgroundColor: BG }} />;
   }
 
   return (
     <View style={{ flex: 1, backgroundColor: BG }}>
-      <ErrorBoundary onError={(error) => console.error("[RootError]", error.message)}>
+      <ErrorBoundary onError={(error) => {
+        console.error("[RootError]", error.message);
+        captureException(error);
+      }}>
         <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache} proxyUrl={proxyUrl}>
           {Platform.OS === "web" ? (
             <SafeAreaProvider>
