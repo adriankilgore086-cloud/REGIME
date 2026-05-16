@@ -8,6 +8,10 @@ out-tsc
 .expo
 .expo-shared
 
+# Generated API files (regenerate with pnpm --filter @workspace/api-spec run codegen)
+lib/api-client-react/src/generated/
+lib/api-zod/src/generated/
+
 # dependencies
 node_modules
 
@@ -40,6 +44,7 @@ testem.log
 # System Files
 .DS_Store
 Thumbs.db
+desktop.ini
 
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md
@@ -49,3 +54,14 @@ Thumbs.db
 .local/
 .env
 .venv/
+
+# EAS / Expo credentials and artifacts
+*.jks
+*.p8
+*.p12
+*.mobileprovision
+google-service-account.json
+
+# Environment
+.env.local
+.env.*.local

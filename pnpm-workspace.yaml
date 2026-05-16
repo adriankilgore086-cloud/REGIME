@@ -1,7 +1,6 @@
 packages:
   - 'artifacts/*'
   - 'lib/*'
-  - 'scripts/*'
   - '.local/skills/*'
 minimum-release-age: 0 
 catalogs:

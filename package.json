@@ -6,7 +6,7 @@
     "preinstall": "node preinstall.cjs",
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
     "typecheck:libs": "tsc --build",
-    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck",
+    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --if-present run typecheck",
     "fitai:start": "pnpm --filter @workspace/fitai exec expo start",
     "fitai:start:lan": "pnpm --filter @workspace/fitai exec expo start --lan",
     "fitai:start:tunnel": "pnpm --filter @workspace/fitai exec expo start --tunnel",

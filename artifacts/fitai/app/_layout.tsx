@@ -28,8 +28,10 @@ import NotificationBanner from "@/components/NotificationBanner";
 SplashScreen.preventAutoHideAsync();
 
 const BG = "#0D0D0D";
+const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 const domain = process.env.EXPO_PUBLIC_DOMAIN;
-if (domain) setBaseUrl(`https://${domain}`);
+if (apiUrl) setBaseUrl(apiUrl);
+else if (domain) setBaseUrl(`https://${domain}`);
 
 const queryClient = new QueryClient();
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
