@@ -1,0 +1,45 @@
+# Regime — Cursor session rules (always active)
+
+These rules apply to every Cursor session in this repository. Phase-specific instructions live under `docs/cursor/`; load **one** phase file per session with `@docs/cursor/phase-....md`.
+
+## Sacred rules
+
+1. **Scope**: Change only what the active phase asks for. No drive-by refactors, no unrelated formatting sweeps, no new dependencies unless a `DEPENDENCY REQUEST` block is approved in-chat for that session.
+2. **Truth sources**: Treat `REGIME_CODEMAP.md`, `lib/api-spec/openapi.yaml`, and workspace `package.json` / `pnpm-workspace.yaml` as structural truth unless the phase explicitly updates them.
+3. **Monorepo layout**: Respect package boundaries — `artifacts/fitai` (Expo app), `artifacts/api-server` (Express), `lib/*` (shared spec, clients, db). Do not merge concerns across packages without an explicit phase goal.
+4. **Generated code**: Do not hand-edit large generated surfaces (`lib/api-client-react/src/generated`, `lib/api-zod/src/generated`, mockup `.generated`) except when the phase says to re-run generators from `lib/api-spec`.
+5. **Safety**: Never commit secrets, API keys, or `.env` files. Prefer env vars already documented in `REGIME_CODEMAP.md`.
+6. **Quality**: After substantive edits, run the narrowest relevant check (package-level `typecheck` / `test`) the phase lists; fix regressions you introduce.
+
+## Dependency policy
+
+- **Default**: No new packages. Prefer existing dependencies and platform APIs.
+- **Upgrades**: Do not bump versions opportunistically. Pin-breaking or major upgrades require explicit human approval in the thread.
+- **Adding or upgrading a dependency**: The model must output a `DEPENDENCY REQUEST` block and wait for explicit human approval in the same session before editing lockfiles or `package.json`.
+- **Patches**: The repo uses `patches/` (pnpm). If a dependency needs a patch, describe it in the request block; do not add patches silently.
+
+## DEPENDENCY REQUEST block format
+
+When you need a new dependency or a version change, paste **exactly** this block (fill every field) and stop dependency-related edits until a human replies with approval or edits.
+
+```
+### DEPENDENCY REQUEST
+package:
+  name: <npm package name>
+  version_or_range: <exact version or semver range>
+  where: <workspace path(s), e.g. artifacts/fitai, root>
+reason: <1–3 sentences: what problem this solves>
+alternatives_considered: <briefly: what you tried without it>
+risk_notes: <bundle size, native modules, license, supply chain, etc.>
+lockfile_impact: <pnpm-lock.yaml only / multiple packages / patch required>
+rollback_plan: <how to revert if it fails>
+human_approval: <WAITING — do not proceed until approved>
+```
+
+Approved requests should still use the smallest scope: one package.json change set, one PR-worthy commit when possible.
+
+## How phases work
+
+- Start from Phase 0 in **Chat** mode to produce the audit artifact other phases reference.
+- Work phases in order unless a phase file states it is parallel (06A–06D).
+- Each phase file ends with a **Done checklist**. Do not start the next phase until the human clears that checklist.
