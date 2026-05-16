@@ -3,20 +3,39 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: REGIME production API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication and Clerk sync
+  - name: profile
+    description: User profile operations
+  - name: workouts
+    description: Workout library, schedule, and completion operations
+  - name: goals
+    description: Goal tracking operations
+  - name: metrics
+    description: Health metric operations
+  - name: gamification
+    description: XP, ranks, streaks, and achievement operations
+  - name: social
+    description: Social feed operations
+  - name: leaderboard
+    description: Leaderboard operations
+  - name: notifications
+    description: Notification operations
+  - name: ai
+    description: AI coach operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +43,1117 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /auth/sync:
+    post:
+      operationId: syncAuthUser
+      tags: [auth]
+      summary: Sync Clerk user to REGIME
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthSyncRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/ProfileResponse"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+  /profile:
+    get:
+      operationId: getProfile
+      tags: [profile]
+      summary: Get the current user profile
+      responses:
+        "200":
+          $ref: "#/components/responses/ProfileResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+    patch:
+      operationId: updateProfile
+      tags: [profile]
+      summary: Update the current user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/ProfileResponse"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+  /workouts:
+    get:
+      operationId: getWorkouts
+      tags: [workouts]
+      summary: Get workout templates
+      responses:
+        "200":
+          description: Workout templates
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [workouts]
+                properties:
+                  workouts:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/WorkoutTemplate"
+  /workouts/history:
+    get:
+      operationId: getWorkoutHistory
+      tags: [workouts]
+      summary: Get completed workout sessions
+      responses:
+        "200":
+          description: Workout history
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [sessions]
+                properties:
+                  sessions:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/WorkoutSession"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+  /workouts/complete:
+    post:
+      operationId: completeWorkout
+      tags: [workouts]
+      summary: Complete a workout and award gamification progress
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompleteWorkoutRequest"
+      responses:
+        "200":
+          description: Workout completion result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompleteWorkoutResponse"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+  /goals:
+    get:
+      operationId: getGoals
+      tags: [goals]
+      summary: Get goals
+      responses:
+        "200":
+          description: Goals
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [goals]
+                properties:
+                  goals:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Goal"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+    post:
+      operationId: createGoal
+      tags: [goals]
+      summary: Create a goal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGoalRequest"
+      responses:
+        "201":
+          description: Created goal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Goal"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+  /goals/{id}:
+    patch:
+      operationId: updateGoal
+      tags: [goals]
+      summary: Update goal progress
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateGoalRequest"
+      responses:
+        "200":
+          description: Updated goal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Goal"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+    delete:
+      operationId: deleteGoal
+      tags: [goals]
+      summary: Delete a goal
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      responses:
+        "204":
+          description: Goal deleted
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+  /health/metrics:
+    get:
+      operationId: getHealthMetrics
+      tags: [metrics]
+      summary: Get health metrics
+      responses:
+        "200":
+          description: Health metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [metrics]
+                properties:
+                  metrics:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/HealthMetric"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+    post:
+      operationId: createHealthMetric
+      tags: [metrics]
+      summary: Log health metric
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateHealthMetricRequest"
+      responses:
+        "201":
+          description: Created health metric
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthMetric"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+  /gamification/stats:
+    get:
+      operationId: getGamificationStats
+      tags: [gamification]
+      summary: Get XP, rank, streak, and achievements
+      responses:
+        "200":
+          description: Gamification stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GamificationStats"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+  /gamification/xp:
+    post:
+      operationId: awardXp
+      tags: [gamification]
+      summary: Award XP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AwardXpRequest"
+      responses:
+        "200":
+          description: Updated gamification stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GamificationStats"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+  /social/feed:
+    get:
+      operationId: getSocialFeed
+      tags: [social]
+      summary: Get social feed
+      parameters:
+        - name: audience
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Audience"
+      responses:
+        "200":
+          description: Social feed posts
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [posts]
+                properties:
+                  posts:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SocialPost"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+  /social/posts:
+    post:
+      operationId: createSocialPost
+      tags: [social]
+      summary: Create social post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSocialPostRequest"
+      responses:
+        "201":
+          description: Created post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SocialPost"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+  /social/posts/{id}:
+    delete:
+      operationId: deleteSocialPost
+      tags: [social]
+      summary: Delete own social post
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      responses:
+        "204":
+          description: Post deleted
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+  /social/posts/{id}/react:
+    post:
+      operationId: reactToSocialPost
+      tags: [social]
+      summary: Add or toggle reaction
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReactToPostRequest"
+      responses:
+        "200":
+          description: Updated post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SocialPost"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+  /social/posts/{id}/comments:
+    post:
+      operationId: createSocialComment
+      tags: [social]
+      summary: Add comment
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCommentRequest"
+      responses:
+        "201":
+          description: Created comment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SocialComment"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+  /social/posts/{id}/comments/{commentId}/replies:
+    post:
+      operationId: createSocialReply
+      tags: [social]
+      summary: Add reply
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReplyRequest"
+      responses:
+        "201":
+          description: Created reply
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SocialComment"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+  /leaderboard:
+    get:
+      operationId: getLeaderboard
+      tags: [leaderboard]
+      summary: Get leaderboard
+      parameters:
+        - name: filter
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/LeaderboardFilter"
+      responses:
+        "200":
+          description: Leaderboard
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [entries, myStats]
+                properties:
+                  entries:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/LeaderboardEntry"
+                  myStats:
+                    $ref: "#/components/schemas/LeaderboardEntry"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+  /notifications:
+    get:
+      operationId: getNotifications
+      tags: [notifications]
+      summary: Get notification history
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [notifications]
+                properties:
+                  notifications:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AppNotification"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+  /notifications/read:
+    post:
+      operationId: markNotificationsRead
+      tags: [notifications]
+      summary: Mark notifications read
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MarkNotificationsReadRequest"
+      responses:
+        "200":
+          description: Updated notifications
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [notifications]
+                properties:
+                  notifications:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AppNotification"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+  /notifications/token:
+    post:
+      operationId: registerNotificationToken
+      tags: [notifications]
+      summary: Register a push notification token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterNotificationTokenRequest"
+      responses:
+        "204":
+          description: Token registered
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+    delete:
+      operationId: deleteNotificationToken
+      tags: [notifications]
+      summary: Delete current push notification token
+      responses:
+        "204":
+          description: Token deleted
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+  /ai/coach:
+    post:
+      operationId: createAiCoachMessage
+      tags: [ai]
+      summary: Send a message to the AI coach
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiCoachRequest"
+      responses:
+        "200":
+          description: AI coach reply
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiCoachResponse"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
 components:
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    ProfileResponse:
+      description: User profile
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/UserProfile"
+    ErrorResponse:
+      description: Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
+    ApiError:
+      type: object
+      required: [error, code, status]
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+        status:
+          type: integer
+    FitnessGoal:
+      type: string
+      enum: [weight_loss, muscle_gain, strength, endurance, general]
+    WorkoutCategory:
+      type: string
+      enum: [strength, cardio, hiit, recovery, running]
+    DifficultyLevel:
+      type: string
+      enum: [beginner, intermediate, advanced, elite]
+    Audience:
+      type: string
+      enum: [global, friends]
+    PostType:
+      type: string
+      enum: [text, workout, milestone, pr, media]
+    ReactionType:
+      type: string
+      enum: [fire, flex, clap]
+    LeaderboardFilter:
+      type: string
+      enum: [xp, streak, sessions]
+    NotificationType:
+      type: string
+      enum: [workout, achievement, streak, ai, social]
+    UserProfile:
+      type: object
+      required: [id, name, username, age, weight, height, fitnessGoal, unlockedTitles, isPremium, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        username:
+          type: string
+        age:
+          type: integer
+        weight:
+          type: number
+        height:
+          type: number
+        fitnessGoal:
+          $ref: "#/components/schemas/FitnessGoal"
+        profileImage:
+          type: string
+          nullable: true
+        bio:
+          type: string
+          nullable: true
+        activeTitle:
+          type: string
+          nullable: true
+        unlockedTitles:
+          type: array
+          items:
+            type: string
+        isPremium:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AuthSyncRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        displayName:
+          type: string
+        profileImage:
+          type: string
+      additionalProperties: false
+    UpdateProfileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        username:
+          type: string
+        age:
+          type: integer
+        weight:
+          type: number
+        height:
+          type: number
+        fitnessGoal:
+          $ref: "#/components/schemas/FitnessGoal"
+        profileImage:
+          type: string
+          nullable: true
+        bio:
+          type: string
+          nullable: true
+        activeTitle:
+          type: string
+          nullable: true
+        isPremium:
+          type: boolean
+      additionalProperties: false
+    ExerciseTemplate:
+      type: object
+      required: [id, name, sets, reps, restSeconds, targetMuscles]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        sets:
+          type: integer
+        reps:
+          oneOf:
+            - type: integer
+            - type: string
+        duration:
+          type: integer
+        restSeconds:
+          type: integer
+        targetMuscles:
+          type: array
+          items:
+            type: string
+    WorkoutTemplate:
+      type: object
+      required: [id, name, category, difficulty, durationMinutes, calories, exercises, targetMuscles, recoveryDays, xpReward, description]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        category:
+          $ref: "#/components/schemas/WorkoutCategory"
+        difficulty:
+          $ref: "#/components/schemas/DifficultyLevel"
+        durationMinutes:
+          type: integer
+        calories:
+          type: integer
+        exercises:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExerciseTemplate"
+        targetMuscles:
+          type: array
+          items:
+            type: string
+        recoveryDays:
+          type: integer
+        xpReward:
+          type: integer
+        description:
+          type: string
+    WorkoutSession:
+      type: object
+      required: [id, workoutId, completedAt, durationMinutes, calories, xpEarned]
+      properties:
+        id:
+          type: string
+        workoutId:
+          type: string
+        scheduledWorkoutId:
+          type: string
+          nullable: true
+        completedAt:
+          type: string
+          format: date-time
+        durationMinutes:
+          type: integer
+        calories:
+          type: integer
+        xpEarned:
+          type: integer
+    CompleteWorkoutRequest:
+      type: object
+      required: [workoutId]
+      properties:
+        workoutId:
+          type: string
+        scheduledWorkoutId:
+          type: string
+        durationMinutes:
+          type: integer
+        calories:
+          type: integer
+      additionalProperties: false
+    CompleteWorkoutResponse:
+      type: object
+      required: [session, stats, unlockedAchievements]
+      properties:
+        session:
+          $ref: "#/components/schemas/WorkoutSession"
+        stats:
+          $ref: "#/components/schemas/GamificationStats"
+        unlockedAchievements:
+          type: array
+          items:
+            $ref: "#/components/schemas/Achievement"
+    Goal:
+      type: object
+      required: [id, title, targetValue, currentValue, unit, category, completed]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        targetValue:
+          type: number
+        currentValue:
+          type: number
+        unit:
+          type: string
+        category:
+          type: string
+        deadline:
+          type: string
+          format: date
+          nullable: true
+        completed:
+          type: boolean
+        description:
+          type: string
+        purpose:
+          type: string
+    CreateGoalRequest:
+      allOf:
+        - $ref: "#/components/schemas/Goal"
+      required: [title, targetValue, currentValue, unit, category]
+    UpdateGoalRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        targetValue:
+          type: number
+        currentValue:
+          type: number
+        deadline:
+          type: string
+          format: date
+          nullable: true
+        completed:
+          type: boolean
+        description:
+          type: string
+        purpose:
+          type: string
+      additionalProperties: false
+    HealthMetric:
+      type: object
+      required: [date, calories, activeMinutes, muscleGroups]
+      properties:
+        date:
+          type: string
+          format: date
+        calories:
+          type: integer
+        activeMinutes:
+          type: integer
+        muscleGroups:
+          type: array
+          items:
+            type: string
+        steps:
+          type: integer
+    CreateHealthMetricRequest:
+      allOf:
+        - $ref: "#/components/schemas/HealthMetric"
+    Achievement:
+      type: object
+      required: [id, name, description, rarity, category, icon, xpReward, earnedAt]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        rarity:
+          type: string
+          enum: [bronze, silver, gold, platinum, legendary]
+        category:
+          type: string
+          enum: [consistency, strength, progression, elite, social, special]
+        icon:
+          type: string
+        xpReward:
+          type: integer
+        earnedAt:
+          type: string
+          format: date-time
+    GamificationStats:
+      type: object
+      required: [xp, level, rank, xpProgress, streak, longestStreak, totalWorkouts, caloriesBurned, totalMinutes, achievements]
+      properties:
+        xp:
+          type: integer
+        level:
+          type: integer
+        rank:
+          type: string
+        xpProgress:
+          type: number
+        streak:
+          type: integer
+        longestStreak:
+          type: integer
+        totalWorkouts:
+          type: integer
+        caloriesBurned:
+          type: integer
+        totalMinutes:
+          type: integer
+        lastWorkoutDate:
+          type: string
+          format: date
+          nullable: true
+        achievements:
+          type: array
+          items:
+            $ref: "#/components/schemas/Achievement"
+    AwardXpRequest:
+      type: object
+      required: [amount, reason]
+      properties:
+        amount:
+          type: integer
+        reason:
+          type: string
+      additionalProperties: false
+    ReactionMap:
+      type: object
+      required: [fire, flex, clap]
+      properties:
+        fire:
+          type: array
+          items:
+            type: string
+        flex:
+          type: array
+          items:
+            type: string
+        clap:
+          type: array
+          items:
+            type: string
+    SocialComment:
+      type: object
+      required: [id, userId, userName, userAvatar, userBadge, text, createdAt]
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        userName:
+          type: string
+        userAvatar:
+          type: string
+        userProfileImage:
+          type: string
+        userBadge:
+          type: string
+        text:
+          type: string
+        parentId:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+    SocialPost:
+      type: object
+      required: [id, userId, userName, userAvatar, userBadge, type, text, audience, reactions, comments, createdAt]
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        userName:
+          type: string
+        userAvatar:
+          type: string
+        userProfileImage:
+          type: string
+        userBadge:
+          type: string
+        type:
+          $ref: "#/components/schemas/PostType"
+        text:
+          type: string
+        mediaUri:
+          type: string
+        mediaWidth:
+          type: number
+        mediaHeight:
+          type: number
+        workoutName:
+          type: string
+        workoutDuration:
+          type: string
+        workoutCalories:
+          type: integer
+        milestoneTitle:
+          type: string
+        value:
+          type: string
+        audience:
+          $ref: "#/components/schemas/Audience"
+        reactions:
+          $ref: "#/components/schemas/ReactionMap"
+        comments:
+          type: array
+          items:
+            $ref: "#/components/schemas/SocialComment"
+        createdAt:
+          type: string
+          format: date-time
+    CreateSocialPostRequest:
+      type: object
+      required: [type, text, audience]
+      properties:
+        type:
+          $ref: "#/components/schemas/PostType"
+        text:
+          type: string
+        audience:
+          $ref: "#/components/schemas/Audience"
+        mediaUri:
+          type: string
+        mediaWidth:
+          type: number
+        mediaHeight:
+          type: number
+        workoutName:
+          type: string
+        workoutDuration:
+          type: string
+        workoutCalories:
+          type: integer
+        milestoneTitle:
+          type: string
+        value:
+          type: string
+      additionalProperties: false
+    ReactToPostRequest:
+      type: object
+      required: [reaction]
+      properties:
+        reaction:
+          $ref: "#/components/schemas/ReactionType"
+      additionalProperties: false
+    CreateCommentRequest:
+      type: object
+      required: [text]
+      properties:
+        text:
+          type: string
+      additionalProperties: false
+    CreateReplyRequest:
+      type: object
+      required: [text]
+      properties:
+        text:
+          type: string
+      additionalProperties: false
+    LeaderboardEntry:
+      type: object
+      required: [userId, username, displayName, rank, xp, streak, sessions, isPremium]
+      properties:
+        userId:
+          type: string
+        username:
+          type: string
+        displayName:
+          type: string
+        profileImage:
+          type: string
+          nullable: true
+        rank:
+          type: integer
+        xp:
+          type: integer
+        streak:
+          type: integer
+        sessions:
+          type: integer
+        isPremium:
+          type: boolean
+    AppNotification:
+      type: object
+      required: [id, title, message, type, read, createdAt]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        message:
+          type: string
+        type:
+          $ref: "#/components/schemas/NotificationType"
+        read:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        route:
+          type: string
+    MarkNotificationsReadRequest:
+      type: object
+      required: [ids]
+      properties:
+        ids:
+          type: array
+          items:
+            type: string
+      additionalProperties: false
+    RegisterNotificationTokenRequest:
+      type: object
+      required: [token, platform]
+      properties:
+        token:
+          type: string
+        platform:
+          type: string
+          enum: [ios, android, web]
+      additionalProperties: false
+    AiCoachRequest:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+        context:
+          type: object
+          additionalProperties: true
+      additionalProperties: false
+    AiCoachResponse:
+      type: object
+      required: [reply]
+      properties:
+        reply:
+          type: string
 
