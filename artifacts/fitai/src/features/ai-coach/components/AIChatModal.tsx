@@ -1,7 +1,7 @@
-import React, { useState, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, Modal, TouchableOpacity,
-  TextInput, FlatList, ActivityIndicator, Platform,
+  Platform,
   KeyboardAvoidingView, ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,13 +9,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Speech from 'expo-speech';
 import { useColors } from '@shared/hooks/useColors';
-import { useFitness } from '@store/FitnessContext';
-
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-}
+import { ChatInputBar } from "@features/ai-coach/components/ChatInputBar";
+import { ChatMessageList } from "@features/ai-coach/components/ChatMessageList";
+import { useAICoach } from "@features/ai-coach/hooks/useAICoach";
+import type { Message } from "@features/ai-coach/types";
 
 export type VoiceStyle = 'coach' | 'energetic' | 'calm' | 'deep';
 
@@ -34,13 +31,6 @@ const VOICE_STYLES: Record<VoiceStyle, VoiceConfig> = {
   deep:      { label: 'Deep',      icon: 'mic',            description: 'Low & powerful',          pitch: 0.65, rate: 0.85 },
 };
 
-const QUICK_PROMPTS = [
-  "What should I train today?",
-  "Create a 30-min leg workout",
-  "How do I improve my bench?",
-  "Tips to break a plateau",
-];
-
 interface Props {
   visible: boolean;
   onClose: () => void;
@@ -49,22 +39,11 @@ interface Props {
 export function AIChatModal({ visible, onClose }: Props) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { userStats, userProfile, level, rank } = useFitness();
-
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '0',
-      role: 'assistant',
-      content: `Hey! I'm your AI fitness coach. You're at Level ${level} with a ${userStats.streak}-day streak — impressive discipline. What can I help you with today?`,
-    },
-  ]);
   const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [voiceStyle, setVoiceStyle] = useState<VoiceStyle>('coach');
   const [showVoicePicker, setShowVoicePicker] = useState(false);
   const [speakingId, setSpeakingId] = useState<string | null>(null);
-  const flatRef = useRef<FlatList>(null);
 
   const speak = useCallback(async (text: string, msgId: string) => {
     if (Platform.OS === 'web') return;
@@ -86,95 +65,25 @@ export function AIChatModal({ visible, onClose }: Props) {
     } catch { setSpeakingId(null); }
   }, [voiceStyle, speakingId]);
 
+  const handleReply = useCallback((message: Message) => {
+    if (voiceEnabled && Platform.OS !== 'web') {
+      setTimeout(() => speak(message.content, message.id), 300);
+    }
+  }, [speak, voiceEnabled]);
+
+  const { messages, sendMessage, isLoading } = useAICoach({ onReply: handleReply });
+
   const send = async (text?: string) => {
     const msg = (text ?? input).trim();
     if (!msg) return;
     setInput('');
-    const userMsg: Message = { id: Date.now().toString(), role: 'user', content: msg };
-    setMessages((prev) => [userMsg, ...prev]);
-    setLoading(true);
-
-    try {
-      const domain = process.env.EXPO_PUBLIC_DOMAIN;
-      const baseUrl = domain ? `https://${domain}` : '';
-      const res = await fetch(`${baseUrl}/api/ai/coach`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: msg,
-          context: {
-            level, rank,
-            streak: userStats.streak,
-            totalWorkouts: userStats.totalWorkouts,
-            fitnessGoal: userProfile.fitnessGoal,
-            caloriesBurned: userStats.caloriesBurned,
-          },
-        }),
-      });
-      const data = await res.json();
-      const replyId = (Date.now() + 1).toString();
-      const reply: Message = { id: replyId, role: 'assistant', content: data.reply };
-      setMessages((prev) => [reply, ...prev]);
-      if (voiceEnabled && Platform.OS !== 'web') {
-        setTimeout(() => speak(data.reply, replyId), 300);
-      }
-    } catch {
-      const fallbackId = (Date.now() + 1).toString();
-      const fallback = "Stay focused. Every rep, every set counts. What else can I help with?";
-      setMessages((prev) => [{ id: fallbackId, role: 'assistant', content: fallback }, ...prev]);
-      if (voiceEnabled && Platform.OS !== 'web') {
-        setTimeout(() => speak(fallback, fallbackId), 300);
-      }
-    } finally {
-      setLoading(false);
-    }
+    await sendMessage(msg);
   };
 
   const handleClose = () => {
     if (Platform.OS !== 'web') Speech.stop();
     setSpeakingId(null);
     onClose();
-  };
-
-  const renderMessage = ({ item }: { item: Message }) => {
-    const isUser = item.role === 'user';
-    const isSpeaking = speakingId === item.id;
-    return (
-      <View style={[styles.msgRow, isUser && styles.msgRowUser]}>
-        {!isUser && (
-          <View style={[styles.avatar, { backgroundColor: colors.primary + '20' }]}>
-            <Ionicons name="fitness" size={14} color={colors.primary} />
-          </View>
-        )}
-        <TouchableOpacity
-          activeOpacity={isUser ? 1 : 0.75}
-          onLongPress={!isUser ? () => speak(item.content, item.id) : undefined}
-          style={[
-            styles.bubble,
-            isUser
-              ? { backgroundColor: colors.primary, borderBottomRightRadius: 4 }
-              : { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, borderBottomLeftRadius: 4 },
-          ]}
-        >
-          <Text style={[styles.msgText, { color: isUser ? '#0D0D0D' : colors.foreground }]}>
-            {item.content}
-          </Text>
-          {!isUser && Platform.OS !== 'web' && (
-            <TouchableOpacity
-              onPress={() => speak(item.content, item.id)}
-              style={styles.speakBtn}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Ionicons
-                name={isSpeaking ? 'volume-high' : 'volume-medium-outline'}
-                size={13}
-                color={isSpeaking ? colors.primary : colors.mutedForeground}
-              />
-            </TouchableOpacity>
-          )}
-        </TouchableOpacity>
-      </View>
-    );
   };
 
   const currentVoice = VOICE_STYLES[voiceStyle];
@@ -192,7 +101,7 @@ export function AIChatModal({ visible, onClose }: Props) {
               <View>
                 <Text style={[styles.headerTitle, { color: colors.foreground }]}>AI Coach</Text>
                 <Text style={[styles.headerSub, { color: colors.success }]}>
-                  {loading ? 'Thinking...' : 'Online'}
+                  {isLoading ? 'Thinking...' : 'Online'}
                 </Text>
               </View>
             </View>
@@ -253,62 +162,22 @@ export function AIChatModal({ visible, onClose }: Props) {
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             keyboardVerticalOffset={0}
           >
-            <FlatList
-              ref={flatRef}
-              data={messages}
-              renderItem={renderMessage}
-              keyExtractor={(m) => m.id}
-              contentContainerStyle={styles.messageList}
-              inverted
-              initialNumToRender={12}
-              maxToRenderPerBatch={8}
-              windowSize={5}
-              removeClippedSubviews={Platform.OS !== 'web'}
-              ListHeaderComponent={loading ? (
-                <View style={[styles.typingBubble, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                  <ActivityIndicator size="small" color={colors.primary} />
-                  <Text style={[styles.typingText, { color: colors.mutedForeground }]}>Coaching...</Text>
-                </View>
-              ) : null}
+            <ChatMessageList
+              messages={messages}
+              isLoading={isLoading}
+              speakingId={speakingId}
+              colors={colors}
+              onSpeak={speak}
             />
 
-            <View style={styles.quickRow}>
-              {QUICK_PROMPTS.map((q) => (
-                <TouchableOpacity
-                  key={q}
-                  onPress={() => send(q)}
-                  style={[styles.quickChip, { backgroundColor: colors.muted, borderColor: colors.border }]}
-                >
-                  <Text style={[styles.quickText, { color: colors.mutedForeground }]} numberOfLines={1}>{q}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <View style={[styles.inputRow, { backgroundColor: colors.card, borderTopColor: colors.border, paddingBottom: insets.bottom + 8 }]}>
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.muted, color: colors.foreground }]}
-                placeholder="Ask your coach..."
-                placeholderTextColor={colors.mutedForeground}
-              selectionColor={colors.primary}
-              cursorColor={colors.primary}
-                value={input}
-                onChangeText={setInput}
-                multiline
-                maxLength={300}
-                onSubmitEditing={() => send()}
-                returnKeyType="send"
-              />
-              <TouchableOpacity
-                onPress={() => send()}
-                disabled={!input.trim() || loading}
-                style={[styles.sendBtn, { backgroundColor: input.trim() ? colors.primary : colors.muted }]}
-              >
-                {loading
-                  ? <ActivityIndicator size="small" color={colors.mutedForeground} />
-                  : <Ionicons name="send" size={16} color={input.trim() ? '#0D0D0D' : colors.mutedForeground} />
-                }
-              </TouchableOpacity>
-            </View>
+            <ChatInputBar
+              value={input}
+              isLoading={isLoading}
+              bottomInset={insets.bottom}
+              colors={colors}
+              onChange={setInput}
+              onSend={send}
+            />
           </KeyboardAvoidingView>
         </View>
       </Modal>
