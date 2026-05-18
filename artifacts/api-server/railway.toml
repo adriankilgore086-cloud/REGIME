@@ -1,8 +1,9 @@
 [build]
 builder = "nixpacks"
+buildCommand = "pnpm --filter @workspace/api-server run build"
 
 [deploy]
-startCommand = "pnpm run start"
+startCommand = "pnpm --filter @workspace/api-server run start"
 healthcheckPath = "/api/healthz"
 healthcheckTimeout = 30
 restartPolicyType = "on_failure"
