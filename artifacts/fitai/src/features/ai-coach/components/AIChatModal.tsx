@@ -13,6 +13,7 @@ import { ChatInputBar } from "@features/ai-coach/components/ChatInputBar";
 import { ChatMessageList } from "@features/ai-coach/components/ChatMessageList";
 import { useAICoach } from "@features/ai-coach/hooks/useAICoach";
 import type { Message } from "@features/ai-coach/types";
+import { usePremium } from "@shared/hooks/usePremium";
 
 export type VoiceStyle = 'coach' | 'energetic' | 'calm' | 'deep';
 
@@ -39,6 +40,7 @@ interface Props {
 export function AIChatModal({ visible, onClose }: Props) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { isPremium, showPaywall } = usePremium();
   const [input, setInput] = useState('');
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [voiceStyle, setVoiceStyle] = useState<VoiceStyle>('coach');
@@ -87,6 +89,33 @@ export function AIChatModal({ visible, onClose }: Props) {
   };
 
   const currentVoice = VOICE_STYLES[voiceStyle];
+
+  if (!isPremium && visible) {
+    return (
+      <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+        <View style={[styles.container, { backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', padding: 32 }]}>
+          <LinearGradient colors={['#8FB8FF30', '#8FB8FF10']} style={[styles.aiIcon, { width: 72, height: 72, borderRadius: 36, marginBottom: 20 }]}>
+            <Ionicons name="lock-closed" size={32} color={colors.primary} />
+          </LinearGradient>
+          <Text style={{ color: colors.text, fontSize: 22, fontWeight: '700', textAlign: 'center', marginBottom: 10 }}>
+            Premium Feature
+          </Text>
+          <Text style={{ color: colors.mutedForeground, fontSize: 15, textAlign: 'center', lineHeight: 22, marginBottom: 32 }}>
+            The AI Coach is available exclusively to Regime Premium members. Upgrade to unlock personalised coaching, workout analysis, and more.
+          </Text>
+          <TouchableOpacity
+            onPress={() => { showPaywall(); onClose(); }}
+            style={{ backgroundColor: colors.primary, borderRadius: 14, paddingVertical: 16, paddingHorizontal: 40 }}
+          >
+            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>Upgrade to Premium</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onClose} style={{ marginTop: 16 }}>
+            <Text style={{ color: colors.mutedForeground, fontSize: 14 }}>Not now</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+    );
+  }
 
   return (
     <>

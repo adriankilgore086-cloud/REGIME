@@ -1,6 +1,9 @@
 import { Router, type IRouter } from "express";
 import { CompleteWorkoutBody } from "@workspace/api-zod";
 import { validateBody } from "../middleware/validateBody";
+import type { AuthenticatedRequest } from "../middleware/auth";
+import { incrementXpScore } from "../services/leaderboard";
+import { publish } from "../services/ably";
 
 const router: IRouter = Router();
 
@@ -12,9 +15,19 @@ router.get("/history", (_req, res) => {
   res.json({ sessions: [] });
 });
 
-router.post("/complete", validateBody(CompleteWorkoutBody), (req, res) => {
+router.post("/complete", validateBody(CompleteWorkoutBody), async (req, res) => {
+  const { authUserId } = req as AuthenticatedRequest;
   const now = new Date();
-  const xpEarned = 0;
+  const xpEarned = Math.round(
+    (req.body.durationMinutes ?? 0) * 3 + (req.body.calories ?? 0) * 0.1,
+  );
+
+  await incrementXpScore(authUserId, xpEarned);
+
+  await publish("leaderboard:update", {
+    userId: authUserId,
+    xpDelta: xpEarned,
+  });
 
   res.json({
     session: {

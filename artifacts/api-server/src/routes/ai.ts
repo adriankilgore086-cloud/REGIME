@@ -1,10 +1,12 @@
 import { Router } from "express";
 import { CreateAiCoachMessageBody } from "@workspace/api-zod";
 import { validateBody } from "../middleware/validateBody";
+import { requirePremium } from "../middleware/auth";
+import { aiCoachLimiter } from "../middleware/rateLimits";
 
 const router = Router();
 
-router.post("/coach", validateBody(CreateAiCoachMessageBody), async (req, res) => {
+router.post("/coach", aiCoachLimiter, requirePremium, validateBody(CreateAiCoachMessageBody), async (req, res) => {
   const { message, context } = req.body as { message: string; context: Record<string, unknown> };
 
   if (!message) {

@@ -10,6 +10,7 @@ import gamificationRouter from "./gamification";
 import socialRouter from "./social";
 import leaderboardRouter from "./leaderboard";
 import notificationsRouter from "./notifications";
+import mediaRouter from "./media";
 import { requireUser } from "../middleware/auth";
 
 const router: IRouter = Router();
@@ -26,5 +27,6 @@ router.use("/social", socialRouter);
 router.use("/leaderboard", leaderboardRouter);
 router.use("/notifications", notificationsRouter);
 router.use("/ai", aiRouter);
+router.use("/media", mediaRouter);
 
 export default router;

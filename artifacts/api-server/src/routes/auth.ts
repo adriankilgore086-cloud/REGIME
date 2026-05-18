@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { SyncAuthUserBody } from "@workspace/api-zod";
 import { validateBody } from "../middleware/validateBody";
 import type { AuthenticatedRequest } from "../middleware/auth";
+import { authSyncLimiter } from "../middleware/rateLimits";
 
 const router: IRouter = Router();
 
@@ -22,7 +23,7 @@ const toProfile = (userId: string, patch: { username?: string; displayName?: str
   updatedAt: new Date(),
 });
 
-router.post("/sync", validateBody(SyncAuthUserBody), (req, res) => {
+router.post("/sync", authSyncLimiter, validateBody(SyncAuthUserBody), (req, res) => {
   const { authUserId } = req as AuthenticatedRequest;
   res.json(toProfile(authUserId, req.body));
 });

@@ -2,6 +2,9 @@ import { Router, type IRouter } from "express";
 import { UpdateProfileBody } from "@workspace/api-zod";
 import type { AuthenticatedRequest } from "../middleware/auth";
 import { validateBody } from "../middleware/validateBody";
+import { db } from "@workspace/db";
+import { usersTable } from "@workspace/db";
+import { eq } from "drizzle-orm";
 
 const router: IRouter = Router();
 
@@ -32,6 +35,22 @@ router.get("/", (req, res) => {
 router.patch("/", validateBody(UpdateProfileBody), (req, res) => {
   const { authUserId } = req as AuthenticatedRequest;
   res.json(profileFor(authUserId, req.body));
+});
+
+/** Admin / test endpoint — sets isPremium on a user record. */
+router.post("/premium", async (req, res) => {
+  const { authUserId } = req as AuthenticatedRequest;
+
+  try {
+    await db
+      .update(usersTable)
+      .set({ isPremium: true, updatedAt: new Date() })
+      .where(eq(usersTable.id, authUserId));
+
+    res.json({ success: true, isPremium: true });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update premium status", code: "INTERNAL_ERROR" });
+  }
 });
 
 export default router;

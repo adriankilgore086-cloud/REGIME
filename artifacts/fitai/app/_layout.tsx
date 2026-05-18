@@ -28,6 +28,12 @@ import NotificationBanner from "@shared/components/ui/NotificationBanner";
 import { initAnalytics } from "@shared/services/analytics";
 import { captureException, initCrashReporting } from "@shared/services/crashReporting";
 import { usePushNotifications } from "@shared/services/pushNotifications";
+import { connectRealtime, disconnectRealtime } from "@shared/services/realtime";
+import {
+  connectPowerSync,
+  disconnectPowerSync,
+  setConnectorTokenGetter,
+} from "@shared/services/powersync";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -75,8 +81,27 @@ function InnerLayout() {
 
   useEffect(() => {
     setAuthTokenGetter(() => getToken());
-    return () => setAuthTokenGetter(null);
+    setConnectorTokenGetter(() => getToken() as Promise<string | null>);
+    return () => {
+      setAuthTokenGetter(null);
+      setConnectorTokenGetter(async () => null);
+    };
   }, [getToken]);
+
+  useEffect(() => {
+    if (isSignedIn) {
+      connectRealtime(isSignedIn ? "user" : undefined);
+      if (Platform.OS !== "web") {
+        connectPowerSync().catch(console.warn);
+      }
+    }
+    return () => {
+      disconnectRealtime();
+      if (Platform.OS !== "web") {
+        disconnectPowerSync().catch(console.warn);
+      }
+    };
+  }, [isSignedIn]);
 
   useEffect(() => {
     const unread = notifications.filter((n) => !n.read);

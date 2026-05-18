@@ -71,7 +71,10 @@
   },
   "dependencies": {
     "@expo-google-fonts/poppins": "^0.4.1",
+    "@journeyapps/react-native-quick-sqlite": "^2.5.2",
+    "@powersync/react-native": "^1.35.0",
     "@sentry/react-native": "~7.2.0",
+    "ably": "^2.21.0",
     "expo-device": "~8.0.10",
     "expo-notifications": "~0.32.17",
     "expo-sensors": "~15.0.8",

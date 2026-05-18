@@ -7,6 +7,8 @@ import {
 } from "@workspace/api-zod";
 import { validateBody } from "../middleware/validateBody";
 import type { AuthenticatedRequest } from "../middleware/auth";
+import { publish } from "../services/ably";
+import { socialPostLimiter } from "../middleware/rateLimits";
 
 const router: IRouter = Router();
 
@@ -14,9 +16,10 @@ router.get("/feed", (_req, res) => {
   res.json({ posts: [] });
 });
 
-router.post("/posts", validateBody(CreateSocialPostBody), (req, res) => {
+router.post("/posts", socialPostLimiter, validateBody(CreateSocialPostBody), async (req, res) => {
   const { authUserId } = req as AuthenticatedRequest;
-  res.status(201).json({
+
+  const post = {
     id: `post_${Date.now()}`,
     userId: authUserId,
     userName: "Regime Athlete",
@@ -26,7 +29,11 @@ router.post("/posts", validateBody(CreateSocialPostBody), (req, res) => {
     comments: [],
     createdAt: new Date(),
     ...req.body,
-  });
+  };
+
+  await publish("social:new-post", post);
+
+  res.status(201).json(post);
 });
 
 router.delete("/posts/:id", (_req, res) => {
