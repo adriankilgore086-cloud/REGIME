@@ -8,6 +8,7 @@
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --if-present run typecheck",
     "fitai:start": "pnpm --filter @workspace/fitai exec expo start",
+    "fitai:start:offline": "pnpm --filter @workspace/fitai exec expo start --offline",
     "fitai:start:lan": "pnpm --filter @workspace/fitai exec expo start --lan",
     "fitai:start:tunnel": "pnpm --filter @workspace/fitai exec expo start --tunnel",
     "fitai:start:tunnel:clean": "pnpm --filter @workspace/fitai exec expo start --tunnel --clear",
